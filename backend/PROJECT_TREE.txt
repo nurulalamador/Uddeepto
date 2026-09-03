@@ -1,0 +1,86 @@
+express-microservices-backend-supabase-js/
+├── apps
+│   ├── api-gateway
+│   │   ├── src
+│   │   │   └── index.js
+│   │   ├── .env.example
+│   │   └── package.json
+│   ├── community-service
+│   │   ├── prisma
+│   │   │   └── schema.prisma
+│   │   ├── src
+│   │   │   ├── lib
+│   │   │   │   └── prisma.js
+│   │   │   ├── index.js
+│   │   │   └── routes.js
+│   │   ├── .env.example
+│   │   ├── package.json
+│   │   └── prisma.config.js
+│   ├── contest-service
+│   │   ├── prisma
+│   │   │   └── schema.prisma
+│   │   ├── src
+│   │   │   ├── lib
+│   │   │   │   └── prisma.js
+│   │   │   ├── index.js
+│   │   │   └── routes.js
+│   │   ├── .env.example
+│   │   ├── package.json
+│   │   └── prisma.config.js
+│   ├── course-service
+│   │   ├── prisma
+│   │   │   └── schema.prisma
+│   │   ├── src
+│   │   │   ├── lib
+│   │   │   │   └── prisma.js
+│   │   │   ├── index.js
+│   │   │   └── routes.js
+│   │   ├── .env.example
+│   │   ├── package.json
+│   │   └── prisma.config.js
+│   ├── job-service
+│   │   ├── prisma
+│   │   │   └── schema.prisma
+│   │   ├── src
+│   │   │   ├── lib
+│   │   │   │   └── prisma.js
+│   │   │   ├── index.js
+│   │   │   └── routes.js
+│   │   ├── .env.example
+│   │   ├── package.json
+│   │   └── prisma.config.js
+│   └── user-service
+│       ├── prisma
+│       │   └── schema.prisma
+│       ├── src
+│       │   ├── lib
+│       │   │   └── prisma.js
+│       │   ├── routes
+│       │   │   ├── auth.js
+│       │   │   └── users.js
+│       │   ├── scripts
+│       │   │   └── create-admin.js
+│       │   ├── auth-tokens.js
+│       │   └── index.js
+│       ├── .env.example
+│       ├── package.json
+│       └── prisma.config.js
+├── packages
+│   └── common
+│       ├── src
+│       │   ├── auth.js
+│       │   ├── errors.js
+│       │   ├── events.js
+│       │   ├── index.js
+│       │   ├── redis.js
+│       │   └── utils.js
+│       └── package.json
+├── scripts
+│   ├── check-js.mjs
+│   ├── setup-supabase.mjs
+│   └── smoke-test.mjs
+├── .env.example
+├── .gitignore
+├── package.json
+├── PROJECT_TREE.txt
+└── README.md

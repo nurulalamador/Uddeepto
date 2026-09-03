@@ -1,0 +1,29 @@
+{
+  "name": "express-microservices-backend",
+  "version": "1.1.0-js",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "check": "node scripts/check-js.mjs",
+    "prisma:generate": "npm run prisma:generate -w @scale/user-service && npm run prisma:generate -w @scale/course-service && npm run prisma:generate -w @scale/job-service && npm run prisma:generate -w @scale/contest-service && npm run prisma:generate -w @scale/community-service",
+    "db:push": "npm run db:push -w @scale/user-service && npm run db:push -w @scale/course-service && npm run db:push -w @scale/job-service && npm run db:push -w @scale/contest-service && npm run db:push -w @scale/community-service",
+    "dev": "concurrently -k -n gateway,users,courses,jobs,contests,communities \"npm run dev -w @scale/api-gateway\" \"npm run dev -w @scale/user-service\" \"npm run dev -w @scale/course-service\" \"npm run dev -w @scale/job-service\" \"npm run dev -w @scale/contest-service\" \"npm run dev -w @scale/community-service\"",
+    "smoke": "node scripts/smoke-test.mjs",
+    "start:all": "concurrently -k -n gateway,users,courses,jobs,contests,communities \"npm run start -w @scale/api-gateway\" \"npm run start -w @scale/user-service\" \"npm run start -w @scale/course-service\" \"npm run start -w @scale/job-service\" \"npm run start -w @scale/contest-service\" \"npm run start -w @scale/community-service\"",
+    "setup:supabase": "node scripts/setup-supabase.mjs && npm run prisma:generate && npm run db:push"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  },
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "dependencies": {
+    "pg": "^8.16.3"
+  },
+  "description": "Plain JavaScript Express microservices backend with Prisma and Supabase"
+}

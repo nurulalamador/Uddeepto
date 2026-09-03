@@ -1,0 +1,42 @@
+generator client {
+  provider   = "prisma-client-js"
+  output     = "../generated/client"
+  engineType = "client"
+}
+
+datasource db {
+  provider = "postgresql"
+  schemas  = ["courses"]
+}
+
+enum CourseLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+
+  @@schema("courses")
+}
+
+model Course {
+  id               String      @id @default(uuid()) @db.Uuid
+  title            String      @db.VarChar(180)
+  slug             String      @unique @db.VarChar(200)
+  shortDescription String?     @db.VarChar(500)
+  description      String      @db.Text
+  instructorId     String?     @db.Uuid
+  category         String?     @db.VarChar(100)
+  level            CourseLevel @default(BEGINNER)
+  price            Float       @default(0)
+  currency         String      @default("BDT") @db.VarChar(10)
+  thumbnailUrl     String?     @db.Text
+  durationMinutes  Int?
+  published        Boolean     @default(false)
+  createdById      String      @db.Uuid
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+
+  @@index([published, createdAt])
+  @@index([category])
+
+  @@schema("courses")
+}

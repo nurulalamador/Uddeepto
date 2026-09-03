@@ -1,0 +1,62 @@
+generator client {
+  provider   = "prisma-client-js"
+  output     = "../generated/client"
+  engineType = "client"
+}
+
+datasource db {
+  provider = "postgresql"
+  schemas  = ["users"]
+}
+
+enum UserRole {
+  USER
+  MODERATOR
+  ADMIN
+
+  @@schema("users")
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+  DELETED
+
+  @@schema("users")
+}
+
+model User {
+  id            String      @id @default(uuid()) @db.Uuid
+  email         String      @unique @db.VarChar(255)
+  username      String?     @unique @db.VarChar(60)
+  passwordHash  String      @db.VarChar(255)
+  name          String      @db.VarChar(120)
+  avatarUrl     String?     @db.Text
+  bio           String?     @db.Text
+  phone         String?     @db.VarChar(30)
+  role          UserRole    @default(USER)
+  status        UserStatus  @default(ACTIVE)
+  emailVerified Boolean     @default(false)
+  lastLoginAt   DateTime?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  refreshTokens RefreshToken[]
+
+  @@index([status, createdAt])
+
+  @@schema("users")
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid()) @db.Uuid
+  tokenHash String   @unique @db.VarChar(64)
+  userId    String   @db.Uuid
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+
+  @@schema("users")
+}

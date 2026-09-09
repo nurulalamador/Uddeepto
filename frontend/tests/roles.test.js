@@ -1,0 +1,6 @@
+import test from 'node:test';import assert from 'node:assert/strict';import{allowedSections,canAccess,timeline,safeLink}from'../lib/roles.js';
+test('hirer navigation has only the three requested sections',()=>{assert.deepEqual(allowedSections('hirer'),['dashboard','showcase','jobs']);assert.equal(canAccess('hirer','courses'),false);assert.equal(canAccess('hirer','profile'),true);});
+test('learner cannot enter admin',()=>assert.equal(canAccess('learner','admin'),false));
+test('admin has all sections',()=>assert.ok(allowedSections('admin').includes('admin')));
+test('timeline boundaries and cancelled events',()=>{const now=Date.parse('2026-09-09');assert.equal(timeline({starting_time:'2026-09-10',ending_time:'2026-09-11'},now),'upcoming');assert.equal(timeline({starting_time:'2026-09-08',ending_time:'2026-09-10'},now),'ongoing');assert.equal(timeline({starting_time:'2026-09-07',ending_time:'2026-09-08'},now),'previous');assert.equal(timeline({status:'cancelled',starting_time:'2026-09-10'},now),'previous');});
+test('external links reject script URLs',()=>{assert.equal(safeLink('javascript:alert(1)'),null);assert.equal(safeLink('data:text/html,hello'),null);assert.equal(safeLink('https://example.com'),'https://example.com/');});

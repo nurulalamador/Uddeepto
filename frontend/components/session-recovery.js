@@ -1,0 +1,3 @@
+'use client';
+import {useEffect,useState}from'react';
+export default function SessionRecovery(){const[error,setError]=useState('');useEffect(()=>{fetch('/api/auth/refresh',{method:'POST'}).then(async r=>{if(r.ok)window.location.reload();else if(r.status===401)window.location.assign('/login');else setError('The backend is currently unavailable. Start the services and retry.');}).catch(()=>setError('Unable to reconnect. Please try again.'));},[]);return <main className="recovery"><h1>Uddeepto</h1><p>{error||'Restoring your session…'}</p>{error&&<button onClick={()=>window.location.reload()}>Try again</button>}</main>;}

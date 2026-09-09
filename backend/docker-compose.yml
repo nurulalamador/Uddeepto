@@ -1,0 +1,18 @@
+services:
+  gateway:
+    build: {context: ., dockerfile: Dockerfile}
+    command: npm start -w services/gateway
+    env_file: .env
+    ports: ["4000:4000"]
+  auth: &service
+    build: {context: ., dockerfile: Dockerfile}
+    command: npm start -w services/auth
+    env_file: .env
+  users: {<<: *service, command: npm start -w services/users}
+  courses: {<<: *service, command: npm start -w services/courses}
+  community: {<<: *service, command: npm start -w services/community}
+  contests: {<<: *service, command: npm start -w services/contests}
+  webinars: {<<: *service, command: npm start -w services/webinars}
+  jobs: {<<: *service, command: npm start -w services/jobs}
+  messages: {<<: *service, command: npm start -w services/messages}
+  payments: {<<: *service, command: npm start -w services/payments}

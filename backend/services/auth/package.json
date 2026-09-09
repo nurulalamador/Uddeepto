@@ -1,0 +1,1 @@
+{"name":"@uddeepto/auth","private":true,"type":"module","scripts":{"dev":"node --watch src/server.js","start":"node src/server.js"},"dependencies":{"@uddeepto/common":"*","bcryptjs":"^3.0.2","express":"^5.1.0","zod":"^3.25.0"}}

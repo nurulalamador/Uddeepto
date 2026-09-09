@@ -1,0 +1,3 @@
+import Link from 'next/link';import {ThemeToggle} from './theme';import {currentUser} from '@/lib/server';
+export function Brand(){return <Link href="/" className="brand"><span className="brand-symbol">u<span>✦</span></span>uddeepto<span className="brand-dot">.</span></Link>;}
+export default async function PublicNav(){const user=await currentUser();return <header className="public-nav"><Brand/><nav><Link href="/about">About us</Link><ThemeToggle/>{user?<Link className="button" href="/dashboard">Go to dashboard</Link>:<><Link href="/login">Log in</Link><Link className="button" href="/signup">Get started</Link></>}</nav></header>;}

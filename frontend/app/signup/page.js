@@ -1,0 +1,2 @@
+import PublicNav from '@/components/public-nav';import AuthForm from '@/components/auth-form';
+export default function Page(){return <><PublicNav/><main className="auth-page"><aside><p className="eyebrow">BECOME WHO YOU WANT TO BE</p><h2>Stay curious.<br/>Build skills.<br/><em>Go further.</em></h2><p>A place for learners and the people who believe in their potential.</p></aside><AuthForm signup/></main></>;}

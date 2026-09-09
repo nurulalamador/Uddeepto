@@ -1,50 +1,21 @@
-import { NextResponse } from "next/server";
-import { readBackendBody } from "../../../../lib/backend";
-import { fetchBackendWithAuth, hasSessionCookie } from "../../../../lib/server-auth";
-
-const ALLOWED_ROOTS = new Set(["users", "courses", "jobs", "contests", "communities"]);
-
-async function handler(request, context) {
-  if (!(await hasSessionCookie())) {
-    return NextResponse.json({ error: { message: "Unauthenticated" } }, { status: 401 });
-  }
-
-  const { path = [] } = await context.params;
-  const [root] = path;
-
-  if (!root || !ALLOWED_ROOTS.has(root)) {
-    return NextResponse.json({ error: { message: "Backend route is not allowed" } }, { status: 404 });
-  }
-
-  const incomingUrl = new URL(request.url);
-  const backendPath = `/api/${path.join("/")}${incomingUrl.search}`;
-  const method = request.method;
-  const headers = new Headers();
-  const contentType = request.headers.get("content-type");
-  if (contentType) headers.set("content-type", contentType);
-
-  let body;
-  if (!["GET", "HEAD"].includes(method)) {
-    const raw = await request.text();
-    if (raw) body = raw;
-  }
-
+import { cookies } from 'next/headers';
+import { backend, checkOrigin } from '@/lib/server';
+const roots = new Set(['users','courses','showcase','contests','webinars','communities','jobs','messages','payments','frontend']);
+async function proxy(request,{params}) {
+  if (!['GET','HEAD'].includes(request.method) && !checkOrigin(request)) return Response.json({error:'Invalid origin'},{status:403});
+  const {path} = await params;
+  if (!roots.has(path[0]) || path.some(p=>!/^[-\w.]+$/.test(p) || p==='..')) return Response.json({error:'Not found'},{status:404});
+  const token = (await cookies()).get('ud_access')?.value;
+  if (!token) return Response.json({error:'Please sign in'},{status:401});
   try {
-    const response = await fetchBackendWithAuth(backendPath, { method, headers, body });
-    const data = await readBackendBody(response);
-
-    if (response.status === 204) {
-      return new NextResponse(null, { status: 204 });
-    }
-
-    return NextResponse.json(data || {}, { status: response.status });
-  } catch {
-    return NextResponse.json({ error: { message: "Backend is unavailable" } }, { status: 502 });
-  }
+    const body = ['GET','HEAD'].includes(request.method) ? undefined : await request.arrayBuffer();
+    if (body?.byteLength > 11*1024*1024) return Response.json({error:'File is too large'},{status:413});
+    const headers = {Authorization:`Bearer ${token}`}; if(request.headers.get('content-type')) headers['Content-Type']=request.headers.get('content-type');
+    const r = await fetch(`${backend()}/${path.map(encodeURIComponent).join('/')}${new URL(request.url).search}`,{method:request.method,headers,body,cache:'no-store',signal:AbortSignal.timeout(25000)});
+    const out = new Headers({'Cache-Control':'no-store','X-Content-Type-Options':'nosniff'});
+    for(const name of ['content-type','content-disposition']) if(r.headers.get(name))out.set(name,r.headers.get(name));
+    if(!String(r.headers.get('content-type')).includes('application/json'))out.set('Content-Disposition','attachment; filename="download"');
+    return new Response(r.status===204?null:r.body,{status:r.status,headers:out});
+  }catch{return Response.json({error:'Cannot reach the backend. Please try again.'},{status:502});}
 }
-
-export const GET = handler;
-export const POST = handler;
-export const PATCH = handler;
-export const PUT = handler;
-export const DELETE = handler;
+export {proxy as GET,proxy as POST,proxy as PUT,proxy as PATCH,proxy as DELETE};

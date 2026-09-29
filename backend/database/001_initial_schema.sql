@@ -10,7 +10,7 @@ CREATE EXTENSION IF NOT EXISTS citext;
 -- Enums
 -- -----------------------------------------------------------------------------
 
-CREATE TYPE user_role AS ENUM ('learner', 'instructor', 'hirer', 'moderator', 'admin');
+CREATE TYPE user_role AS ENUM ('learner', 'hirer', 'moderator', 'admin');
 CREATE TYPE account_status AS ENUM ('active', 'suspended', 'deactivated');
 CREATE TYPE publication_status AS ENUM ('draft', 'published', 'archived');
 CREATE TYPE enrollment_status AS ENUM ('active', 'completed', 'cancelled', 'refunded');
@@ -80,6 +80,21 @@ CREATE TABLE interest_categories (
     CONSTRAINT interest_categories_slug_format CHECK (slug::TEXT ~ '^[a-z0-9]+(?:-[a-z0-9]+)*$')
 );
 
+CREATE TABLE instructors (
+    id                UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    legacy_user_id    UUID UNIQUE REFERENCES users(id) ON DELETE SET NULL,
+    name              VARCHAR(150) NOT NULL,
+    image_blob        BYTEA,
+    image_mime_type   VARCHAR(100),
+    details           TEXT NOT NULL DEFAULT '',
+    created_at        TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at        TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT instructors_image_consistency CHECK (
+        (image_blob IS NULL AND image_mime_type IS NULL)
+        OR (image_blob IS NOT NULL AND image_mime_type IS NOT NULL)
+    )
+);
+
 CREATE TABLE user_interests (
     user_id     UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     interest_id UUID NOT NULL REFERENCES interest_categories(id) ON DELETE CASCADE,
@@ -94,6 +109,7 @@ CREATE TABLE user_interests (
 CREATE TABLE courses (
     id                    UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     creator_id            UUID NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+    instructor_id         UUID REFERENCES instructors(id) ON DELETE SET NULL,
     title                 VARCHAR(250) NOT NULL,
     slug                  CITEXT NOT NULL UNIQUE,
     description           TEXT NOT NULL,
@@ -531,6 +547,7 @@ CREATE TABLE payments (
 CREATE INDEX idx_user_interests_interest ON user_interests (interest_id, user_id);
 CREATE INDEX idx_courses_category_status ON courses (category_id, status, created_at DESC);
 CREATE INDEX idx_courses_creator ON courses (creator_id, created_at DESC);
+CREATE INDEX idx_courses_instructor ON courses (instructor_id);
 CREATE INDEX idx_course_materials_course ON course_materials (course_id, sort_order);
 CREATE INDEX idx_enrollments_user ON course_enrollments (user_id, status, enrolled_at DESC);
 CREATE INDEX idx_communities_category ON communities (category_id, created_at DESC);
@@ -570,7 +587,7 @@ DECLARE
     table_name TEXT;
 BEGIN
     FOREACH table_name IN ARRAY ARRAY[
-        'users', 'interest_categories', 'courses', 'course_materials',
+        'users', 'interest_categories', 'instructors', 'courses', 'course_materials',
         'communities', 'community_chats', 'community_chat_messages',
         'showcase_posts', 'showcase_post_comments', 'reported_showcase_posts',
         'contests', 'contest_problems', 'webinars', 'jobs', 'job_applications',

@@ -13,9 +13,11 @@ import {
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { safeLink } from "@/lib/roles";
+import { useUser } from "../shell";
 import {
   Action,
   Badge,
+  Dropdown,
   Empty,
   Heading,
   Modal,
@@ -28,6 +30,8 @@ import {
 } from "../ui";
 
 export default function Catalog({ kind }) {
+  const user = useUser();
+  const isLearner = user.role === "learner";
   const course = kind === "courses";
   const Icon = course ? BookOpen : kind === "contests" ? Trophy : Video;
   const [tab, setTab] = useState(course ? "explore" : "ongoing");
@@ -42,29 +46,31 @@ export default function Catalog({ kind }) {
 
   return (
     <>
-      <Heading
-        eyebrow={
-          course
-            ? "INVEST IN YOURSELF"
-            : kind === "contests"
-              ? "PUT YOUR SKILLS TO THE TEST"
-              : "LEARN FROM NEW PERSPECTIVES"
-        }
-        title={
-          course
-            ? "A skill for every ambition."
-            : kind === "contests"
-              ? "Ready for a challenge?"
-              : "Make time for a new idea."
-        }
-        description={
-          course
-            ? "Find your next course or pick up where you left off."
-            : kind === "contests"
-              ? "Explore challenges, join the competition and see what you can do."
-              : "Live conversations and learning experiences with the community."
-        }
-      />
+      {!isLearner && (
+        <Heading
+          eyebrow={
+            course
+              ? "INVEST IN YOURSELF"
+              : kind === "contests"
+                ? "PUT YOUR SKILLS TO THE TEST"
+                : "LEARN FROM NEW PERSPECTIVES"
+          }
+          title={
+            course
+              ? "A skill for every ambition."
+              : kind === "contests"
+                ? "Ready for a challenge?"
+                : "Make time for a new idea."
+          }
+          description={
+            course
+              ? "Find your next course or pick up where you left off."
+              : kind === "contests"
+                ? "Explore challenges, join the competition and see what you can do."
+                : "Live conversations and learning experiences with the community."
+          }
+        />
+      )}
 
       <div className="tabs">
         {(course ? ["explore", "enrolled"] : ["ongoing", "upcoming", "previous"]).map(
@@ -92,21 +98,23 @@ export default function Catalog({ kind }) {
           }}
           placeholder={`Search ${kind}…`}
         />
-        <select
+        <Dropdown
           aria-label="Filter interest"
           value={category}
-          onChange={(event) => {
-            setCategory(event.target.value);
+          onChange={(value) => {
+            setCategory(value);
             setPage(0);
           }}
-        >
-          <option value="">All interests</option>
-          {categories.data?.map((item) => (
-            <option key={item.id} value={item.id}>
-              {item.name}
-            </option>
-          ))}
-        </select>
+          options={[
+            { value: "", label: "All interests" },
+            ...(categories.data || []).map((item) => ({
+              value: String(item.id),
+              label: item.name,
+              iconName: item.icon,
+            })),
+          ]}
+          hasIcon
+        />
       </div>
 
       <State resource={resource}>
@@ -114,9 +122,10 @@ export default function Catalog({ kind }) {
           <div className="grid three">
             {resource.data.map((item, index) => (
               <article className="card catalog-card" key={item.id}>
-                <div className={`catalog-cover shade-${index % 4}`}>
+                <div className={`catalog-cover shade-${index % 4}${item.has_cover_image ? " has-image" : ""}`}>
+                  {item.has_cover_image && <img className="catalog-cover-image" src={`/api/backend/frontend/course-covers/${item.id}`} alt="" />}
                   <span>{item.category_name || "Uddeepto"}</span>
-                  <Icon size={50} strokeWidth={1.5} />
+                  {!item.has_cover_image && <Icon size={50} strokeWidth={1.5} />}
                   <span className="cover-index">{String(index + 1).padStart(2, "0")}</span>
                 </div>
                 <div className="catalog-body">
@@ -182,7 +191,7 @@ function InstructorSummary({ item, compact = false }) {
         </span>
       )}
       <div>
-        <small>Course instructor</small>
+        <small>{item.instructor_designation || "Course instructor"}</small>
         <strong>{item.instructor_name || "Instructor to be announced"}</strong>
         {!compact && item.instructor_details && <p>{item.instructor_details}</p>}
       </div>

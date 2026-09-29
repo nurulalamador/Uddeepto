@@ -193,16 +193,10 @@ export function Badge({ children }) {
   );
 }
 
-function GetInterestIcon(iconName, iconSize) {
-  if (iconName == "palette") {
-    return <Palette size={iconSize} />;
-  }
-  else if(iconName == "spline-pointer") {
-    return <Spline size={iconSize}/>
-  }
-  else {
-    return <Star size={iconSize} />;
-  }
+export function InterestIcon({ iconName, size = 18 }) {
+  if (iconName === "palette") return <Palette size={size} aria-hidden="true" />;
+  if (iconName === "spline-pointer") return <Spline size={size} aria-hidden="true" />;
+  return <Star size={size} aria-hidden="true" />;
 }
 
 export function Dropdown({
@@ -211,10 +205,16 @@ export function Dropdown({
   onChange,
   ariaLabel,
   hasIcon = false,
+  name,
+  required = false,
+  placeholder = "Choose an option",
+  disabled = false,
 }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
-  const selected = options.find((option) => option.value === value);
+  const selected = options.find(
+    (option) => String(option.value ?? "") === String(value ?? ""),
+  );
 
   useEffect(() => {
     function close(event) {
@@ -233,14 +233,19 @@ export function Dropdown({
         aria-label={ariaLabel}
         aria-haspopup="listbox"
         aria-expanded={open}
+        aria-required={required || undefined}
+        disabled={disabled}
         onClick={() => setOpen((current) => !current)}
       >
         <div className="row">
-          {hasIcon && GetInterestIcon(selected?.iconName, 18)}
-          {selected?.label}
+          {hasIcon && <InterestIcon iconName={selected?.iconName} size={18} />}
+          <span className={!selected ? "placeholder" : undefined}>
+            {selected?.label || placeholder}
+          </span>
         </div>
         <ChevronDown size={17} />
       </button>
+      {name && <input type="hidden" name={name} value={value ?? ""} />}
 
       {open && (
         <div className="floating-menu" role="listbox" aria-label={ariaLabel}>
@@ -248,17 +253,17 @@ export function Dropdown({
             <button
               type="button"
               role="option"
-              aria-selected={option.value === value}
+              aria-selected={String(option.value ?? "") === String(value ?? "")}
               className={`option ${
-                option.value === value ? "selected" : ""
+                String(option.value ?? "") === String(value ?? "") ? "selected" : ""
               }`}
-              key={option.value}
+              key={String(option.value)}
               onClick={() => {
                 onChange(option.value);
                 setOpen(false);
               }}
             >
-              {hasIcon && GetInterestIcon(option.iconName, 18)}
+              {hasIcon && <InterestIcon iconName={option.iconName} size={18} />}
               {option.label}
             </button>
           ))}

@@ -17,6 +17,7 @@ export const adminFields = {
     title: "text",
     slug: "text",
     description: "textarea",
+    cover_image: "image",
     category_id: "category",
     instructor_id: "instructor",
     price: "number",

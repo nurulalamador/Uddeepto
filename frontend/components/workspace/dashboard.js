@@ -17,15 +17,13 @@ export default function Dashboard() {
   const learner = user.role !== "hirer";
   return (
     <>
-      <Heading
-        eyebrow="LET’S MAKE TODAY COUNT"
-        title={`Hello, ${user.name?.split(" ")[0]}.`}
-        description={
-          learner
-            ? "A little learning. A little creating. A little closer to your goals."
-            : "Find the people who will help your next idea grow."
-        }
-      />
+      {!learner && (
+        <Heading
+          eyebrow="LET’S MAKE TODAY COUNT"
+          title={`Hello, ${user.name?.split(" ")[0]}.`}
+          description="Find the people who will help your next idea grow."
+        />
+      )}
       <State resource={r}>
         {r.data && (
           <>

@@ -32,7 +32,7 @@ export default function AdminSettings() {
   }
 
   return <div className="admin-settings">
-    <header className="admin-page-heading"><div><p className="eyebrow">PLATFORM CONFIGURATION</p><h1>Settings</h1><p>Control registration and publishing policy for Uddeepto.</p></div></header>
+    <header className="admin-page-heading"><div><p className="eyebrow">PLATFORM CONFIGURATION</p><h1>Settings</h1></div></header>
     {notice && <p className="notice success admin-operation-notice" role="status"><Check size={17} />{notice}<button onClick={() => setNotice("")} aria-label="Dismiss message">×</button></p>}
     {error && <p className="notice error" role="alert">{error}</p>}
     <State resource={resource}>{resource.data && <div className="admin-settings-grid">

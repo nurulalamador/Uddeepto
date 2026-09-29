@@ -9,6 +9,9 @@ import {
   Briefcase,
   Check,
   Edit3,
+  Github,
+  Globe,
+  Linkedin,
   Plus,
   Search,
   Tags,
@@ -28,7 +31,7 @@ const PAGE_SIZE = 20;
 const tables = {
   users: { title: "Users", icon: Users, noun: "user", statusField: "account_status", statuses: ["active", "suspended", "deactivated"], sorts: [["created_at", "Newest first"], ["name", "Name A to Z"], ["email", "Email A to Z"], ["role", "Role"]], columns: ["name", "email", "role", "account_status", "created_at", "last_login_at"] },
   courses: { title: "Courses", icon: BookOpen, noun: "course", statusField: "status", statuses: ["draft", "published", "archived"], publishTo: "published", publishLabel: "Publish course", sorts: [["created_at", "Newest first"], ["title", "Title A to Z"], ["price", "Price"]], columns: ["title", "instructor_name", "category_name", "price", "enrollment_count", "status", "created_at"] },
-  instructors: { title: "Instructors", icon: UserRound, noun: "instructor", sorts: [["created_at", "Newest first"], ["name", "Name A to Z"]], columns: ["name", "details", "course_count", "created_at"] },
+  instructors: { title: "Instructors", icon: UserRound, noun: "instructor", sorts: [["created_at", "Newest first"], ["name", "Name A to Z"]], columns: ["name", "designation", "details", "social_links", "course_count", "created_at"] },
   contests: { title: "Contests", icon: Trophy, noun: "contest", statusField: "status", statuses: ["draft", "published", "cancelled", "completed"], publishTo: "published", publishLabel: "Publish contest", sorts: [["created_at", "Newest first"], ["name", "Name A to Z"], ["starting_time", "Start date"]], columns: ["name", "creator_name", "category_name", "type", "entry_fee", "participant_count", "starting_time", "ending_time", "status"] },
   webinars: { title: "Webinars", icon: Video, noun: "webinar", statusField: "status", statuses: ["draft", "scheduled", "live", "completed", "cancelled"], publishTo: "scheduled", publishLabel: "Approve & schedule", sorts: [["created_at", "Newest first"], ["name", "Name A to Z"], ["starting_time", "Start date"]], columns: ["name", "creator_name", "category_name", "participant_count", "capacity", "starting_time", "ending_time", "status"] },
   jobs: { title: "Jobs", icon: Briefcase, noun: "job", statusField: "status", statuses: ["draft", "open", "closed", "filled", "cancelled"], publishTo: "open", publishLabel: "Approve & open", sorts: [["created_at", "Newest first"], ["title", "Title A to Z"], ["application_deadline", "Application deadline"]], columns: ["title", "creator_name", "category_name", "type", "location", "salary", "application_count", "application_deadline", "status"] },
@@ -38,7 +41,7 @@ const tables = {
 
 const labels = {
   name: "Name", title: "Title", email: "Email", role: "Role", account_status: "Account status", created_at: "Created", last_login_at: "Last sign-in",
-  creator_name: "Owner / host", instructor_name: "Instructor", details: "Details", course_count: "Assigned courses", category_name: "Interest", price: "Price", enrollment_count: "Enrolled", type: "Type", entry_fee: "Entry fee",
+  creator_name: "Owner / host", instructor_name: "Instructor", designation: "Designation", social_links: "Social links", details: "Details", course_count: "Assigned courses", category_name: "Interest", price: "Price", enrollment_count: "Enrolled", type: "Type", entry_fee: "Entry fee",
   participant_count: "Participants", starting_time: "Starts", ending_time: "Ends", capacity: "Capacity", location: "Location", salary: "Salary range",
   application_count: "Applications", application_deadline: "Deadline", slug: "Slug", icon: "Icon", description: "Description", is_active: "Availability",
   member_count: "Members", requires_approval: "Join approval", is_private: "Private", status: "Status",
@@ -124,7 +127,7 @@ export default function Admin({ initialTable = "users" }) {
   return (
     <div className="admin-management">
       <header className="admin-page-heading">
-        <div><p className="eyebrow">ADMINISTRATION</p><h1>{table === "users" ? "Management" : `${current.title} management`}</h1><p>Review, search and maintain platform records from one workspace.</p></div>
+        <div><p className="eyebrow">ADMINISTRATION</p><h1>{table === "users" ? "Management" : `${current.title} management`}</h1></div>
         <button className="button" onClick={() => setEditing({})}><Plus size={18} /> Add {current.noun}</button>
       </header>
 
@@ -179,6 +182,13 @@ function renderCell(column, item) {
   if (["participant_count", "enrollment_count", "member_count", "application_count", "course_count"].includes(column)) return <span className="admin-number-cell">{item[column] == null ? "0" : Number(item[column]).toLocaleString()}</span>;
   if (column === "capacity") return <span className="admin-number-cell">{item[column] == null ? "Unlimited" : Number(item[column]).toLocaleString()}</span>;
   if (column === "description" || column === "details") return <span className="admin-clipped" title={item[column] || ""}>{item[column] || "—"}</span>;
+  if (column === "designation") return <span className="admin-cell-text">{item.designation || "—"}</span>;
+  if (column === "social_links") {
+    const links = item.social_links || {};
+    const entries = [["linkedin", Linkedin], ["github", Github], ["website", Globe]].filter(([key]) => links[key]);
+    return entries.length ? <div className="admin-social-links">{entries.map(([key, Icon]) => <a key={key} href={links[key]} target="_blank" rel="noreferrer" aria-label={`${item.name} ${key}`} title={key}><Icon size={15} /></a>)}</div> : <span className="admin-cell-text">—</span>;
+  }
+  if (column === "title" && item.has_cover_image) return <div className="admin-course-title-cell"><img src={`/api/backend/frontend/course-covers/${item.id}`} alt="" /><div className="admin-primary-cell"><strong title={item.title}>{item.title}</strong><small>{item.slug || ""}</small></div></div>;
   if (column === "name" && item.has_image) return <div className="admin-instructor-cell"><img className="admin-instructor-avatar" src={`/api/backend/frontend/instructors/${item.id}/image`} alt="" /><div className="admin-primary-cell"><strong title={item.name}>{item.name}</strong><small>Instructor profile</small></div></div>;
   if (["name", "title"].includes(column)) return <div className="admin-primary-cell"><strong title={item[column]}>{item[column] || "—"}</strong><small>{item.slug || item.username || item.type?.replaceAll("_", " ") || ""}</small></div>;
   if (column === "email") return <span className="admin-email-cell">{item.email}</span>;
@@ -215,9 +225,13 @@ function UserForm({ item, onDone }) {
 function RecordForm({ table, item, onDone }) {
   const categories = useResource("users/interests");
   const [error, setError] = useState(""); const [busy, setBusy] = useState(false);
+  const [coverPreview, setCoverPreview] = useState(item.has_cover_image ? `/api/backend/frontend/course-covers/${item.id}` : "");
+  const [removeCover, setRemoveCover] = useState(false);
+  useEffect(() => () => { if (coverPreview.startsWith("blob:")) URL.revokeObjectURL(coverPreview); }, [coverPreview]);
   async function submit(event) {
     event.preventDefault(); setBusy(true); setError("");
-    const form = Object.fromEntries(new FormData(event.currentTarget));
+    const raw = new FormData(event.currentTarget);
+    const form = Object.fromEntries(raw.entries());
     for (const [field, type] of Object.entries(adminFields[table])) {
       if (type === "boolean") form[field] = form[field] === "true";
       if (type === "number") form[field] = form[field] === "" ? null : Number(form[field]);
@@ -226,7 +240,18 @@ function RecordForm({ table, item, onDone }) {
     }
     try {
       if (table === "courses" && !form.instructor_id) throw new Error("Search for an instructor and select a profile before saving this course.");
-      await api(`frontend/admin/${table}${item.id ? `/${item.id}` : ""}`, { method: item.id ? "PATCH" : "POST", body: form });
+      let body = form;
+      if (table === "courses") {
+        body = new FormData();
+        for (const [field, value] of Object.entries(form)) {
+          if (field === "cover_image") continue;
+          body.append(field, value instanceof File ? value.name : String(value ?? ""));
+        }
+        const cover = raw.get("cover_image");
+        if (!removeCover && cover instanceof File && cover.size > 0) body.append("cover_image", cover);
+        body.set("remove_cover_image", String(removeCover));
+      }
+      await api(`frontend/admin/${table}${item.id ? `/${item.id}` : ""}`, { method: item.id ? "PATCH" : "POST", body });
       onDone();
     }
     catch (saveError) { setError(saveError.message); }
@@ -237,6 +262,15 @@ function RecordForm({ table, item, onDone }) {
       let value = item[field] ?? defaultFieldValue(field);
       if (type === "datetime-local" && value) { const date = new Date(value); value = new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().slice(0, 16); }
       const label = humanize(field);
+      if (type === "image") return <div className="admin-course-cover-editor wide" key={field}>
+        <span className="admin-course-cover-label">Course cover</span>
+        {coverPreview && !removeCover ? <img src={coverPreview} alt="Course cover preview" /> : <div className="admin-course-cover-placeholder"><BookOpen size={24} /></div>}
+        <div className="admin-course-cover-actions">
+          <label className="admin-photo-upload">Choose cover<input name="cover_image" type="file" accept="image/jpeg,image/png,image/webp,image/avif" onChange={(event) => { const file = event.target.files?.[0]; if (!file) return; setRemoveCover(false); setCoverPreview(URL.createObjectURL(file)); }} /></label>
+          {item.has_cover_image && <button type="button" className="admin-remove-photo" onClick={() => setRemoveCover((value) => !value)}>{removeCover ? "Keep current cover" : "Remove cover"}</button>}
+          <small>JPEG, PNG, WebP or AVIF · up to 10 MB</small>
+        </div>
+      </div>;
       if (Array.isArray(type)) return <label key={field}>{label}<select name={field} defaultValue={value} required={requiredFields[table]?.includes(field)}>{type.map((option) => <option key={option} value={option}>{humanize(option)}</option>)}</select></label>;
       if (type === "category") return <label key={field}>{label}<select name={field} defaultValue={value} required><option value="">Select an interest</option>{categories.data?.map((category) => <option value={category.id} key={category.id}>{category.name}</option>)}</select></label>;
       if (type === "instructor") return <InstructorPicker key={field} item={item} />;
@@ -282,7 +316,7 @@ function InstructorPicker({ item }) {
     {open && <div className="admin-instructor-results" id="course-instructor-options" role="listbox">
       {resource.loading ? <p>Searching instructors…</p> : resource.error ? <p role="alert">{resource.error}</p> : resource.data?.length ? resource.data.map((instructor) => <button type="button" role="option" aria-selected={selectedId === instructor.id} className="admin-instructor-option" key={instructor.id} onMouseDown={(event) => event.preventDefault()} onClick={() => choose(instructor)}>
         {instructor.has_image ? <img className="admin-instructor-avatar" src={`/api/backend/frontend/instructors/${instructor.id}/image`} alt="" /> : <span className="admin-instructor-placeholder"><UserRound size={17} /></span>}
-        <span><strong>{instructor.name}</strong><small>{instructor.details || "Instructor"}</small></span>
+        <span><strong>{instructor.name}</strong><small>{instructor.designation || instructor.details || "Instructor"}</small></span>
       </button>) : <div className="admin-instructor-no-results"><strong>No instructors found</strong><small>Add an instructor profile in the Instructors management tab.</small></div>}
     </div>}
     <small className="admin-picker-hint">Choose one profile from the instructor list. Course ownership stays with your admin account.</small>
@@ -301,7 +335,10 @@ function InstructorForm({ item, onDone }) {
     setBusy(true);
     setError("");
     const body = new FormData(event.currentTarget);
-    body.set("remove_image", String(removeImage));
+    if (item.id) {
+      body.set("remove_image", String(removeImage));
+      if (removeImage) body.delete("image");
+    }
     try {
       if (!item.id && !(body.get("image") instanceof File && body.get("image").size > 0)) throw new Error("Choose an instructor photo before saving.");
       await api(`frontend/admin/instructors${item.id ? `/${item.id}` : ""}`, { method: item.id ? "PATCH" : "POST", body });
@@ -322,7 +359,11 @@ function InstructorForm({ item, onDone }) {
     </div>
     <div className="admin-form-grid">
       <label className="wide">Instructor name<input name="name" required minLength={2} maxLength={150} defaultValue={item.name || ""} /></label>
+      <label className="wide">Designation<input name="designation" maxLength={150} defaultValue={item.designation || ""} placeholder="Senior instructor, Product designer…" /></label>
       <label className="wide">Details<textarea name="details" rows={5} maxLength={10000} defaultValue={item.details || ""} placeholder="Experience, specialties, credentials, or a short introduction" /></label>
+      <label>LinkedIn URL<input name="linkedin_url" type="url" maxLength={500} defaultValue={item.social_links?.linkedin || ""} placeholder="https://linkedin.com/in/…" /></label>
+      <label>GitHub URL<input name="github_url" type="url" maxLength={500} defaultValue={item.social_links?.github || ""} placeholder="https://github.com/…" /></label>
+      <label className="wide">Website URL<input name="website_url" type="url" maxLength={500} defaultValue={item.social_links?.website || ""} placeholder="https://example.com" /></label>
     </div>
     {error && <p className="notice error" role="alert">{error}</p>}
     <button className="button admin-save-button" disabled={busy}>{busy ? "Saving…" : item.id ? "Save instructor" : "Add instructor"}</button>

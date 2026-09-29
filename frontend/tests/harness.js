@@ -6,7 +6,7 @@ export class ApiError extends Error{constructor(status,message){super(message);t
 export const asyncHandler=fn=>(q,s,n)=>Promise.resolve(fn(q,s,n)).catch(n);
 export function createApp(){const app=express();app.use(express.json());return app;}
 export const auth=()=>((q,_s,n)=>{q.user={sub:q.headers['x-test-user']};n();});
-export const upload={array:()=>((_q,_s,n)=>n()),single:()=>((q,_s,n)=>{if(q.headers['x-test-upload'])q.file={mimetype:q.headers['x-test-upload'],buffer:Buffer.from('test-image-bytes'),size:17};n();})};
+export const upload={array:()=>((_q,_s,n)=>n()),single:()=>((q,_s,n)=>{if(q.headers['x-test-upload'])q.file={mimetype:q.headers['x-test-upload'],buffer:Buffer.from('test-image-bytes'),size:17};n();}),fields:()=>((q,_s,n)=>{q.files={};if(q.headers['x-test-upload'])for(const field of (q.headers['x-test-upload-field']||'').split(',').filter(Boolean))q.files[field]=[{mimetype:q.headers['x-test-upload'],buffer:Buffer.from('test-image-bytes'),size:17}];n();})};
 export const allow=()=>((_q,_s,n)=>n());
 export const page=req=>({limit:Math.min(Math.max(Number(req.query.limit)||20,1),100),offset:Math.max(Number(req.query.offset)||0,0)});
 export const resourceRouter=()=>express.Router();

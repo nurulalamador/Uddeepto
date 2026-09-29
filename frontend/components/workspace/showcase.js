@@ -301,6 +301,7 @@ function PostForm({ categories, onDone }) {
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [media, setMedia] = useState([]);
+  const [category, setCategory] = useState("");
 
   function addMedia(event) {
     const files = Array.from(event.target.files || []);
@@ -331,8 +332,12 @@ function PostForm({ categories, onDone }) {
 
   async function submit(event) {
     event.preventDefault();
-    setBusy(true);
     setError("");
+    if (!category) {
+      setError("Choose an interest before publishing your post.");
+      return;
+    }
+    setBusy(true);
     try {
       const body = new FormData(event.currentTarget);
       media.forEach(({ file }) => body.append("media", file));
@@ -365,14 +370,21 @@ function PostForm({ categories, onDone }) {
         </label>
         <label>
           Interest
-          <select name="category_id" required>
-            <option value="">Choose an interest</option>
-            {categories.map((item) => (
-              <option key={item.id} value={item.id}>
-                {item.name}
-              </option>
-            ))}
-          </select>
+          <Dropdown
+            ariaLabel="Choose an interest for your post"
+            name="category_id"
+            required
+            value={category}
+            onChange={setCategory}
+            placeholder="Choose an interest"
+            options={categories.map((item) => ({
+              value: String(item.id),
+              label: item.name,
+              iconName: item.icon,
+            }))}
+            hasIcon
+            disabled={!categories.length}
+          />
         </label>
         <div className="media-field">
           <span className="field-label">Add media</span>

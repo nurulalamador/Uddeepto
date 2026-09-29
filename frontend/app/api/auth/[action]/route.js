@@ -2,7 +2,7 @@ import { cookies } from 'next/headers';
 import { backend, cookieOptions, checkOrigin, currentUser } from '@/lib/server';
 export async function GET(_request, { params }) {
   if ((await params).action !== 'me') return Response.json({error:'Not found'}, {status:404});
-  const user = await currentUser(); return Response.json({user}, {status:user ? 200 : 401});
+  const user = await currentUser({ refresh: true }); return Response.json({user}, {status:user ? 200 : 401});
 }
 export async function POST(request, { params }) {
   if (!checkOrigin(request)) return Response.json({error:'Invalid origin'}, {status:403});

@@ -40,7 +40,7 @@ export default function AdminModeration() {
   function changeView(value) { setView(value); setPage(0); setStatus(""); setSearch(""); setQuery(""); setNotice(""); }
 
   return <div className="admin-moderation">
-    <header className="admin-page-heading"><div><p className="eyebrow">SAFETY & QUALITY</p><h1>Moderation</h1><p>Review community reports and take action on reported posts.</p></div><span className="admin-live-pill"><ShieldAlert size={16} /> Moderation tools</span></header>
+    <header className="admin-page-heading"><div><p className="eyebrow">SAFETY & QUALITY</p><h1>Moderation</h1></div><span className="admin-live-pill"><ShieldAlert size={16} /> Moderation tools</span></header>
     <div className="admin-moderation-tabs" role="tablist" aria-label="Moderation records">
       <button role="tab" aria-selected={view === "reports"} className={view === "reports" ? "active" : ""} onClick={() => changeView("reports")}><Flag size={17} /> Report queue</button>
       <button role="tab" aria-selected={view === "posts"} className={view === "posts" ? "active" : ""} onClick={() => changeView("posts")}><MessageSquareText size={17} /> Community posts</button>

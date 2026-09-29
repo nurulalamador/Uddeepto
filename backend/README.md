@@ -23,8 +23,9 @@ Plain JavaScript, Express, direct PostgreSQL (`pg`) এবং Supabase-hosted Po
 2. এরপর `database/002_auth_sessions.sql` চালান।
 3. Admin platform settings চালুর জন্য `database/003_platform_settings.sql` চালান।
 4. পুরোনো database হলে `database/004_instructors.sql` চালিয়ে instructor user account-গুলোকে learner login রেখে আলাদা instructor profile-এ রূপান্তর করুন। নতুন database-এও migration চালানো নিরাপদ।
-5. Project Settings → Database → Connection string → **Transaction pooler** URI নিন। `.env.example` কপি করে `.env` বানিয়ে password/region বসান। Password-এ special character থাকলে URL encode করুন।
-6. Secret তৈরি করুন: `openssl rand -base64 48` (Windows PowerShell-এ শক্তিশালী random secret generator ব্যবহার করুন)। দুইটি আলাদা secret দিন।
+5. Profile cover, course cover এবং instructor profile-এর designation/social links যোগ করতে `database/005_profile_course_media.sql` চালান।
+6. Project Settings → Database → Connection string → **Transaction pooler** URI নিন। `.env.example` কপি করে `.env` বানিয়ে password/region বসান। Password-এ special character থাকলে URL encode করুন।
+7. Secret তৈরি করুন: `openssl rand -base64 48` (Windows PowerShell-এ শক্তিশালী random secret generator ব্যবহার করুন)। দুইটি আলাদা secret দিন।
 
 প্রথম admin account bootstrap করতে প্রথমে normal learner account তৈরি করুন, তারপর Supabase SQL Editor থেকে সেই নির্দিষ্ট account-কে promote করুন:
 

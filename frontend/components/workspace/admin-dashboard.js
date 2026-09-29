@@ -44,7 +44,7 @@ export default function AdminDashboard() {
   ] : [];
 
   return <div className="admin-dashboard">
-    <header className="admin-page-heading"><div><p className="eyebrow">ADMIN CONSOLE</p><h1>Platform overview</h1><p>Keep the learning community, opportunities and content moving well.</p></div><span className="admin-live-pill"><ShieldCheck size={16} /> Admin workspace</span></header>
+    <header className="admin-page-heading"><div><p className="eyebrow">ADMIN CONSOLE</p><h1>Platform overview</h1></div><span className="admin-live-pill"><ShieldCheck size={16} /> Admin workspace</span></header>
     <State resource={resource}>
       {stats && <>
         <section className="admin-kpi-grid" aria-label="Platform statistics">

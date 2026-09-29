@@ -11,6 +11,7 @@ export const adminFields = {
     slug: "text",
     icon: "text",
     description: "textarea",
+    submission_kind: ["text", "code", "image", "audio"],
     is_active: "boolean",
   },
   courses: {
@@ -40,7 +41,9 @@ export const adminFields = {
     name: "text",
     description: "textarea",
     category_id: "category",
+    speaker_ids: "speakers",
     meeting_url: "url",
+    recording_url: "url",
     capacity: "number",
     status: ["draft", "scheduled", "live", "completed", "cancelled"],
     starting_time: "datetime-local",

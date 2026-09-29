@@ -49,14 +49,29 @@ const icons = {
 export default function Shell({ user, children }) {
   const pathname = usePathname();
   const segments = pathname.split("/").filter(Boolean);
-  const path = segments[0];
-  const postDetail = path === "showcase" && segments.length > 1;
-  const adminPostDetail = user.role === "admin" && postDetail;
+  const path = segments[0] === "instructors" ? "courses" : segments[0];
+  const isMaterial = segments[0] === "courses" && segments[2] === "materials";
+  const detail =
+    segments.length > 1 && path === "showcase"
+      ? { back: user.role === "admin" ? "/moderation" : "/showcase", label: user.role === "admin" ? "Back to moderation" : "Back to community", title: "Community", subtitle: "Post" }
+      : isMaterial
+        ? { back: `/courses/${segments[1]}`, label: "Back to course", title: "Course material", subtitle: "Material" }
+        : segments[0] === "webinars" && segments.length > 1
+          ? { back: "/webinars", label: "Back to webinars", title: segments[1] === "previous" ? "Webinars" : "Webinar", subtitle: segments[1] === "previous" ? "Previous webinars" : "Details" }
+          : segments[0] === "contests" && segments.length > 1
+          ? { back: "/contests", label: "Back to contests", title: segments[1] === "previous" ? "Contests" : "Contest", subtitle: segments[1] === "previous" ? "Previous contests" : "Details" }
+          : segments[0] === "courses" && segments.length > 1
+          ? { back: "/courses", label: "Back to courses", title: "Course", subtitle: "Details" }
+          : segments[0] === "instructors" && segments.length > 1
+            ? { back: "/courses", label: "Back to courses", title: "Instructor", subtitle: "Profile" }
+            : null;
+  const postDetail = Boolean(detail);
+  const adminPostDetail = user.role === "admin" && path === "showcase" && postDetail;
   const [open, setOpen] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
-  const [detailSubtitle, setDetailSubtitle] = useState("Post");
+  const [detailSubtitle, setDetailSubtitle] = useState("");
   const profileRef = useRef(null);
-  const updateDetailSubtitle = useCallback((value) => setDetailSubtitle(value || "Post"), []);
+  const updateDetailSubtitle = useCallback((value) => setDetailSubtitle(value || ""), []);
   const allowed = allowedCategorizedSections(user.role);
 
   async function logout() {
@@ -124,8 +139,8 @@ export default function Shell({ user, children }) {
           <div className="main-content">
             <header className={`topbar${postDetail ? " post-detail-topbar" : ""}`}>
               {postDetail ? <>
-                <Link className="post-detail-back" href={adminPostDetail ? "/moderation" : "/showcase"} aria-label={adminPostDetail ? "Back to moderation" : "Back to community"}><ArrowLeft size={19} /></Link>
-                <div className="post-detail-topbar-title"><strong>Community</strong><small>{detailSubtitle}</small></div>
+                <Link className="post-detail-back" href={detail.back} aria-label={detail.label}><ArrowLeft size={19} /></Link>
+                <div className="post-detail-topbar-title"><strong>{detail.title}</strong><small>{detailSubtitle || detail.subtitle}</small></div>
                 <div className="row"><ThemeToggle /></div>
               </> : <>
                 <div className="row">

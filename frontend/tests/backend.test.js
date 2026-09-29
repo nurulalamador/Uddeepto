@@ -1,4 +1,4 @@
-import test from'node:test';import assert from'node:assert/strict';import{readFile}from'node:fs/promises';import{once}from'node:events';import{db,query,server}from'./harness.js';
+import test from'node:test';import assert from'node:assert/strict';import{readFile}from'node:fs/promises';import{once}from'node:events';import{db,query,server}from'./harness.js';import{mkdtempSync,existsSync,readdirSync}from'node:fs';import{tmpdir}from'node:os';import{join}from'node:path';
 test('frontend adapter: SQL and authorization integration',async t=>{
   let sql=await readFile(new URL('../../backend/database/001_initial_schema.sql',import.meta.url),'utf8');
   // Embedded PostgreSQL does not load Supabase extensions here. CITEXT is mapped
@@ -8,9 +8,15 @@ test('frontend adapter: SQL and authorization integration',async t=>{
   await db.exec(await readFile(new URL('../../backend/database/003_platform_settings.sql',import.meta.url),'utf8'));
   await db.exec(await readFile(new URL('../../backend/database/004_instructors.sql',import.meta.url),'utf8'));
   await db.exec(await readFile(new URL('../../backend/database/005_profile_course_media.sql',import.meta.url),'utf8'));
+  await db.exec(await readFile(new URL('../../backend/database/006_multiple_categories.sql',import.meta.url),'utf8'));
+  await db.exec(await readFile(new URL('../../backend/database/007_course_material_files.sql',import.meta.url),'utf8'));
+  await db.exec(await readFile(new URL('../../backend/database/008_contest_submission_kinds.sql',import.meta.url),'utf8'));
+  await db.exec(await readFile(new URL('../../backend/database/009_webinar_speakers.sql',import.meta.url),'utf8'));
+  process.env.UPLOAD_DIR=mkdtempSync(join(tmpdir(),'uddeepto-uploads-'));
   let source=await readFile(new URL('../../backend/services/frontend/src/server.js',import.meta.url),'utf8');
   source=source.replace("import bcrypt from 'bcryptjs';","const bcrypt={hash:async value=>'test-only:'+value};")
     .replace("'@uddeepto/common'",JSON.stringify(new URL('./harness.js',import.meta.url).href))
+    .replace("'node:url'","'node:url'")
     .replace("'express'",JSON.stringify(import.meta.resolve('express')))
     .replace("'zod'",JSON.stringify(import.meta.resolve('zod')));
   await import('data:text/javascript;base64,'+Buffer.from(source).toString('base64'));await once(server,'listening');
@@ -27,6 +33,7 @@ test('frontend adapter: SQL and authorization integration',async t=>{
     await t.test('admin creates searchable instructor profiles with a photo and social links',async()=>{assert.equal((await request('/admin/instructors',{method:'POST',body:{name:'Nurul Alam Ador',details:'Frontend engineering and product design'}})).status,403);instructor=await ok('/admin/instructors',{as:'Admin',method:'POST',headers:{'x-test-upload':'image/png'},body:{name:'Nurul Alam Ador',designation:'Senior instructor',details:'Frontend engineering and product design',linkedin_url:'https://linkedin.com/in/nurul',remove_image:'false'}});assert.equal(instructor.name,'Nurul Alam Ador');assert.equal(instructor.designation,'Senior instructor');assert.equal(instructor.social_links.linkedin,'https://linkedin.com/in/nurul');assert.equal(instructor.has_image,true);const matches=await ok('/admin/instructors?q=Nurul',{as:'Admin'});assert.equal(matches.length,1);assert.equal(Number(matches[0].course_count),0);assert.equal(matches[0].image_blob,undefined);const image=await fetch(`${base}/instructors/${instructor.id}/image`,{headers:{'x-test-user':ids.Admin}});assert.equal(image.status,200);assert.match(image.headers.get('content-type'),/image\/png/);assert.ok((await image.arrayBuffer()).byteLength>0);});
     let course;
     await t.test('admin creates and publishes courses with an instructor and cover; public catalog filters draft',async()=>{assert.equal((await request('/admin/courses',{as:'Admin',method:'POST',body:{title:'Missing instructor',slug:'missing-instructor',description:'Must fail',category_id:category,price:0,status:'draft'}})).status,422);course=(await ok('/admin/courses',{as:'Admin',method:'POST',headers:{'x-test-upload':'image/webp'},body:{title:'Practical JS',slug:'practical-js',description:'Learn JavaScript',category_id:category,instructor_id:instructor.id,price:0,currency:'BDT',status:'published'}})).id;await ok('/admin/courses',{as:'Admin',method:'POST',body:{title:'Draft',slug:'draft',description:'Hidden',category_id:category,instructor_id:instructor.id,price:0,status:'draft'}});const list=await ok('/catalog/courses?tab=explore');assert.equal(list.length,1);assert.equal(list[0].id,course);assert.equal(list[0].instructor_id,instructor.id);assert.equal(list[0].instructor_name,'Nurul Alam Ador');assert.equal(list[0].instructor_details,'Frontend engineering and product design');assert.equal(list[0].instructor_designation,'Senior instructor');assert.equal(list[0].has_cover_image,true);const cover=await fetch(`${base}/course-covers/${course}`,{headers:{'x-test-user':ids.Learner}});assert.equal(cover.status,200);assert.match(cover.headers.get('content-type'),/image\/webp/);});
+    await t.test('admin assigns several categories to a course and edits them',async()=>{const second=(await query("INSERT INTO interest_categories(name,slug,icon) VALUES('Design Basics','design-basics','palette') RETURNING id")).rows[0].id;assert.equal((await request('/admin/webinars',{as:'Admin',method:'POST',body:{name:'No category',description:'x',starting_time:new Date(Date.now()+864e5).toISOString(),ending_time:new Date(Date.now()+9e7).toISOString(),category_ids:[],speaker_ids:[instructor.id]}})).status,422);const w=(await ok('/admin/webinars',{as:'Admin',method:'POST',body:{name:'Multi',description:'Many interests',status:'scheduled',starting_time:new Date(Date.now()+864e5).toISOString(),ending_time:new Date(Date.now()+9e7).toISOString(),category_ids:[category,second],speaker_ids:[instructor.id]}})).id;let row=(await ok('/admin/webinars?q=Design',{as:'Admin'})).find(item=>item.id===w);assert.equal(row.category_ids.length,2);assert.match(row.category_name,/Design Basics/);assert.equal((await ok(`/catalog/webinars?category=${second}`)).some(item=>item.id===w),true);await ok(`/admin/webinars/${w}`,{as:'Admin',method:'PATCH',body:{category_ids:[second]}});row=(await ok('/admin/webinars',{as:'Admin'})).find(item=>item.id===w);assert.deepEqual(row.category_ids,[second]);assert.equal((await ok(`/catalog/webinars?category=${category}`)).some(item=>item.id===w),false);await request(`/admin/webinars/${w}`,{as:'Admin',method:'DELETE'});await query('DELETE FROM interest_categories WHERE id=$1',[second]);});
     await t.test('every account can update its profile picture and cover image',async()=>{await ok('/profile',{as:'Learner',method:'PATCH',headers:{'x-test-upload':'image/png','x-test-upload-field':'picture,cover_image'},body:{name:'Learner',username:'Learner',bio:'Updated profile',interest_ids:[],remove_picture:'false',remove_cover_image:'false'}});const profile=await ok(`/profile/${ids.Learner}`);assert.equal(profile.has_picture,true);assert.equal(profile.has_cover_image,true);const picture=await fetch(`${base}/profile/${ids.Learner}/picture`,{headers:{'x-test-user':ids.Learner}});assert.equal(picture.status,200);const cover=await fetch(`${base}/profile/${ids.Learner}/cover`,{headers:{'x-test-user':ids.Learner}});assert.equal(cover.status,200);});
     await t.test('admin control center, filtered tables, user creation and settings',async()=>{assert.equal((await request('/admin/overview')).status,403);const overview=await ok('/admin/overview',{as:'Admin'});assert.equal(Number(overview.stats.total_users),4);assert.equal(Number(overview.stats.courses),2);const drafts=await ok('/admin/courses?status=draft&q=Draft',{as:'Admin'});assert.equal(drafts.length,1);assert.equal(drafts[0].creator_name,'Admin');const users=await ok('/admin/users?q=Admin',{as:'Admin'});assert.equal(users.length,1);assert.equal(users[0].email,'Admin@example.com');assert.equal((await request(`/admin/users/${ids.Other}`,{as:'Admin',method:'PATCH',body:{role:'instructor'}})).status,422);assert.deepEqual(await ok('/admin/settings',{as:'Admin'}),{registration_open:true,content_review_required:true});await ok('/admin/settings',{as:'Admin',method:'PATCH',body:{registration_open:false,content_review_required:false}});assert.deepEqual(await ok('/admin/settings',{as:'Admin'}),{registration_open:false,content_review_required:false});const created=await ok('/admin/users',{as:'Admin',method:'POST',body:{name:'New Hirer',email:'new-hirer@example.com',username:'new_hirer',password:'secure-password',role:'hirer'}});assert.equal(created.role,'hirer');assert.equal((await query('SELECT password_hash FROM users WHERE id=$1',[created.id])).rows[0].password_hash,'test-only:secure-password');});
     await t.test('paid course text never appears in material metadata; completion requires enrollment',async()=>{const m=await ok(`/manage/courses/${course}/materials`,{as:'Admin',method:'POST',body:{name:'First lesson',content_text:'Protected lesson',is_preview:false}});const d=await ok(`/detail/courses/${course}`);assert.equal(d.materials[0].content_text,undefined);assert.equal((await request(`/courses/${course}/complete/${m.id}`,{method:'PUT'})).status,403);await query('INSERT INTO course_enrollments(course_id,user_id) VALUES($1,$2)',[course,ids.Learner]);await ok(`/courses/${course}/complete/${m.id}`,{method:'PUT'});assert.equal((await query('SELECT status FROM course_enrollments WHERE course_id=$1',[course])).rows[0].status,'completed');});
@@ -38,6 +45,121 @@ test('frontend adapter: SQL and authorization integration',async t=>{
     await t.test('job applications are visible only to owner/admin',async()=>{const job=(await query("INSERT INTO jobs(creator_id,title,description,type,status) VALUES($1,'Developer','Build things','permanent','open') RETURNING id",[ids.Hirer])).rows[0].id;await query('INSERT INTO job_applications(job_id,applicant_id,cover_letter) VALUES($1,$2,$3)',[job,ids.Learner,'Interested']);assert.equal((await request(`/jobs/${job}/applications`)).status,403);assert.equal((await ok(`/jobs/${job}/applications`,{as:'Hirer'})).length,1);await ok(`/jobs/${job}/applications/${ids.Learner}`,{as:'Hirer',method:'PATCH',body:{status:'shortlisted'}});assert.equal((await ok('/jobs?tab=applied'))[0].application_status,'shortlisted');});
     await t.test('webinar capacity enforced and meeting URL private before registration',async()=>{const w=(await query("INSERT INTO webinars(creator_id,name,description,category_id,status,starting_time,ending_time,capacity,meeting_url) VALUES($1,'Live session','Learn together',$2,'scheduled',now()+interval '1 day',now()+interval '2 days',1,'https://example.com/meeting') RETURNING id",[ids.Admin,category])).rows[0].id;assert.equal((await ok(`/detail/webinars/${w}`)).meeting_url,null);await ok(`/webinars/${w}/join`,{method:'POST'});assert.equal((await ok(`/detail/webinars/${w}`)).meeting_url,'https://example.com/meeting');assert.equal((await request(`/webinars/${w}/join`,{as:'Other',method:'POST'})).status,409);assert.equal((await ok('/catalog/webinars?tab=upcoming')).length,1);});
     await t.test('contest entry, submission, admin judging and leaderboard',async()=>{const c=(await query("INSERT INTO contests(creator_id,name,description,category_id,status,starting_time,ending_time) VALUES($1,'Challenge','Try your skills',$2,'published',now()-interval '1 hour',now()+interval '1 hour') RETURNING id",[ids.Admin,category])).rows[0].id;const p=await ok(`/manage/contests/${c}/problems`,{as:'Admin',method:'POST',body:{name:'First problem',description:'Explain your approach',points:100}});await ok(`/contests/${c}/join`,{method:'POST'});const s=await ok(`/contests/${c}/submit`,{method:'POST',body:{problem_id:p.id,content:'My solution'}});await ok(`/manage/submissions/${s.id}`,{as:'Admin',method:'PATCH',body:{score:75,status:'accepted'}});assert.equal(Number((await ok(`/detail/contests/${c}`)).leaderboard[0].points),75);assert.equal((await ok('/catalog/contests?tab=ongoing')).length,1);});
+    await t.test('course materials: uploads stay out of the database, access follows enrollment, progress and recommendations update',async()=>{
+      const own=(await query("INSERT INTO instructors(name,designation,details,social_links) VALUES('Second Instructor','Lead Engineer','Ten years of teaching.','{\"website\":\"https://example.com\"}') RETURNING id")).rows[0].id;
+      const c=(await query("INSERT INTO courses(creator_id,instructor_id,title,slug,description,category_id,status,published_at) VALUES($1,$2,'Video Course','video-course','Learn by watching',$3,'published',now()) RETURNING id",[ids.Admin,own,category])).rows[0].id;
+      await query("INSERT INTO course_categories(course_id,category_id) VALUES($1,$2)",[c,category]);
+      await query('INSERT INTO user_interests(user_id,interest_id) VALUES($1,$2) ON CONFLICT DO NOTHING',[ids.Learner,category]);
+      const text=await ok(`/manage/courses/${c}/materials`,{as:'Admin',method:'POST',body:{name:'Welcome',content_text:'Hello there',is_preview:true}});
+      assert.equal((await request(`/manage/courses/${c}/materials`,{as:'Admin',method:'POST',body:{name:'No file',type:'video'}})).status,422);
+      assert.equal((await request(`/manage/courses/${c}/materials`,{as:'Admin',method:'POST',headers:{'x-test-material':'application/pdf','x-test-filename':'notvideo.pdf'},body:{name:'Wrong type',type:'video'}})).status,422);
+      assert.equal((await request(`/manage/courses/${c}/materials`,{as:'Admin',method:'POST',headers:{'x-test-material':'application/x-msdownload','x-test-filename':'run.exe'},body:{name:'Bad',type:'other'}})).status,422);
+      assert.equal(readdirSync(join(process.env.UPLOAD_DIR,'course-materials',c)).length,0,'rejected uploads must be removed from disk');
+      assert.equal((await request(`/manage/courses/${c}/materials`,{method:'POST',headers:{'x-test-material':'video/mp4','x-test-filename':'l.mp4'},body:{name:'Sneaky',type:'video'}})).status,403);
+      const video=await ok(`/manage/courses/${c}/materials`,{as:'Admin',method:'POST',headers:{'x-test-material':'video/mp4','x-test-filename':'lecture.mp4'},body:{name:'Lecture 1',type:'video'}});
+      const doc=await ok(`/manage/courses/${c}/materials`,{as:'Admin',method:'POST',headers:{'x-test-material':'application/pdf','x-test-filename':'notes.pdf'},body:{name:'Notes',type:'document',description:'Slides'}});
+      const stored=(await query('SELECT file_url,file_name,file_size,mime_type,content_blob FROM course_materials WHERE id=$1',[video.id])).rows[0];
+      assert.match(stored.file_url,/^\/uploads\/course-materials\/.+\.mp4$/);assert.equal(stored.content_blob,null);assert.equal(stored.file_name,'lecture.mp4');
+      const fileUrl=(m)=>`${base}/courses/${c}/materials/${m}/file`;
+      const get=(url,as='Learner',headers={})=>fetch(url,{headers:{'x-test-user':ids[as],...headers}});
+      assert.equal((await get(fileUrl(video.id))).status,403);
+      const overview=await ok(`/courses/${c}`);
+      assert.equal(overview.enrolled,false);assert.equal(overview.progress_total,3);assert.equal(overview.progress_done,0);assert.equal(overview.instructor_name,'Second Instructor');assert.equal(overview.category_details[0].name,'Web Development');
+      assert.equal((await ok('/catalog/courses?tab=recommended')).some(item=>item.id===c),true);
+      const byMaterials=await ok('/catalog/courses?sort=materials&direction=desc');assert.equal(byMaterials[0].id,c);const byMaterialsAsc=await ok('/catalog/courses?sort=materials&direction=asc');assert.notEqual(byMaterialsAsc[0].id,c);assert.equal((await request('/catalog/courses?sort=price;drop')).status,200);
+      assert.equal((await ok(`/courses/${c}/materials/${text.id}/content`)).content_text,'Hello there');
+      await query('INSERT INTO course_enrollments(course_id,user_id) VALUES($1,$2)',[c,ids.Learner]);
+      assert.equal((await ok('/catalog/courses?tab=recommended')).some(item=>item.id===c),false);
+      const range=await get(fileUrl(video.id),'Learner',{Range:'bytes=0-3'});
+      assert.equal(range.status,206);assert.equal((await range.text()),'0123');assert.match(range.headers.get('content-type'),/video\/mp4/);
+      await get(fileUrl(video.id),'Learner',{Range:'bytes=8-9'});
+      const download=await get(fileUrl(doc.id)+'?download=1');
+      assert.equal(download.status,200);assert.match(download.headers.get('content-disposition'),/^attachment/);
+      let mine=(await ok('/catalog/courses?tab=enrolled')).find(item=>item.id===c);
+      assert.equal(Number(mine.progress_total),3);assert.equal(Number(mine.progress_done),2);
+      await ok(`/courses/${c}/materials/${text.id}/content`);
+      const done=await ok(`/courses/${c}`);assert.equal(done.progress_done,3);assert.equal((await query('SELECT status FROM course_enrollments WHERE course_id=$1 AND user_id=$2',[c,ids.Learner])).rows[0].status,'completed');
+      assert.equal((await request(`/courses/${c}`,{as:'Hirer'})).status,403);
+      const instructorPage=await ok(`/instructors/${own}`);assert.equal(instructorPage.courses.length,1);assert.equal(instructorPage.social_links.website,'https://example.com');
+      await ok(`/manage/courses/${c}/materials/${video.id}`,{as:'Admin',method:'DELETE'});
+      assert.equal(existsSync(join(process.env.UPLOAD_DIR,stored.file_url.replace(/^\/uploads\//,''))),false);
+      await ok(`/admin/courses/${c}`,{as:'Admin',method:'DELETE'});
+      assert.equal(readdirSync(join(process.env.UPLOAD_DIR,'course-materials',c)).length,0);
+    });
+    await t.test('contest pages: phases, participants and submission visibility',async()=>{
+      const mk=async(name,start,end,status='published')=>(await query("INSERT INTO contests(creator_id,name,description,category_id,status,starting_time,ending_time,max_participants) VALUES($1,$2,'Desc',$3,$4,now()+$5::interval,now()+$6::interval,10) RETURNING id",[ids.Admin,name,category,status,start,end])).rows[0].id;
+      await query("UPDATE interest_categories SET submission_kind='code' WHERE id=$1",[category]);
+      const live=await mk('Live one','-1 hour','2 hours'),soon=await mk('Soon one','2 days','3 days'),done=await mk('Done one','-3 days','-2 days','completed');
+      await query("INSERT INTO contest_categories(contest_id,category_id) VALUES($1,$2),($3,$2),($4,$2) ON CONFLICT DO NOTHING",[live,category,soon,done]);
+      const p=(await query("INSERT INTO contest_problems(creator_id,contest_id,name,description,points,sort_order) VALUES($1,$2,'Only problem','Solve it',100,0) RETURNING id",[ids.Admin,live])).rows[0].id;
+      await query("INSERT INTO contest_participants(contest_id,participant_id,payment_status,points,rank) VALUES($1,$2,'paid',50,NULL),($1,$3,'paid',80,NULL),($4,$2,'paid',90,1),($4,$3,'paid',60,2)",[live,ids.Learner,ids.Other,done]);
+      await query("INSERT INTO contest_submissions(contest_id,problem_id,participant_id,content,language,status,score) VALUES($1,$2,$3,'other code','python','accepted',80)",[live,p,ids.Other]);
+      const ongoingList=await ok('/catalog/contests?tab=ongoing');assert.equal(ongoingList.some(item=>item.id===live),true);assert.equal(ongoingList.some(item=>item.id===soon||item.id===done),false);
+      const liveCard=ongoingList.find(item=>item.id===live);assert.equal(Number(liveCard.participant_count),2);assert.equal(liveCard.joined,true);assert.equal(liveCard.max_participants,10);assert.ok(liveCard.category_details.length>=1);
+      assert.equal((await ok('/catalog/contests?tab=upcoming')).some(item=>item.id===soon),true);
+      assert.equal((await ok('/catalog/contests?tab=previous')).some(item=>item.id===done),true);
+      const detail=await ok(`/contests/${live}`);assert.equal(detail.phase,'ongoing');assert.equal(detail.joined,true);assert.equal(detail.problems.length,1);assert.equal(detail.my_submissions.length,0);
+      const upcoming=await ok(`/contests/${soon}`);assert.equal(upcoming.phase,'upcoming');assert.equal(upcoming.problems.length,0);assert.equal(upcoming.joined,false);
+      assert.equal((await ok(`/contests/${done}`)).phase,'previous');
+      assert.equal((await request(`/contests/${live}`,{as:'Hirer'})).status,403);
+      const people=await ok(`/contests/${live}/participants`);assert.equal(people.length,2);assert.equal(people[0].id,ids.Other);assert.equal(Number(people[0].rank),1);assert.equal(Number(people[0].submission_count),1);
+      const results=await ok(`/contests/${done}/participants`);assert.deepEqual(results.map(row=>Number(row.rank)),[1,2]);
+      const theirs=await ok(`/contests/${live}/participants/${ids.Other}/submissions`);assert.equal(theirs[0].content,'other code');assert.equal(theirs[0].problem_name,'Only problem');
+      assert.equal((await request(`/contests/${live}/participants/${ids.Hirer}/submissions`)).status,404);
+      assert.equal((await request(`/contests/${live}/submit`,{method:'POST',body:{content:'no problem chosen'}})).status,422);
+      assert.equal(detail.submission_kind,'code');
+      await ok(`/contests/${live}/submit`,{method:'POST',body:{problem_id:p,content:'mine',language:'Python'}});
+      assert.equal((await ok(`/contests/${live}`)).my_submissions[0].language,'Python');
+      const soonPeople=await ok(`/contests/${soon}/participants`);assert.equal(soonPeople.length,0);
+      assert.equal((await request(`/contests/${soon}/participants/${ids.Other}/submissions`)).status,403);
+      // audio contest: no problems, file upload instead of text
+      const music=(await query("INSERT INTO interest_categories(name,slug,icon,submission_kind) VALUES('Music','music','star','audio') RETURNING id")).rows[0].id;
+      const sing=await mk('Sing off','-1 hour','2 hours');
+      await query('UPDATE contests SET category_id=$2 WHERE id=$1',[sing,music]);
+      await query("INSERT INTO contest_categories(contest_id,category_id) VALUES($1,$2)",[sing,music]);
+      await query("INSERT INTO contest_participants(contest_id,participant_id,payment_status) VALUES($1,$2,'paid')",[sing,ids.Learner]);
+      const singDetail=await ok(`/contests/${sing}`);assert.equal(singDetail.submission_kind,'audio');assert.equal(singDetail.problems.length,0);
+      assert.equal((await request(`/contests/${sing}/submit`,{method:'POST',body:{content:'text is not accepted'}})).status,422);
+      assert.equal((await request(`/contests/${sing}/submit`,{method:'POST',headers:{'x-test-submission':'image/png','x-test-filename':'pic.png'},body:{}})).status,422);
+      assert.equal(readdirSync(join(process.env.UPLOAD_DIR,'contest-submissions',sing)).length,0,'rejected files must be removed');
+      const entry=await ok(`/contests/${sing}/submit`,{method:'POST',headers:{'x-test-submission':'audio/mpeg','x-test-filename':'song.mp3'},body:{content:'My song'}});
+      const row=(await query('SELECT file_url,file_name,mime_type,content,problem_id,language FROM contest_submissions WHERE id=$1',[entry.id])).rows[0];
+      assert.match(row.file_url,/^\/uploads\/contest-submissions\/.+\.mp3$/);assert.equal(row.problem_id,null);assert.equal(row.language,null);
+      const mine=(await ok(`/contests/${sing}`)).my_submissions[0];assert.equal(mine.has_file,true);assert.equal(mine.mime_type,'audio/mpeg');
+      const audio=await fetch(`${base}/contests/${sing}/submissions/${entry.id}/file`,{headers:{'x-test-user':ids.Other}});assert.equal(audio.status,200);assert.equal(audio.headers.get('content-type'),'audio/mpeg');
+      assert.equal((await request(`/contests/${sing}/submissions/${entry.id}/file`,{as:'Hirer'})).status,403);
+      const removedFiles=await query('SELECT file_url FROM contest_submissions WHERE contest_id=$1',[sing]);
+      await ok(`/admin/contests/${sing}`,{as:'Admin',method:'DELETE'});
+      assert.equal(existsSync(join(process.env.UPLOAD_DIR,removedFiles.rows[0].file_url.replace(/^\/uploads\//,''))),false,'files are deleted with the contest');
+      await query('DELETE FROM interest_categories WHERE id=$1',[music]);
+      await query('DELETE FROM contests WHERE id=ANY($1::uuid[])',[[live,soon,done]]);
+    });
+    await t.test('webinars: speakers, phases, meeting link and recording visibility',async()=>{
+      const mk=async(name,start,end,status='scheduled')=>{const at=(offset)=>new Date(Date.now()+offset).toISOString();return(await ok('/admin/webinars',{as:'Admin',method:'POST',body:{name,description:'About it',status,meeting_url:'https://example.com/meet',capacity:5,starting_time:at(start),ending_time:at(end),category_ids:[category],speaker_ids:[instructor.id]}})).id;};
+      const HOUR=36e5;
+      assert.equal((await request('/admin/webinars',{as:'Admin',method:'POST',body:{name:'No speakers',description:'x',category_ids:[category],starting_time:new Date(Date.now()+HOUR).toISOString(),ending_time:new Date(Date.now()+2*HOUR).toISOString()}})).status,422);
+      assert.equal((await request('/admin/webinars',{as:'Admin',method:'POST',body:{name:'Empty speakers',description:'x',category_ids:[category],speaker_ids:[],starting_time:new Date(Date.now()+HOUR).toISOString(),ending_time:new Date(Date.now()+2*HOUR).toISOString()}})).status,422);
+      const second=(await query("INSERT INTO instructors(name,designation) VALUES('Speaker Two','Designer') RETURNING id")).rows[0].id;
+      const live=await mk('Live talk',-HOUR,HOUR),soon=await mk('Soon talk',48*HOUR,49*HOUR),done=await mk('Past talk',-48*HOUR,-47*HOUR,'completed');
+      await ok(`/admin/webinars/${live}`,{as:'Admin',method:'PATCH',body:{speaker_ids:[instructor.id,second]}});
+      assert.equal((await request(`/admin/webinars/${live}`,{as:'Admin',method:'PATCH',body:{speaker_ids:[]}})).status,422);
+      const adminRow=(await ok('/admin/webinars?q=Speaker Two',{as:'Admin'})).find(item=>item.id===live);assert.deepEqual(adminRow.speakers.map(x=>x.id),[instructor.id,second]);assert.match(adminRow.speaker_names,/Speaker Two/);
+      await ok(`/admin/webinars/${done}`,{as:'Admin',method:'PATCH',body:{recording_url:'https://example.com/recording'}});
+      const ongoing=await ok('/catalog/webinars?tab=ongoing');const liveCard=ongoing.find(item=>item.id===live);assert.ok(liveCard);assert.equal(liveCard.speakers.length,2);assert.equal(liveCard.joined,false);assert.equal(Number(liveCard.participant_count),0);assert.equal(liveCard.capacity,5);
+      assert.equal(ongoing.some(item=>item.id===soon||item.id===done),false);
+      assert.equal((await ok('/catalog/webinars?tab=upcoming')).some(item=>item.id===soon),true);
+      assert.equal((await ok('/catalog/webinars?tab=previous')).some(item=>item.id===done),true);
+      let detail=await ok(`/webinars/${live}`);assert.equal(detail.phase,'ongoing');assert.equal(detail.meeting_url,null);assert.equal(detail.joined,false);assert.equal(detail.speakers[1].name,'Speaker Two');
+      await ok(`/webinars/${live}/join`,{method:'POST'});
+      detail=await ok(`/webinars/${live}`);assert.equal(detail.joined,true);assert.equal(detail.meeting_url,'https://example.com/meet');assert.equal(Number(detail.participant_count),1);
+      assert.equal((await ok('/catalog/webinars?tab=ongoing')).find(item=>item.id===live).joined,true);
+      const past=await ok(`/webinars/${done}`);assert.equal(past.phase,'previous');assert.equal(past.recording_url,'https://example.com/recording');assert.equal(past.meeting_url,null);
+      assert.equal((await ok(`/webinars/${soon}`)).recording_url,null);
+      assert.equal((await request(`/webinars/${live}`,{as:'Hirer'})).status,403);
+      await query('DELETE FROM instructors WHERE id=$1',[second]);
+      assert.equal((await ok(`/webinars/${live}`)).speakers.length,1);
+      await query('DELETE FROM webinars WHERE id=ANY($1::uuid[])',[[live,soon,done]]);
+    });
     await t.test('deleting an instructor removes only the profile and unassigns courses',async()=>{const removed=await ok(`/admin/instructors/${instructor.id}`,{as:'Admin',method:'DELETE'});assert.equal(removed.unassigned_courses,2);const assigned=await query('SELECT instructor_id FROM courses WHERE id=$1',[course]);assert.equal(assigned.rows[0].instructor_id,null);});
     await t.test('admin cannot disable own account; suspended user is denied',async()=>{assert.equal((await request('/admin/users/'+ids.Admin,{as:'Admin',method:'PATCH',body:{account_status:'suspended'}})).status,409);await query("UPDATE users SET account_status='suspended' WHERE id=$1",[ids.Other]);assert.equal((await request('/dashboard',{as:'Other'})).status,401);});
   }finally{await new Promise(resolve=>server.close(resolve));await db.close();}

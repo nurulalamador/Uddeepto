@@ -25,7 +25,7 @@ import {
 import { api } from "@/lib/api";
 import { adminFields } from "@/lib/admin-fields";
 import AdminContent from "./admin-content";
-import { Action, Badge, Empty, Modal, SearchBox, State, useResource } from "../ui";
+import { Action, Badge, CategoryPicker, Empty, Modal, SearchBox, State, useResource } from "../ui";
 
 const PAGE_SIZE = 20;
 const tables = {
@@ -33,7 +33,7 @@ const tables = {
   courses: { title: "Courses", icon: BookOpen, noun: "course", statusField: "status", statuses: ["draft", "published", "archived"], publishTo: "published", publishLabel: "Publish course", sorts: [["created_at", "Newest first"], ["title", "Title A to Z"], ["price", "Price"]], columns: ["title", "instructor_name", "category_name", "price", "enrollment_count", "status", "created_at"] },
   instructors: { title: "Instructors", icon: UserRound, noun: "instructor", sorts: [["created_at", "Newest first"], ["name", "Name A to Z"]], columns: ["name", "designation", "details", "social_links", "course_count", "created_at"] },
   contests: { title: "Contests", icon: Trophy, noun: "contest", statusField: "status", statuses: ["draft", "published", "cancelled", "completed"], publishTo: "published", publishLabel: "Publish contest", sorts: [["created_at", "Newest first"], ["name", "Name A to Z"], ["starting_time", "Start date"]], columns: ["name", "creator_name", "category_name", "type", "entry_fee", "participant_count", "starting_time", "ending_time", "status"] },
-  webinars: { title: "Webinars", icon: Video, noun: "webinar", statusField: "status", statuses: ["draft", "scheduled", "live", "completed", "cancelled"], publishTo: "scheduled", publishLabel: "Approve & schedule", sorts: [["created_at", "Newest first"], ["name", "Name A to Z"], ["starting_time", "Start date"]], columns: ["name", "creator_name", "category_name", "participant_count", "capacity", "starting_time", "ending_time", "status"] },
+  webinars: { title: "Webinars", icon: Video, noun: "webinar", statusField: "status", statuses: ["draft", "scheduled", "live", "completed", "cancelled"], publishTo: "scheduled", publishLabel: "Approve & schedule", sorts: [["created_at", "Newest first"], ["name", "Name A to Z"], ["starting_time", "Start date"]], columns: ["name", "speaker_names", "category_name", "participant_count", "capacity", "starting_time", "ending_time", "status"] },
   jobs: { title: "Jobs", icon: Briefcase, noun: "job", statusField: "status", statuses: ["draft", "open", "closed", "filled", "cancelled"], publishTo: "open", publishLabel: "Approve & open", sorts: [["created_at", "Newest first"], ["title", "Title A to Z"], ["application_deadline", "Application deadline"]], columns: ["title", "creator_name", "category_name", "type", "location", "salary", "application_count", "application_deadline", "status"] },
   interest_categories: { title: "Interests", icon: Tags, noun: "interest", statusField: "is_active", statuses: ["true", "false"], sorts: [["created_at", "Newest first"], ["name", "Name A to Z"], ["slug", "Slug"]], columns: ["name", "slug", "icon", "description", "is_active", "created_at"] },
   communities: { title: "Communities", icon: Users, noun: "community", sorts: [["created_at", "Newest first"], ["name", "Name A to Z"]], columns: ["name", "creator_name", "category_name", "member_count", "requires_approval", "is_private", "created_at"] },
@@ -41,8 +41,8 @@ const tables = {
 
 const labels = {
   name: "Name", title: "Title", email: "Email", role: "Role", account_status: "Account status", created_at: "Created", last_login_at: "Last sign-in",
-  creator_name: "Owner / host", instructor_name: "Instructor", designation: "Designation", social_links: "Social links", details: "Details", course_count: "Assigned courses", category_name: "Interest", price: "Price", enrollment_count: "Enrolled", type: "Type", entry_fee: "Entry fee",
-  participant_count: "Participants", starting_time: "Starts", ending_time: "Ends", capacity: "Capacity", location: "Location", salary: "Salary range",
+  creator_name: "Owner / host", instructor_name: "Instructor", designation: "Designation", social_links: "Social links", details: "Details", course_count: "Assigned courses", category_name: "Interests", price: "Price", enrollment_count: "Enrolled", type: "Type", entry_fee: "Entry fee",
+  participant_count: "Participants", speaker_names: "Speakers", recording_url: "Recording URL", submission_kind: "Contest entry type", starting_time: "Starts", ending_time: "Ends", capacity: "Capacity", location: "Location", salary: "Salary range",
   application_count: "Applications", application_deadline: "Deadline", slug: "Slug", icon: "Icon", description: "Description", is_active: "Availability",
   member_count: "Members", requires_approval: "Join approval", is_private: "Private", status: "Status",
 };
@@ -224,6 +224,8 @@ function UserForm({ item, onDone }) {
 
 function RecordForm({ table, item, onDone }) {
   const categories = useResource("users/interests");
+  const [categoryIds, setCategoryIds] = useState(() => (item.category_ids?.length ? item.category_ids : item.category_id ? [item.category_id] : []).map(String));
+  const [speakers, setSpeakers] = useState(() => item.speakers || []);
   const [error, setError] = useState(""); const [busy, setBusy] = useState(false);
   const [coverPreview, setCoverPreview] = useState(item.has_cover_image ? `/api/backend/frontend/course-covers/${item.id}` : "");
   const [removeCover, setRemoveCover] = useState(false);
@@ -239,6 +241,13 @@ function RecordForm({ table, item, onDone }) {
       if (field === "currency" && form[field]) form[field] = form[field].toUpperCase();
     }
     try {
+      if (adminFields[table].category_id === "category" && table !== "jobs" && !categoryIds.length) throw new Error("Select at least one interest.");
+      form.category_ids = JSON.stringify(categoryIds);
+      if (table === "webinars") {
+        if (!speakers.length) throw new Error("Add at least one speaker.");
+        form.speaker_ids = JSON.stringify(speakers.map((speaker) => speaker.id));
+      }
+      delete form.category_id;
       if (table === "courses" && !form.instructor_id) throw new Error("Search for an instructor and select a profile before saving this course.");
       let body = form;
       if (table === "courses") {
@@ -272,8 +281,9 @@ function RecordForm({ table, item, onDone }) {
         </div>
       </div>;
       if (Array.isArray(type)) return <label key={field}>{label}<select name={field} defaultValue={value} required={requiredFields[table]?.includes(field)}>{type.map((option) => <option key={option} value={option}>{humanize(option)}</option>)}</select></label>;
-      if (type === "category") return <label key={field}>{label}<select name={field} defaultValue={value} required><option value="">Select an interest</option>{categories.data?.map((category) => <option value={category.id} key={category.id}>{category.name}</option>)}</select></label>;
+      if (type === "category") return <CategoryPicker key={field} categories={categories.data || []} value={categoryIds} onChange={setCategoryIds} />;
       if (type === "instructor") return <InstructorPicker key={field} item={item} />;
+      if (type === "speakers") return <SpeakerPicker key={field} value={speakers} onChange={setSpeakers} />;
       if (type === "boolean") return <label key={field}>{label}<select name={field} defaultValue={String(Boolean(value))}><option value="true">Yes</option><option value="false">No</option></select></label>;
       if (type === "textarea") return <label className="wide" key={field}>{label}<textarea name={field} defaultValue={value} rows={field === "description" || field === "criteria" ? 4 : 3} maxLength={10000} required={requiredFields[table]?.includes(field)} /></label>;
       return <label key={field}>{label}<input name={field} type={type} defaultValue={value} required={requiredFields[table]?.includes(field)} step={type === "number" ? "any" : undefined} min={type === "number" ? "0" : undefined} /></label>;
@@ -320,6 +330,45 @@ function InstructorPicker({ item }) {
       </button>) : <div className="admin-instructor-no-results"><strong>No instructors found</strong><small>Add an instructor profile in the Instructors management tab.</small></div>}
     </div>}
     <small className="admin-picker-hint">Choose one profile from the instructor list. Course ownership stays with your admin account.</small>
+  </div>;
+}
+
+function SpeakerPicker({ value, onChange }) {
+  const [term, setTerm] = useState("");
+  const [query, setQuery] = useState("");
+  const [open, setOpen] = useState(false);
+  const root = useRef(null);
+  const resource = useResource(`frontend/admin/instructors?q=${encodeURIComponent(query)}&limit=10`);
+  const chosen = new Set(value.map((speaker) => speaker.id));
+  const options = (resource.data || []).filter((instructor) => !chosen.has(instructor.id));
+
+  useEffect(() => {
+    const timer = setTimeout(() => setQuery(term.trim()), 220);
+    return () => clearTimeout(timer);
+  }, [term]);
+  useEffect(() => {
+    if (!open) return;
+    const close = (event) => { if (!root.current?.contains(event.target)) setOpen(false); };
+    document.addEventListener("pointerdown", close);
+    return () => document.removeEventListener("pointerdown", close);
+  }, [open]);
+
+  return <div className="admin-instructor-picker-field wide" ref={root}>
+    <label htmlFor="webinar-speaker-search">Speakers <span className="required-mark">(at least one)</span></label>
+    <div className="speaker-chips">
+      {value.length ? value.map((speaker) => <span className="speaker-chip" key={speaker.id}>
+        {speaker.has_image ? <img className="admin-instructor-avatar" src={`/api/backend/frontend/instructors/${speaker.id}/image`} alt="" /> : <span className="admin-instructor-placeholder"><UserRound size={15} /></span>}
+        <span><strong>{speaker.name}</strong>{speaker.designation && <small>{speaker.designation}</small>}</span>
+        <button type="button" aria-label={`Remove ${speaker.name}`} onClick={() => onChange(value.filter((entry) => entry.id !== speaker.id))}><X size={14} /></button>
+      </span>) : <p className="interest-picker-empty">No speakers yet. Search and add instructors below.</p>}
+    </div>
+    <div className="admin-instructor-searchbox"><Search size={18} /><input id="webinar-speaker-search" role="combobox" aria-autocomplete="list" aria-expanded={open} value={term} placeholder="Search instructors to add…" autoComplete="off" onFocus={() => setOpen(true)} onChange={(event) => { setTerm(event.target.value); setOpen(true); }} /></div>
+    {open && <div className="admin-instructor-results" role="listbox">
+      {resource.loading ? <p>Searching instructors…</p> : resource.error ? <p role="alert">{resource.error}</p> : options.length ? options.map((instructor) => <button type="button" role="option" aria-selected="false" key={instructor.id} onClick={() => { onChange([...value, instructor]); setTerm(""); setQuery(""); }}>
+        {instructor.has_image ? <img className="admin-instructor-avatar" src={`/api/backend/frontend/instructors/${instructor.id}/image`} alt="" /> : <span className="admin-instructor-placeholder"><UserRound size={17} /></span>}
+        <span><strong>{instructor.name}</strong><small>{instructor.designation || instructor.details || "Instructor"}</small></span>
+      </button>) : <div className="admin-instructor-no-results"><strong>{value.length && !query ? "All matching instructors are added" : "No instructors found"}</strong><small>Add an instructor profile in the Instructors management tab.</small></div>}
+    </div>}
   </div>;
 }
 
@@ -371,7 +420,7 @@ function InstructorForm({ item, onDone }) {
 }
 
 const requiredFields = {
-  interest_categories: ["name", "slug", "icon"],
+  interest_categories: ["name", "slug", "icon", "submission_kind"],
   courses: ["title", "slug", "description", "category_id", "instructor_id", "price", "currency"],
   contests: ["name", "description", "category_id", "entry_fee", "currency", "starting_time", "ending_time"],
   webinars: ["name", "description", "category_id", "starting_time", "ending_time"],

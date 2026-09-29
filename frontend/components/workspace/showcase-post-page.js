@@ -14,7 +14,7 @@ export default function ShowcasePostPage({ postId }) {
 
   useEffect(() => {
     setDetailSubtitle(resource.data?.creator_name ? `${resource.data.creator_name}'s post` : "Post");
-    return () => setDetailSubtitle("Post");
+    return () => setDetailSubtitle("");
   }, [resource.data?.creator_name, setDetailSubtitle]);
 
   useEffect(() => {

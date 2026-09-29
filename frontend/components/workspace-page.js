@@ -1,7 +1,9 @@
 "use client";
 import Dashboard from "./workspace/dashboard";
 import Showcase from "./workspace/showcase";
-import Catalog from "./workspace/catalog";
+import Courses from "./workspace/courses";
+import Contests from "./workspace/contests";
+import Webinars from "./workspace/webinars";
 import Communities from "./workspace/communities";
 import Jobs from "./workspace/jobs";
 import Messages from "./workspace/messages";
@@ -21,8 +23,9 @@ export default function WorkspacePage({ section }) {
   if (user.role === "admin" && ["courses", "contests", "webinars", "jobs"].includes(section))
     return <Admin key={section} initialTable={section} />;
   if (section === "showcase") return <Showcase />;
-  if (["courses", "contests", "webinars"].includes(section))
-    return <Catalog kind={section} key={section} />;
+  if (section === "courses") return <Courses />;
+  if (section === "contests") return <Contests />;
+  if (section === "webinars") return <Webinars />;
   if (section === "communities") return <Communities />;
   if (section === "jobs") return <Jobs />;
   if (section === "messages") return <Messages />;

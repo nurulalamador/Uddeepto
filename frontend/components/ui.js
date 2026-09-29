@@ -2,11 +2,15 @@
 import { useEffect, useState, useRef } from "react";
 import {
   X,
+  Plus,
   Search,
   ArrowLeft,
   ArrowRight,
   Inbox,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  Upload,
   Palette,
   Spline,
   Star,
@@ -268,6 +272,197 @@ export function Dropdown({
             </button>
           ))}
         </div>
+      )}
+    </div>
+  );
+}
+
+export function CategoryPicker({ categories = [], value, onChange, legend = "Interests", noun = "interests" }) {
+  const [term, setTerm] = useState("");
+  const selected = categories.filter((item) => value.includes(String(item.id)));
+  const available = categories.filter(
+    (item) =>
+      !value.includes(String(item.id)) &&
+      item.name.toLowerCase().includes(term.trim().toLowerCase()),
+  );
+  const add = (id) => onChange(value.includes(String(id)) ? value : [...value, String(id)]);
+  const remove = (id) => onChange(value.filter((item) => item !== String(id)));
+  return (
+    <fieldset className="interest-picker wide">
+      <legend>{legend}</legend>
+      <section className="interest-picker-section">
+        <div className="interest-picker-heading">
+          <h4>Selected {noun}</h4>
+          <span>{selected.length} selected</span>
+        </div>
+        <div className="interest-chip-list">
+          {selected.length ? (
+            selected.map((item) => (
+              <div className="interest-chip selected" key={item.id}>
+                <InterestIcon iconName={item.icon} size={17} />
+                <span>{item.name}</span>
+                <button type="button" className="interest-chip-remove" aria-label={`Remove ${item.name}`} title={`Remove ${item.name}`} onClick={() => remove(item.id)}>
+                  <X size={15} />
+                </button>
+              </div>
+            ))
+          ) : (
+            <p className="interest-picker-empty">None selected yet. Add at least one below.</p>
+          )}
+        </div>
+      </section>
+      <section className="interest-picker-section">
+        <div className="interest-picker-heading">
+          <h4>Explore {noun}</h4>
+          <span>{available.length} available</span>
+        </div>
+        <SearchBox value={term} onChange={setTerm} placeholder={`Search ${noun}…`} />
+        <div className="interest-chip-list">
+          {available.length ? (
+            available.map((item) => (
+              <button type="button" className="interest-chip available" key={item.id} onClick={() => add(item.id)}>
+                <InterestIcon iconName={item.icon} size={17} />
+                <span>{item.name}</span>
+                <Plus size={15} className="interest-chip-add" />
+              </button>
+            ))
+          ) : (
+            <p className="interest-picker-empty">{term ? `No ${noun} match your search.` : `Every available ${noun.replace(/s$/, "")} is selected.`}</p>
+          )}
+        </div>
+      </section>
+    </fieldset>
+  );
+}
+
+export function RailSection({ id, title, description, children, className = "" }) {
+  const rail = useRef(null);
+  const scroll = (direction) =>
+    rail.current?.scrollBy({ left: direction * rail.current.clientWidth * 0.8, behavior: "smooth" });
+  return (
+    <section className={`recommended ${className}`} aria-labelledby={id}>
+      <div className="recommended-head">
+        <div>
+          <h2 id={id}>{title}</h2>
+          {description && <p>{description}</p>}
+        </div>
+        <div className="recommended-arrows">
+          <button type="button" aria-label="Scroll left" onClick={() => scroll(-1)}>
+            <ChevronLeft size={18} />
+          </button>
+          <button type="button" aria-label="Scroll right" onClick={() => scroll(1)}>
+            <ChevronRight size={18} />
+          </button>
+        </div>
+      </div>
+      <div className="recommended-rail" ref={rail}>
+        {children}
+      </div>
+    </section>
+  );
+}
+
+const sizeLabel = (bytes) => {
+  if (!bytes) return "";
+  if (bytes < 1024 * 1024) return `${Math.max(1, Math.round(bytes / 1024))} KB`;
+  return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+};
+function matchesAccept(file, accept) {
+  if (!accept) return true;
+  return accept.split(",").some((rule) => {
+    const token = rule.trim().toLowerCase();
+    if (!token) return false;
+    if (token.startsWith(".")) return file.name.toLowerCase().endsWith(token);
+    if (token.endsWith("/*")) return file.type.toLowerCase().startsWith(token.slice(0, -1));
+    return file.type.toLowerCase() === token;
+  });
+}
+export function FileDropzone({ accept, file, onFile, hint, icon: Icon = Upload, label = "Drag and drop a file here", disabled = false }) {
+  const [dragging, setDragging] = useState(false);
+  const [error, setError] = useState("");
+  const input = useRef(null);
+  function take(list) {
+    const chosen = list?.[0];
+    if (!chosen) return;
+    if (!matchesAccept(chosen, accept)) {
+      setError("That file type isn’t supported here.");
+      return;
+    }
+    setError("");
+    onFile(chosen);
+  }
+  const open = () => !disabled && input.current?.click();
+  return (
+    <div className="dropzone-wrap">
+      <div
+        className={`dropzone${dragging ? " dragging" : ""}${file ? " has-file" : ""}${disabled ? " disabled" : ""}`}
+        role="button"
+        tabIndex={disabled ? -1 : 0}
+        aria-label={file ? `Selected file ${file.name}. Choose a different file` : label}
+        onClick={open}
+        onKeyDown={(event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            open();
+          }
+        }}
+        onDragOver={(event) => {
+          event.preventDefault();
+          if (!disabled) setDragging(true);
+        }}
+        onDragLeave={() => setDragging(false)}
+        onDrop={(event) => {
+          event.preventDefault();
+          setDragging(false);
+          if (!disabled) take(event.dataTransfer.files);
+        }}
+      >
+        <input
+          ref={input}
+          type="file"
+          accept={accept}
+          hidden
+          tabIndex={-1}
+          onChange={(event) => {
+            take(event.target.files);
+            event.target.value = "";
+          }}
+        />
+        <span className="dropzone-icon">
+          <Icon size={22} />
+        </span>
+        {file ? (
+          <span className="dropzone-text">
+            <strong>{file.name}</strong>
+            <small>{sizeLabel(file.size)} · click or drop to replace</small>
+          </span>
+        ) : (
+          <span className="dropzone-text">
+            <strong>
+              {label} <u>or browse</u>
+            </strong>
+            {hint && <small>{hint}</small>}
+          </span>
+        )}
+        {file && (
+          <button
+            type="button"
+            className="dropzone-clear"
+            aria-label="Remove file"
+            onClick={(event) => {
+              event.stopPropagation();
+              setError("");
+              onFile(null);
+            }}
+          >
+            <X size={16} />
+          </button>
+        )}
+      </div>
+      {error && (
+        <p className="inline-error" role="alert">
+          {error}
+        </p>
       )}
     </div>
   );

@@ -24,6 +24,7 @@ function must(k){if(!process.env[k])throw new Error(`${k} is required`);return p
 export function auth(required=true){return asyncHandler(async(req,_res,next)=>{const h=req.headers.authorization;if(!h?.startsWith('Bearer ')){if(required)throw new ApiError(401,'Authentication required');return next();}let token;try{token=verifyAccess(h.slice(7));}catch{throw new ApiError(401,'Invalid or expired token');}if(token.type!=='access')throw new ApiError(401,'Invalid token type');const u=(await query("SELECT id,role,account_status FROM users WHERE id=$1",[token.sub])).rows[0];if(!u||u.account_status!=='active')throw new ApiError(401,'Account inactive');req.user={...token,role:u.role};next();});}
 export const allow=(...roles)=>(req,_res,next)=>roles.includes(req.user?.role)?next():next(new ApiError(403,'Insufficient permission'));
 export const validate=schema=>(req,_res,next)=>{try{req.body=schema.parse(req.body);next()}catch(e){next(e)}};
+export {multer};
 export const upload=multer({storage:multer.memoryStorage(),limits:{fileSize:Number(process.env.MAX_UPLOAD_MB||10)*1024*1024}});
 export function page(req){const limit=Math.min(Math.max(Number(req.query.limit)||20,1),100);const offset=Math.max(Number(req.query.offset)||0,0);return{limit,offset}}
 export const publicUser=`id,name,email,username,role,bio,account_status,email_verified_at,last_login_at,created_at,updated_at`;

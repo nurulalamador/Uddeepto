@@ -1,11 +1,175 @@
-import express from 'express';import bcrypt from 'bcryptjs';import crypto from 'node:crypto';import {z} from 'zod';import {createApp,query,tx,asyncHandler,validate,auth,signAccess,signRefresh,verifyRefresh,ApiError,publicUser,listen,platformSetting} from '@uddeepto/common';
-const app=createApp('auth');const router=express.Router();
-const credentials=z.object({identifier:z.string().min(3),password:z.string().min(8).max(128)});
-router.post('/register',validate(z.object({name:z.string().min(2).max(150),email:z.string().email(),username:z.string().regex(/^[A-Za-z0-9_.-]{3,40}$/),password:z.string().min(8).max(128),role:z.enum(['learner','hirer']).default('learner')})),asyncHandler(async(req,res)=>{if(!(await platformSetting('registration_open',true)))throw new ApiError(403,'Public registration is currently paused. Contact an administrator.');const hash=await bcrypt.hash(req.body.password,12);const u=await tx(async c=>(await c.query(`INSERT INTO users(name,email,username,password_hash,role) VALUES($1,$2,$3,$4,$5) RETURNING ${publicUser}`,[req.body.name,req.body.email,req.body.username,hash,req.body.role])).rows[0]);const tokens=await issue(u);res.status(201).json({user:u,...tokens})}));
-router.post('/login',validate(credentials),asyncHandler(async(req,res)=>{const r=await query(`SELECT * FROM users WHERE email=$1 OR username=$1`,[req.body.identifier]);const u=r.rows[0];if(!u||!(await bcrypt.compare(req.body.password,u.password_hash)))throw new ApiError(401,'Invalid credentials');if(u.account_status!=='active')throw new ApiError(403,`Account is ${u.account_status}`);await query('UPDATE users SET last_login_at=now() WHERE id=$1',[u.id]);const safe=Object.fromEntries(Object.entries(u).filter(([k])=>!['password_hash','picture'].includes(k)));res.json({user:safe,...await issue(u)})}));
-router.post('/refresh',validate(z.object({refreshToken:z.string()})),asyncHandler(async(req,res)=>{let p;try{p=verifyRefresh(req.body.refreshToken)}catch{throw new ApiError(401,'Invalid or expired refresh token')}const h=hash(req.body.refreshToken);const r=await query(`SELECT u.* FROM auth_refresh_tokens t JOIN users u ON u.id=t.user_id WHERE t.token_hash=$1 AND t.revoked_at IS NULL AND t.expires_at>now()`,[h]);if(!r.rowCount||r.rows[0].account_status!=='active')throw new ApiError(401,'Refresh token revoked or account inactive');const consumed=await query('UPDATE auth_refresh_tokens SET revoked_at=now() WHERE token_hash=$1 AND revoked_at IS NULL RETURNING id',[h]);if(!consumed.rowCount)throw new ApiError(401,'Refresh token already used');res.json(await issue(r.rows[0]))}));
-router.post('/logout',validate(z.object({refreshToken:z.string()})),asyncHandler(async(req,res)=>{await query('UPDATE auth_refresh_tokens SET revoked_at=now() WHERE token_hash=$1',[hash(req.body.refreshToken)]);res.status(204).end()}));
-router.post('/logout-all',auth(),asyncHandler(async(req,res)=>{await query('UPDATE auth_refresh_tokens SET revoked_at=now() WHERE user_id=$1 AND revoked_at IS NULL',[req.user.sub]);res.status(204).end()}));
-router.post('/change-password',auth(),validate(z.object({currentPassword:z.string(),newPassword:z.string().min(8).max(128)})),asyncHandler(async(req,res)=>{const u=(await query('SELECT password_hash FROM users WHERE id=$1',[req.user.sub])).rows[0];if(!u||!(await bcrypt.compare(req.body.currentPassword,u.password_hash)))throw new ApiError(401,'Current password is incorrect');await tx(async c=>{await c.query('UPDATE users SET password_hash=$1 WHERE id=$2',[await bcrypt.hash(req.body.newPassword,12),req.user.sub]);await c.query('UPDATE auth_refresh_tokens SET revoked_at=now() WHERE user_id=$1 AND revoked_at IS NULL',[req.user.sub])});res.status(204).end()}));
-async function issue(u){const accessToken=signAccess(u),refreshToken=signRefresh(u);const p=verifyRefresh(refreshToken);await query('INSERT INTO auth_refresh_tokens(user_id,token_hash,expires_at) VALUES($1,$2,to_timestamp($3))',[u.id,hash(refreshToken),p.exp]);return{accessToken,refreshToken}}
-const hash=s=>crypto.createHash('sha256').update(s).digest('hex');app.use('/',router);listen(app,process.env.AUTH_PORT||4001,'auth');
+import express from "express";
+import bcrypt from "bcryptjs";
+import crypto from "node:crypto";
+import { z } from "zod";
+import {
+  createApp,
+  query,
+  tx,
+  asyncHandler,
+  validate,
+  auth,
+  signAccess,
+  signRefresh,
+  verifyRefresh,
+  ApiError,
+  publicUser,
+  listen,
+  platformSetting,
+} from "@uddeepto/common";
+const app = createApp("auth");
+const router = express.Router();
+const credentials = z.object({
+  identifier: z.string().min(3),
+  password: z.string().min(8).max(128),
+});
+router.post(
+  "/register",
+  validate(
+    z.object({
+      name: z.string().min(2).max(150),
+      email: z.string().email(),
+      username: z.string().regex(/^[A-Za-z0-9_.-]{3,40}$/),
+      password: z.string().min(8).max(128),
+      role: z.enum(["learner", "hirer"]).default("learner"),
+    }),
+  ),
+  asyncHandler(async (req, res) => {
+    if (!(await platformSetting("registration_open", true)))
+      throw new ApiError(
+        403,
+        "Public registration is currently paused. Contact an administrator.",
+      );
+    const hash = await bcrypt.hash(req.body.password, 12);
+    const u = await tx(
+      async (c) =>
+        (
+          await c.query(
+            `INSERT INTO users(name,email,username,password_hash,role) VALUES($1,$2,$3,$4,$5) RETURNING ${publicUser}`,
+            [
+              req.body.name,
+              req.body.email,
+              req.body.username,
+              hash,
+              req.body.role,
+            ],
+          )
+        ).rows[0],
+    );
+    const tokens = await issue(u);
+    res.status(201).json({ user: u, ...tokens });
+  }),
+);
+router.post(
+  "/login",
+  validate(credentials),
+  asyncHandler(async (req, res) => {
+    const r = await query(`SELECT * FROM users WHERE email=$1 OR username=$1`, [
+      req.body.identifier,
+    ]);
+    const u = r.rows[0];
+    if (!u || !(await bcrypt.compare(req.body.password, u.password_hash)))
+      throw new ApiError(401, "Invalid credentials");
+    if (u.account_status !== "active")
+      throw new ApiError(403, `Account is ${u.account_status}`);
+    await query("UPDATE users SET last_login_at=now() WHERE id=$1", [u.id]);
+    const safe = Object.fromEntries(
+      Object.entries(u).filter(
+        ([k]) => !["password_hash", "picture"].includes(k),
+      ),
+    );
+    res.json({ user: safe, ...(await issue(u)) });
+  }),
+);
+router.post(
+  "/refresh",
+  validate(z.object({ refreshToken: z.string() })),
+  asyncHandler(async (req, res) => {
+    let p;
+    try {
+      p = verifyRefresh(req.body.refreshToken);
+    } catch {
+      throw new ApiError(401, "Invalid or expired refresh token");
+    }
+    const h = hash(req.body.refreshToken);
+    const r = await query(
+      `SELECT u.* FROM auth_refresh_tokens t JOIN users u ON u.id=t.user_id WHERE t.token_hash=$1 AND t.revoked_at IS NULL AND t.expires_at>now()`,
+      [h],
+    );
+    if (!r.rowCount || r.rows[0].account_status !== "active")
+      throw new ApiError(401, "Refresh token revoked or account inactive");
+    const consumed = await query(
+      "UPDATE auth_refresh_tokens SET revoked_at=now() WHERE token_hash=$1 AND revoked_at IS NULL RETURNING id",
+      [h],
+    );
+    if (!consumed.rowCount)
+      throw new ApiError(401, "Refresh token already used");
+    res.json(await issue(r.rows[0]));
+  }),
+);
+router.post(
+  "/logout",
+  validate(z.object({ refreshToken: z.string() })),
+  asyncHandler(async (req, res) => {
+    await query(
+      "UPDATE auth_refresh_tokens SET revoked_at=now() WHERE token_hash=$1",
+      [hash(req.body.refreshToken)],
+    );
+    res.status(204).end();
+  }),
+);
+router.post(
+  "/logout-all",
+  auth(),
+  asyncHandler(async (req, res) => {
+    await query(
+      "UPDATE auth_refresh_tokens SET revoked_at=now() WHERE user_id=$1 AND revoked_at IS NULL",
+      [req.user.sub],
+    );
+    res.status(204).end();
+  }),
+);
+router.post(
+  "/change-password",
+  auth(),
+  validate(
+    z.object({
+      currentPassword: z.string(),
+      newPassword: z.string().min(8).max(128),
+    }),
+  ),
+  asyncHandler(async (req, res) => {
+    const u = (
+      await query("SELECT password_hash FROM users WHERE id=$1", [req.user.sub])
+    ).rows[0];
+    if (
+      !u ||
+      !(await bcrypt.compare(req.body.currentPassword, u.password_hash))
+    )
+      throw new ApiError(401, "Current password is incorrect");
+    await tx(async (c) => {
+      await c.query("UPDATE users SET password_hash=$1 WHERE id=$2", [
+        await bcrypt.hash(req.body.newPassword, 12),
+        req.user.sub,
+      ]);
+      await c.query(
+        "UPDATE auth_refresh_tokens SET revoked_at=now() WHERE user_id=$1 AND revoked_at IS NULL",
+        [req.user.sub],
+      );
+    });
+    res.status(204).end();
+  }),
+);
+async function issue(u) {
+  const accessToken = signAccess(u),
+    refreshToken = signRefresh(u);
+  const p = verifyRefresh(refreshToken);
+  await query(
+    "INSERT INTO auth_refresh_tokens(user_id,token_hash,expires_at) VALUES($1,$2,to_timestamp($3))",
+    [u.id, hash(refreshToken), p.exp],
+  );
+  return { accessToken, refreshToken };
+}
+const hash = (s) => crypto.createHash("sha256").update(s).digest("hex");
+app.use("/", router);
+listen(app, process.env.AUTH_PORT || 4001, "auth");

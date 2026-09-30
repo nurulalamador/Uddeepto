@@ -1,2 +1,13 @@
-import { readdir, readFile } from 'node:fs/promises'; import { join } from 'node:path'; import { execFileSync } from 'node:child_process';
-async function walk(d){for(const e of await readdir(d,{withFileTypes:true})){const p=join(d,e.name);if(e.isDirectory()&&e.name!=='node_modules')await walk(p);else if(e.name.endsWith('.js')||e.name.endsWith('.mjs'))execFileSync(process.execPath,['--check',p],{stdio:'inherit'})}}await walk(new URL('..',import.meta.url).pathname);console.log('Syntax check passed');
+import { readdir, readFile } from "node:fs/promises";
+import { join } from "node:path";
+import { execFileSync } from "node:child_process";
+async function walk(d) {
+  for (const e of await readdir(d, { withFileTypes: true })) {
+    const p = join(d, e.name);
+    if (e.isDirectory() && e.name !== "node_modules") await walk(p);
+    else if (e.name.endsWith(".js") || e.name.endsWith(".mjs"))
+      execFileSync(process.execPath, ["--check", p], { stdio: "inherit" });
+  }
+}
+await walk(new URL("..", import.meta.url).pathname);
+console.log("Syntax check passed");

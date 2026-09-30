@@ -1,1 +1,12 @@
-'use client';export default function Error({reset}){return <main className="recovery"><h1>Something went wrong.</h1><p>Please try again.</p><button className="button" onClick={reset}>Retry</button></main>;}
+"use client";
+export default function Error({ reset }) {
+  return (
+    <main className="recovery">
+      <h1>Something went wrong.</h1>
+      <p>Please try again.</p>
+      <button className="button" onClick={reset}>
+        Retry
+      </button>
+    </main>
+  );
+}

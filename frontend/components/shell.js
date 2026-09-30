@@ -28,6 +28,7 @@ import {
 import { ThemeToggle } from "./theme";
 import { UserAvatar } from "./ui";
 import GlobalSearch from "./global-search";
+import InterestGate from "./interest-gate";
 import { allowedCategorizedSections, canAccess, sections } from "@/lib/roles";
 
 const UserContext = createContext(null);
@@ -83,6 +84,8 @@ export default function Shell({ user, children }) {
   const profileRef = useRef(null);
   const updateDetailSubtitle = useCallback((value) => setDetailSubtitle(value || ""), []);
   const allowed = allowedCategorizedSections(user.role);
+  // Learners and hirers must pick at least one interest before using the workspace.
+  const needsInterests = user.role !== "admin" && Array.isArray(user.interests) && user.interests.length === 0;
 
   async function logout() {
     await fetch("/api/auth/logout", { method: "POST" });
@@ -169,6 +172,7 @@ export default function Shell({ user, children }) {
             </main>
           </div>
         </div>
+        {needsInterests && <InterestGate role={user.role} />}
       </UserContext.Provider>
     </ShellActionsContext.Provider>
   );

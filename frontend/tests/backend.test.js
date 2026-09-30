@@ -253,6 +253,28 @@ test('frontend adapter: SQL and authorization integration',async t=>{
       await query("DELETE FROM users WHERE id=$1",[person.id]);
       await query("DELETE FROM courses WHERE title LIKE 'Quokka%'");await query("DELETE FROM contests WHERE id=$1",[contest]);await query("DELETE FROM webinars WHERE id=$1",[webinar]);await query("DELETE FROM jobs WHERE title LIKE 'Quokka%'");await query("DELETE FROM communities WHERE name LIKE 'Quokka%'");
     });
+    await t.test('first-run interests: validated save and interest-aware AI guide',async()=>{
+      const second=(await query("INSERT INTO interest_categories(name,slug,icon,description) VALUES('Robotics','robotics','star','Build and program robots') RETURNING id")).rows[0].id;
+      const inactive=(await query("INSERT INTO interest_categories(name,slug,icon,is_active) VALUES('Hidden Topic','hidden-topic','star',false) RETURNING id")).rows[0].id;
+      assert.equal((await request('/profile/interests',{as:'Hirer',method:'PUT',body:{interest_ids:[]}})).status,422,'at least one interest');
+      assert.equal((await request('/profile/interests',{as:'Hirer',method:'PUT',body:{interest_ids:['not-a-uuid']}})).status,422);
+      assert.equal((await request('/profile/interests',{as:'Hirer',method:'PUT',body:{interest_ids:[inactive]}})).status,422,'inactive interests cannot be chosen');
+      assert.equal((await request('/profile/interests',{as:'Hirer',method:'PUT',body:{interest_ids:[category,'00000000-0000-4000-8000-000000000000']}})).status,422);
+      assert.equal((await query('SELECT count(*) FROM user_interests WHERE user_id=$1',[ids.Hirer])).rows[0].count,0,'a rejected save changes nothing');
+      await ok('/profile/interests',{as:'Hirer',method:'PUT',body:{interest_ids:[category,second,category]}});
+      assert.deepEqual((await query('SELECT interest_id FROM user_interests WHERE user_id=$1 ORDER BY interest_id',[ids.Hirer])).rows.map(row=>row.interest_id).sort(),[category,second].sort());
+      await ok('/profile/interests',{as:'Hirer',method:'PUT',body:{interest_ids:[second]}});
+      assert.equal((await ok(`/profile/${ids.Hirer}`,{as:'Hirer'})).interests.length,1,'saving replaces the previous choice');
+      const realFetch=globalThis.fetch,calls=[];
+      globalThis.fetch=async(url,options)=>{if(!String(url).startsWith('https://generativelanguage.googleapis.com/'))return realFetch(url,options);calls.push(JSON.parse(options.body));return Response.json({candidates:[{content:{parts:[{text:'Try **Robotics**.'}]},finishReason:'STOP'}]});};
+      process.env.GEMINI_API_KEY='test-key';
+      try{
+        for(const as of ['Hirer','Learner']){const answer=await ok('/ai/interests',{as,method:'POST',body:{messages:[{role:'user',content:'I like building things'}]}});assert.match(answer.reply,/Robotics/);}
+        assert.equal((await request('/ai/interests',{as:'Admin',method:'POST',body:{messages:[{role:'user',content:'hi'}]}})).status,403);
+        const prompt=calls[0].systemInstruction.parts[0].text;assert.ok(prompt.includes('Robotics (Build and program robots)'));assert.ok(prompt.includes('Web Development'));assert.equal(prompt.includes('Hidden Topic'),false,'inactive interests are not suggested');assert.ok(prompt.includes('ONLY the exact names'));
+      }finally{globalThis.fetch=realFetch;delete process.env.GEMINI_API_KEY;}
+      await query('DELETE FROM user_interests WHERE user_id=$1',[ids.Hirer]);await query('DELETE FROM interest_categories WHERE id=ANY($1::uuid[])',[[second,inactive]]);
+    });
     await t.test('one-to-one conversation deduplicates and rejects nonmembers',async()=>{const c=await ok('/messages',{method:'POST',body:{user_id:ids.Other}});const again=await ok('/messages',{method:'POST',body:{user_id:ids.Other}});assert.equal(c.id,again.id);await ok(`/messages/${c.id}`,{method:'POST',body:{content:'Hello!'}});assert.equal((await ok(`/messages/${c.id}`,{as:'Other'}))[0].content,'Hello!');assert.equal((await request(`/messages/${c.id}`,{as:'Admin'})).status,404);});
     await t.test('job applications are visible only to owner/admin',async()=>{const job=(await query("INSERT INTO jobs(creator_id,title,description,type,status) VALUES($1,'Developer','Build things','permanent','open') RETURNING id",[ids.Hirer])).rows[0].id;await query('INSERT INTO job_applications(job_id,applicant_id,cover_letter) VALUES($1,$2,$3)',[job,ids.Learner,'Interested']);assert.equal((await request(`/jobs/${job}/applications`)).status,403);assert.equal((await ok(`/jobs/${job}/applications`,{as:'Hirer'})).length,1);await ok(`/jobs/${job}/applications/${ids.Learner}`,{as:'Hirer',method:'PATCH',body:{status:'shortlisted'}});assert.equal((await ok('/jobs?tab=applied'))[0].application_status,'shortlisted');});
     await t.test('jobs: map positions, nearby search and job page data',async()=>{

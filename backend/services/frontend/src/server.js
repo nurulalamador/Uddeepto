@@ -3348,6 +3348,26 @@ app.post(
   }),
 );
 
+// Help a new account choose its interests. Open to learners and hirers, and grounded in the interests that really exist.
+app.post('/ai/interests',run(async req=>{
+  if(!['learner','hirer'].includes(req.user.role))throw new ApiError(403,'The interest guide is available to learners and hirers');
+  const{messages}=aiBody.parse(req.body);
+  const interests=(await query('SELECT name,description FROM interest_categories WHERE is_active=true ORDER BY name')).rows;
+  const list=interests.map(item=>item.description?item.name+' ('+item.description.slice(0,80)+')':item.name).join('; ');
+  const system=aiSystemPrompt+'\n\nYou are helping a new '+req.user.role+' choose the interests for their Uddeepto profile. Interests decide which courses, contests, webinars and communities are recommended.\nThe interests that exist on the platform are exactly: '+list+'.\n- Ask one or two short questions about their goals, hobbies or job if that helps.\n- Recommend 1 to 4 interests, using ONLY the exact names from the list above, written in **bold**. Never invent an interest that is not in the list.\n- Explain each pick in one short sentence. Keep replies under 120 words unless asked for more.\n- Remind them they can change their interests later from their profile.';
+  return askGemini(req.user.sub,{system,messages});
+}));
+app.put('/profile/interests',run(async req=>{
+  const body=z.object({interest_ids:z.array(z.string().uuid()).min(1,'Choose at least one interest').max(30)}).strict().parse(req.body);
+  const ids=[...new Set(body.interest_ids)];
+  await tx(async db=>{
+    if((await db.query('SELECT id FROM interest_categories WHERE id=ANY($1::uuid[]) AND is_active=true',[ids])).rowCount!==ids.length)throw new ApiError(422,'One or more interests are not available');
+    await db.query('DELETE FROM user_interests WHERE user_id=$1',[req.user.sub]);
+    await db.query('INSERT INTO user_interests(user_id,interest_id) SELECT $1,unnest($2::uuid[])',[req.user.sub,ids]);
+  });
+  return{interest_ids:ids};
+}));
+
 // Ask about the course material the learner is looking at. Text lessons, small PDFs and small videos are given to the model in full;
 // other files are described by their title and description only, and the answer says which level of context was used.
 const AI_INLINE_LIMIT = 15 * 1024 * 1024;

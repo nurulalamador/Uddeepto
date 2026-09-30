@@ -24,6 +24,7 @@ import {
   X,
 } from "lucide-react";
 import { ThemeToggle } from "./theme";
+import { UserAvatar } from "./ui";
 import { allowedCategorizedSections, canAccess, sections } from "@/lib/roles";
 
 const UserContext = createContext(null);
@@ -56,7 +57,9 @@ export default function Shell({ user, children }) {
       ? { back: user.role === "admin" ? "/moderation" : "/showcase", label: user.role === "admin" ? "Back to moderation" : "Back to community", title: "Community", subtitle: "Post" }
       : isMaterial
         ? { back: `/courses/${segments[1]}`, label: "Back to course", title: "Course material", subtitle: "Material" }
-        : segments[0] === "webinars" && segments.length > 1
+        : segments[0] === "communities" && segments.length > 1
+          ? { back: "/communities", label: "Back to communities", title: "Community", subtitle: "Channels" }
+          : segments[0] === "webinars" && segments.length > 1
           ? { back: "/webinars", label: "Back to webinars", title: segments[1] === "previous" ? "Webinars" : "Webinar", subtitle: segments[1] === "previous" ? "Previous webinars" : "Details" }
           : segments[0] === "contests" && segments.length > 1
           ? { back: "/contests", label: "Back to contests", title: segments[1] === "previous" ? "Contests" : "Contest", subtitle: segments[1] === "previous" ? "Previous contests" : "Details" }
@@ -126,7 +129,7 @@ export default function Shell({ user, children }) {
             </div>
             <div className="profile" ref={profileRef}>
               <div className="user">
-                <span className="avatar">{user.name?.slice(0, 1)}</span>
+                <UserAvatar id={user.id} name={user.name} hasPicture={user.has_picture} />
                 <div className="details"><div className="name">{user.name}</div><div className="role-label">{user.role}</div></div>
                 <button onClick={() => setProfileMenuOpen((value) => !value)} aria-label="Open profile menu" aria-expanded={profileMenuOpen}><EllipsisVertical size={20} /></button>
               </div>

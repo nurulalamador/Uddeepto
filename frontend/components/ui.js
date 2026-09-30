@@ -467,3 +467,16 @@ export function FileDropzone({ accept, file, onFile, hint, icon: Icon = Upload, 
     </div>
   );
 }
+
+export function UserAvatar({ id, name, hasPicture, className = "", size }) {
+  const style = size ? { width: size, minWidth: size, height: size, fontSize: size * 0.4 } : undefined;
+  return (
+    <span className={`avatar ${className}`.trim()} style={style}>
+      {hasPicture && id ? (
+        <img className="avatar-img" src={`/api/backend/frontend/profile/${id}/picture`} alt="" loading="lazy" />
+      ) : (
+        (name || "?").trim().slice(0, 1).toUpperCase()
+      )}
+    </span>
+  );
+}

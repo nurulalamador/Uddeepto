@@ -6,7 +6,7 @@ import { ArrowRight, Check, LayoutDashboard, ShieldCheck, SlidersHorizontal, Use
 import { api } from "@/lib/api";
 import { useUser } from "../shell";
 import { ThemeToggle } from "../theme";
-import { State, useResource } from "../ui";
+import { State, UserAvatar, useResource } from "../ui";
 
 const densityKey = "uddeepto-admin-table-density";
 
@@ -46,7 +46,7 @@ export default function AdminSettings() {
         <div className="admin-setting-row"><div><strong>Management table spacing</strong><small>Stored in this browser for your admin workspace.</small></div><div className="admin-segmented-control" role="group" aria-label="Management table spacing"><button className={density === "comfortable" ? "active" : ""} aria-pressed={density === "comfortable"} onClick={() => changeDensity("comfortable")}>Comfortable</button><button className={density === "compact" ? "active" : ""} aria-pressed={density === "compact"} onClick={() => changeDensity("compact")}>Compact</button></div></div>
       </section>
       <section className="card admin-settings-card admin-access-card"><div className="admin-panel-heading"><div><span className="admin-panel-icon orange"><ShieldCheck size={18} /></span><h2>Administrator access</h2></div></div>
-        <div className="admin-current-user"><span className="avatar">{user.name?.slice(0, 1)}</span><div><strong>{user.name}</strong><small>{user.email || user.username || "Signed in administrator"}</small></div><span className="admin-live-pill"><Check size={14} /> Active</span></div>
+        <div className="admin-current-user"><UserAvatar id={user.id} name={user.name} hasPicture={user.has_picture} /><div><strong>{user.name}</strong><small>{user.email || user.username || "Signed in administrator"}</small></div><span className="admin-live-pill"><Check size={14} /> Active</span></div>
         <p className="admin-settings-copy">Administrator navigation is isolated from learner and hirer workspaces. User roles and account status are managed from the Users table.</p><Link className="button secondary" href="/admin?tab=users"><Users size={17} /> Manage user access <ArrowRight size={16} /></Link>
       </section>
       <section className="card admin-settings-card admin-permissions-card"><div className="admin-panel-heading"><div><span className="admin-panel-icon green"><LayoutDashboard size={18} /></span><h2>Admin workspace</h2></div></div>

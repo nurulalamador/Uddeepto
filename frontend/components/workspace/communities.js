@@ -1,36 +1,85 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowUpRight, Hash, Plus, Send, Users } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { ArrowUpRight, Crown, Hash, Lock, Plus, Shield, Users } from "lucide-react";
 import { api } from "@/lib/api";
 import { useUser } from "../shell";
-import {
-  Action,
-  Badge,
-  date,
-  Dropdown,
-  Empty,
-  Heading,
-  Modal,
-  Pager,
-  SearchBox,
-  State,
-  useResource,
-} from "../ui";
+import { CategoryPicker, Empty, Heading, Modal, Pager, SearchBox, State, useResource } from "../ui";
+import { CategoryChips } from "./courses";
+
+const PAGE_SIZE = 12;
+
+const roleMeta = {
+  owner: { label: "Owner", Icon: Crown },
+  moderator: { label: "Moderator", Icon: Shield },
+};
+
+function CommunityTile({ item, index, mine }) {
+  const role = roleMeta[item.role];
+  const count = Number(item.member_count);
+  return (
+    <Link className="community-tile" href={`/communities/${item.id}`}>
+      <div className={`community-banner shade-${index % 4}`}>
+        <Users size={30} strokeWidth={1.6} />
+        <span className="community-banner-tags">
+          {item.is_private && (
+            <span className="community-tag">
+              <Lock size={12} /> Private
+            </span>
+          )}
+          {mine && role && (
+            <span className="community-tag">
+              <role.Icon size={12} /> {role.label}
+            </span>
+          )}
+        </span>
+      </div>
+      <div className="community-tile-body">
+        <CategoryChips categories={item.category_details} limit={3} />
+        <h3>{item.name}</h3>
+        <p className="clamp">{item.description}</p>
+        <footer>
+          <span className="community-meta">
+            <Users size={15} /> {count} member{count === 1 ? "" : "s"}
+            {mine && (
+              <>
+                <Hash size={15} /> {Number(item.channel_count)} channel{Number(item.channel_count) === 1 ? "" : "s"}
+              </>
+            )}
+          </span>
+          {!mine && item.membership === "pending" ? (
+            <span className="joined-tag">Requested</span>
+          ) : !mine && item.membership === "blocked" ? (
+            <span className="joined-tag muted">Unavailable</span>
+          ) : (
+            <span className="contest-card-link">
+              {mine ? "Open" : item.requires_approval ? "View" : "View & join"} <ArrowUpRight size={16} />
+            </span>
+          )}
+        </footer>
+      </div>
+    </Link>
+  );
+}
 
 export default function Communities() {
   const user = useUser();
   const isLearner = user.role === "learner";
+  const [tab, setTab] = useState("mine");
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(0);
-  const [selected, setSelected] = useState(null);
   const [create, setCreate] = useState(false);
+  const mine = tab === "mine";
   const resource = useResource(
-    `frontend/catalog/communities?q=${encodeURIComponent(query)}&offset=${page * 12}&limit=12`,
+    mine
+      ? `frontend/communities/mine?q=${encodeURIComponent(query)}&offset=${page * PAGE_SIZE}&limit=${PAGE_SIZE}`
+      : `frontend/catalog/communities?tab=explore&q=${encodeURIComponent(query)}&offset=${page * PAGE_SIZE}&limit=${PAGE_SIZE}`,
   );
 
   return (
-    <>
+    <div className="courses-page">
       {!isLearner && (
         <Heading
           eyebrow="FIND YOUR PEOPLE"
@@ -39,86 +88,97 @@ export default function Communities() {
         />
       )}
 
-      <div className="toolbar community-page-toolbar">
-        <div className="community-page-search">
-          <SearchBox
-            value={query}
-            onChange={(value) => {
-              setQuery(value);
-              setPage(0);
-            }}
-            placeholder="Find a community…"
-          />
+      <div className="courses-sticky">
+        <div className="tabs">
+          {[
+            ["mine", "My communities"],
+            ["explore", "Explore communities"],
+          ].map(([value, label]) => (
+            <button
+              key={value}
+              className={tab === value ? "active" : ""}
+              onClick={() => {
+                setTab(value);
+                setPage(0);
+              }}
+            >
+              {label}
+            </button>
+          ))}
         </div>
-        <button className="button" onClick={() => setCreate(true)}>
-          <Plus size={18} /> Create community
-        </button>
+        <div className="toolbar community-page-toolbar">
+          <div className="community-page-search">
+            <SearchBox
+              value={query}
+              onChange={(value) => {
+                setQuery(value);
+                setPage(0);
+              }}
+              placeholder={mine ? "Search your communities…" : "Find a community…"}
+            />
+          </div>
+          <button className="button" onClick={() => setCreate(true)}>
+            <Plus size={18} /> Create community
+          </button>
+        </div>
       </div>
 
       <State resource={resource}>
         {resource.data?.length ? (
-          <div className="grid three">
+          <div className="community-grid">
             {resource.data.map((community, index) => (
-              <article className="card community-card" key={community.id}>
-                <div className={`community-icon shade-${index % 4}`}>
-                  <Users size={34} />
-                </div>
-                <Badge>{community.category_name}</Badge>
-                <h2>{community.name}</h2>
-                <p className="clamp">{community.description}</p>
-                <footer>
-                  <span>{community.member_count} members</span>
-                  <button
-                    className="text-link"
-                    onClick={() => setSelected(community)}
-                  >
-                    Visit <ArrowUpRight size={18} />
-                  </button>
-                </footer>
-              </article>
+              <CommunityTile item={community} index={index} mine={mine} key={community.id} />
             ))}
           </div>
+        ) : mine ? (
+          <div className="empty">
+            <Users size={32} />
+            <h3>{query ? "No communities match your search" : "You haven’t joined any community yet"}</h3>
+            <p>Explore communities to find people who share your interests.</p>
+            {!query && (
+              <button className="button secondary" onClick={() => setTab("explore")}>
+                Explore communities
+              </button>
+            )}
+          </div>
         ) : (
-          <Empty title="Find your first community" />
+          <Empty title="Nothing new to explore" text="You’ve joined every community that matches. Try creating your own!" />
         )}
       </State>
 
-      <Pager
-        page={page}
-        setPage={setPage}
-        hasMore={resource.data?.length === 12}
-      />
+      <Pager page={page} setPage={setPage} hasMore={resource.data?.length === PAGE_SIZE} />
 
       {create && (
         <Modal title="Start a community" onClose={() => setCreate(false)}>
-          <CommunityForm
-            onDone={() => {
-              setCreate(false);
-              resource.reload();
-            }}
-          />
+          <CommunityForm />
         </Modal>
       )}
-      {selected && (
-        <Modal title={selected.name} onClose={() => setSelected(null)}>
-          <CommunityDetail item={selected} />
-        </Modal>
-      )}
-    </>
+    </div>
   );
 }
 
-function CommunityForm({ onDone }) {
+const slugify = (value) =>
+  value
+    .toLowerCase()
+    .normalize("NFKD")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 60);
+
+function CommunityForm() {
+  const router = useRouter();
   const categories = useResource("users/interests");
-  const [category, setCategory] = useState("");
+  const [selected, setSelected] = useState([]);
+  const [slug, setSlug] = useState("");
+  const [slugTouched, setSlugTouched] = useState(false);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
 
   async function submit(event) {
     event.preventDefault();
     setError("");
-    if (!category) {
-      setError("Choose an interest for this community.");
+    if (!selected.length) {
+      setError("Choose at least one interest for this community.");
       return;
     }
     setBusy(true);
@@ -126,11 +186,11 @@ function CommunityForm({ onDone }) {
       const body = Object.fromEntries(new FormData(event.currentTarget));
       body.requires_approval = body.requires_approval === "true";
       body.is_private = body.is_private === "true";
-      await api("frontend/communities", { method: "POST", body });
-      onDone();
+      body.category_ids = selected;
+      const created = await api("frontend/communities", { method: "POST", body });
+      router.push(`/communities/${created.id}`);
     } catch (requestError) {
       setError(requestError.message);
-    } finally {
       setBusy(false);
     }
   }
@@ -139,7 +199,14 @@ function CommunityForm({ onDone }) {
     <form className="stack" onSubmit={submit}>
       <label>
         Name
-        <input name="name" required maxLength={150} />
+        <input
+          name="name"
+          required
+          maxLength={150}
+          onChange={(event) => {
+            if (!slugTouched) setSlug(slugify(event.target.value));
+          }}
+        />
       </label>
       <label>
         Unique slug
@@ -148,44 +215,39 @@ function CommunityForm({ onDone }) {
           required
           pattern="[a-z0-9]+(-[a-z0-9]+)*"
           placeholder="creative-coders"
+          value={slug}
+          onChange={(event) => {
+            setSlugTouched(true);
+            setSlug(event.target.value);
+          }}
         />
       </label>
       <label>
         Description
         <textarea name="description" required rows={4} />
       </label>
-      <label>
-        Interest
-        <Dropdown
-          ariaLabel="Choose a community interest"
-          name="category_id"
-          required
-          value={category}
-          onChange={setCategory}
-          placeholder="Choose an interest"
-          options={(categories.data || []).map((item) => ({
-            value: String(item.id),
-            label: item.name,
-            iconName: item.icon,
-          }))}
-          hasIcon
-          disabled={!categories.data?.length}
-        />
-      </label>
-      <label>
-        Joining
-        <select name="requires_approval">
-          <option value="false">Anyone can join</option>
-          <option value="true">Approve new members</option>
-        </select>
-      </label>
-      <label>
-        Visibility
-        <select name="is_private">
-          <option value="false">Public community</option>
-          <option value="true">Private community</option>
-        </select>
-      </label>
+      <CategoryPicker
+        categories={categories.data || []}
+        value={selected}
+        onChange={setSelected}
+        legend="Interests"
+      />
+      <div className="grid two">
+        <label>
+          Joining
+          <select name="requires_approval" defaultValue="false">
+            <option value="false">Anyone can join</option>
+            <option value="true">Approve new members</option>
+          </select>
+        </label>
+        <label>
+          Visibility
+          <select name="is_private" defaultValue="false">
+            <option value="false">Public community</option>
+            <option value="true">Private community</option>
+          </select>
+        </label>
+      </div>
       {error && (
         <p role="alert" className="notice error">
           {error}
@@ -195,151 +257,5 @@ function CommunityForm({ onDone }) {
         {busy ? "Creating…" : "Create community"}
       </button>
     </form>
-  );
-}
-
-function CommunityDetail({ item }) {
-  const resource = useResource(`frontend/communities/${item.id}`);
-  const [channel, setChannel] = useState("");
-  const [text, setText] = useState("");
-  const messages = useResource(
-    channel ? `frontend/communities/${item.id}/chats/${channel}` : null,
-  );
-
-  return (
-    <State resource={resource}>
-      {resource.data && (
-        <div className="stack">
-          <p>{item.description}</p>
-          <Action
-            disabled={["approved", "pending", "blocked"].includes(
-              resource.data.membership,
-            )}
-            onClick={async () => {
-              await api(`communities/${item.id}/join`, { method: "POST" });
-              resource.reload();
-            }}
-          >
-            {resource.data.membership === "approved"
-              ? "You’re a member"
-              : resource.data.membership === "pending"
-                ? "Approval pending"
-                : resource.data.membership === "blocked"
-                  ? "Membership blocked"
-                  : "Join community"}
-          </Action>
-
-          {resource.data.can_manage && (
-            <>
-              <h3>Membership requests</h3>
-              {resource.data.pending?.map((member) => (
-                <div className="row spread" key={member.member_id}>
-                  <span>{member.name}</span>
-                  <Action
-                    className="text-link"
-                    onClick={async () => {
-                      await api(
-                        `frontend/communities/${item.id}/members/${member.member_id}`,
-                        { method: "PATCH", body: { status: "approved" } },
-                      );
-                      resource.reload();
-                    }}
-                  >
-                    Approve
-                  </Action>
-                  <Action
-                    className="text-link"
-                    onClick={async () => {
-                      await api(
-                        `frontend/communities/${item.id}/members/${member.member_id}`,
-                        { method: "PATCH", body: { status: "rejected" } },
-                      );
-                      resource.reload();
-                    }}
-                  >
-                    Reject
-                  </Action>
-                </div>
-              ))}
-              <Action
-                className="button secondary"
-                onClick={async () => {
-                  const name = prompt("Channel name");
-                  if (name?.trim()) {
-                    await api(`frontend/communities/${item.id}/chats`, {
-                      method: "POST",
-                      body: { name },
-                    });
-                    resource.reload();
-                  }
-                }}
-              >
-                Create channel
-              </Action>
-            </>
-          )}
-
-          {resource.data.membership === "approved" && (
-            <>
-              <label>
-                Channel
-                <select
-                  value={channel}
-                  onChange={(event) => setChannel(event.target.value)}
-                >
-                  <option value="">Choose a channel</option>
-                  {resource.data.chats?.map((chat) => (
-                    <option value={chat.id} key={chat.id}>
-                      # {chat.name}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              {channel && (
-                <>
-                  <div className="chat-stream">
-                    <State resource={messages}>
-                      {messages.data?.map((message) => (
-                        <div className="chat-message" key={message.id}>
-                          <strong>{message.sender_name}</strong>
-                          <p>{message.content}</p>
-                          <small>{date(message.created_at)}</small>
-                        </div>
-                      ))}
-                    </State>
-                  </div>
-                  <div className="comment-input">
-                    <input
-                      aria-label="Message channel"
-                      value={text}
-                      onChange={(event) => setText(event.target.value)}
-                      placeholder="Message the community…"
-                    />
-                    <Action
-                      className="icon-button"
-                      aria-label="Send message"
-                      disabled={!text.trim()}
-                      onClick={async () => {
-                        await api(
-                          `frontend/communities/${item.id}/chats/${channel}`,
-                          { method: "POST", body: { content: text } },
-                        );
-                        setText("");
-                        messages.reload();
-                      }}
-                    >
-                      <Send size={20} />
-                    </Action>
-                  </div>
-                  <button className="text-link" onClick={messages.reload}>
-                    Refresh messages
-                  </button>
-                </>
-              )}
-            </>
-          )}
-        </div>
-      )}
-    </State>
   );
 }

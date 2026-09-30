@@ -25,6 +25,7 @@ import {
   Modal,
   SearchBox,
   State,
+  UserAvatar,
   useResource,
 } from "../ui";
 
@@ -481,9 +482,9 @@ export function ShowcasePost({ post, detail = false, onDeleted }) {
   return (
     <article className={"card post" + (detail ? " post-detail" : "")}>
       <header>
-        <span className="avatar">{post.creator_name?.[0]}</span>
+        <UserAvatar id={post.creator_id} name={post.creator_name} hasPicture={post.creator_has_picture} />
         <div>
-          <Link href={"/profile?user=" + post.creator_id}>
+          <Link href={"/profile/" + post.creator_id}>
             <strong>{post.creator_name}</strong>
           </Link>
           <small>
@@ -800,9 +801,9 @@ function CommentRow({ comment }) {
 
   return (
     <div className="comment" key={comment.id}>
-      <span className="avatar small">{comment.name?.[0]}</span>
+      <UserAvatar className="small" id={comment.commenter_id} name={comment.name} hasPicture={comment.commenter_has_picture} />
       <div>
-        <Link href={"/profile?user=" + comment.commenter_id}>
+        <Link href={"/profile/" + comment.commenter_id}>
           <strong>{comment.name}</strong>
         </Link>
         <p>{comment.content}</p>

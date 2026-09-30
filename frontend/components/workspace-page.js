@@ -7,7 +7,7 @@ import Webinars from "./workspace/webinars";
 import Communities from "./workspace/communities";
 import Jobs from "./workspace/jobs";
 import Messages from "./workspace/messages";
-import Profile from "./workspace/profile";
+import Profile from "./workspace/profile-page";
 import Admin from "./workspace/admin";
 import AdminDashboard from "./workspace/admin-dashboard";
 import AdminModeration from "./workspace/admin-moderation";

@@ -27,7 +27,7 @@ export const validate=schema=>(req,_res,next)=>{try{req.body=schema.parse(req.bo
 export {multer};
 export const upload=multer({storage:multer.memoryStorage(),limits:{fileSize:Number(process.env.MAX_UPLOAD_MB||10)*1024*1024}});
 export function page(req){const limit=Math.min(Math.max(Number(req.query.limit)||20,1),100);const offset=Math.max(Number(req.query.offset)||0,0);return{limit,offset}}
-export const publicUser=`id,name,email,username,role,bio,account_status,email_verified_at,last_login_at,created_at,updated_at`;
+export const publicUser=`id,uddeepto_id,name,email,username,role,bio,account_status,email_verified_at,last_login_at,created_at,updated_at,(picture IS NOT NULL) AS has_picture`;
 export function errors(err,_req,res,_next){console.error(err);if(err instanceof ZodError)return res.status(422).json({error:'Validation failed',details:err.flatten()});if(err.code==='23505')return res.status(409).json({error:'Already exists',details:err.detail});if(err.code==='23503')return res.status(409).json({error:'Referenced record does not exist or is in use'});if(err.code==='22P02')return res.status(400).json({error:'Invalid identifier or value'});if(err instanceof multer.MulterError)return res.status(413).json({error:err.message});res.status(err.status||500).json({error:err.status?err.message:'Internal server error',details:err.details})}
 export function notFound(req,res){res.status(404).json({error:`Route not found: ${req.method} ${req.originalUrl}`})}
 export function listen(app,port,name){app.use(notFound,errors);app.listen(port,()=>console.log(`${name} listening on ${port}`))}

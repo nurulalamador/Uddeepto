@@ -13,4 +13,4 @@ export const allow=()=>((_q,_s,n)=>n());
 export const page=req=>({limit:Math.min(Math.max(Number(req.query.limit)||20,1),100),offset:Math.max(Number(req.query.offset)||0,0)});
 export const resourceRouter=()=>express.Router();
 export let server;
-export function listen(app){app.use((e,_q,s,_n)=>s.status(e.status||500).json({error:e.message}));server=app.listen(0,'127.0.0.1');}
+export function listen(app){app.use((e,_q,s,_n)=>s.status(e.status||(e.name==='ZodError'?422:500)).json({error:e.message}));server=app.listen(0,'127.0.0.1');}

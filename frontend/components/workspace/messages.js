@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Plus, Send } from "lucide-react";
 import { api } from "@/lib/api";
 import { useUser } from "../shell";
-import { Action, date, Empty, Modal, State, useResource } from "../ui";
+import { Action, date, Empty, Modal, State, UserAvatar, useResource } from "../ui";
 
 export default function Messages() {
   const user = useUser();
@@ -35,13 +35,7 @@ export default function Messages() {
   }
 
   return (
-    <>
-      <div className="workspace-page-actions">
-        <button className="button" onClick={() => setCreate(true)}>
-          <Plus size={18} /> New message
-        </button>
-      </div>
-
+    <div className="messages-page">
       <div className="messenger">
         <aside>
           <State resource={conversations}>
@@ -52,7 +46,7 @@ export default function Messages() {
                   className={`conversation ${selected?.id === conversation.id ? "selected" : ""}`}
                   onClick={() => setSelected(conversation)}
                 >
-                  <span className="avatar">{conversation.name?.[0]}</span>
+                  <UserAvatar id={conversation.other_user_id} name={conversation.name} hasPicture={conversation.other_has_picture} />
                   <span>
                     <strong>{conversation.name}</strong>
                     <small>
@@ -74,7 +68,7 @@ export default function Messages() {
           {selected ? (
             <>
               <header>
-                <span className="avatar">{selected.name?.[0]}</span>
+                <UserAvatar id={selected.other_user_id} name={selected.name} hasPicture={selected.other_has_picture} />
                 <h3>{selected.name}</h3>
               </header>
               <div className="message-stream">
@@ -113,6 +107,11 @@ export default function Messages() {
         </section>
       </div>
 
+      <button type="button" className="fab" onClick={() => setCreate(true)} aria-label="New message">
+        <Plus size={22} />
+        <span>New message</span>
+      </button>
+
       {create && (
         <Modal title="Start a conversation" onClose={() => setCreate(false)}>
           <FindPerson
@@ -121,14 +120,14 @@ export default function Messages() {
                 method: "POST",
                 body: { user_id: person.id },
               });
-              setSelected({ ...conversation, name: person.name });
+              setSelected({ ...conversation, name: person.name, other_user_id: person.id, other_has_picture: person.has_picture });
               setCreate(false);
               conversations.reload();
             }}
           />
         </Modal>
       )}
-    </>
+    </div>
   );
 }
 
@@ -151,7 +150,7 @@ export function FindPerson({ onSelect }) {
       <State resource={resource}>
         {resource.data?.map((person) => (
           <div className="list-row" key={person.id}>
-            <span className="avatar">{person.name?.[0]}</span>
+            <UserAvatar id={person.id} name={person.name} hasPicture={person.has_picture} />
             <div>
               <strong>{person.name}</strong>
               <p>@{person.username}</p>

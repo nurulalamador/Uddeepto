@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 import { ThemeToggle } from "./theme";
 import { UserAvatar } from "./ui";
+import GlobalSearch from "./global-search";
 import { allowedCategorizedSections, canAccess, sections } from "@/lib/roles";
 
 const UserContext = createContext(null);
@@ -150,13 +151,13 @@ export default function Shell({ user, children }) {
               {postDetail ? <>
                 <Link className="post-detail-back" href={detail.back} aria-label={detail.label}><ArrowLeft size={19} /></Link>
                 <div className="post-detail-topbar-title"><strong>{detail.title}</strong><small>{detailSubtitle || detail.subtitle}</small></div>
-                <div className="row"><ThemeToggle /></div>
+                <div className="row"><GlobalSearch /><ThemeToggle /></div>
               </> : <>
                 <div className="row">
                   <button className="icon-button mobile-menu" onClick={() => setOpen(true)} aria-label="Open navigation"><Menu /></button>
                   <span className="title">{sections[path] || "Workspace"}</span>
                 </div>
-                <div className="row"><ThemeToggle /></div>
+                <div className="row"><GlobalSearch /><ThemeToggle /></div>
               </>}
             </header>
             <main className="content-container">

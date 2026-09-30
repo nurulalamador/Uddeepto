@@ -122,11 +122,11 @@ const showcaseProjection=`p.id,p.creator_id,p.content,p.created_at,u.name creato
 const showcaseFrom='FROM showcase_posts p JOIN users u ON u.id=p.creator_id JOIN interest_categories i ON i.id=p.category_id';
 app.get('/showcase',run(async req=>{const[limit,offset]=paging(req);return(await query(`SELECT ${showcaseProjection} ${showcaseFrom} WHERE p.deleted_at IS NULL AND p.visibility='public' AND p.content ILIKE $2 AND($3::uuid IS NULL OR p.category_id=$3) ORDER BY p.created_at DESC LIMIT $4 OFFSET $5`,[req.user.sub,`%${String(req.query.q||'').slice(0,200)}%`,req.query.category?uuid(req.query.category):null,limit,offset])).rows;}));
 app.get('/showcase/:id',run(async req=>one(`SELECT ${showcaseProjection} ${showcaseFrom} WHERE p.id=$2 AND p.deleted_at IS NULL AND p.visibility='public'`,[req.user.sub,uuid(req.params.id)])));
-app.get('/showcase/:id/media/:mediaId',auth(false),run(async(req,res)=>{const media=await one('SELECT mime_type,media_blob,file_name FROM showcase_post_media m JOIN showcase_posts p ON p.id=m.post_id WHERE m.id=$1 AND m.post_id=$2 AND p.deleted_at IS NULL AND p.visibility=\'public\'',[uuid(req.params.mediaId),uuid(req.params.id)]);if(!media)throw new ApiError(404,'Media not found');res.type(media.mime_type).set('Content-Disposition',`inline; filename="${String(media.file_name||'media').replace(/"/g,'')}"`).send(media.media_blob);}));
+app.get('/showcase/:id/media/:mediaId',auth(false),run(async(req,res)=>{const media=await one('SELECT mime_type,media_blob,file_name FROM showcase_post_media m JOIN showcase_posts p ON p.id=m.post_id WHERE m.id=$1 AND m.post_id=$2 AND p.deleted_at IS NULL AND p.visibility=\'public\'',[uuid(req.params.mediaId),uuid(req.params.id)]);if(!media)throw new ApiError(404,'Media not found');res.set({'Content-Type':media.mime_type,'Content-Disposition':`inline; filename*=UTF-8''${encodeURIComponent(String(media.file_name||'media'))}`,'Cache-Control':'private, max-age=300','X-Content-Type-Options':'nosniff'}).send(Buffer.from(media.media_blob));}));
 app.get('/instructors/:id/image',run(async(req,res)=>{const instructor=await one('SELECT image_blob,image_mime_type FROM instructors WHERE id=$1',[uuid(req.params.id)]);if(!instructor.image_blob)throw new ApiError(404,'Instructor image not found');res.set('Cache-Control','private, max-age=300').type(instructor.image_mime_type).send(instructor.image_blob);}));
 app.get('/course-covers/:id',run(async(req,res)=>{const course=await one(`SELECT cover_image,cover_image_mime_type FROM courses WHERE id=$1 AND(status='published' OR creator_id=$2 OR $3='admin')`,[uuid(req.params.id),req.user.sub,req.user.role]);if(!course.cover_image)throw new ApiError(404,'Course cover not found');res.set('Cache-Control','private, max-age=300').type(course.cover_image_mime_type).send(course.cover_image);}));
 const noHirer=asyncHandler(async(req,_res,next)=>{const account=(await query('SELECT role FROM users WHERE id=$1',[req.user.sub])).rows[0];if(account?.role==='hirer')throw new ApiError(403,'Hiring accounts can view the showcase but not post to it');next();});
-app.post('/showcase',auth(),noHirer,upload.array('media',10),run(async req=>{const files=req.files||[];if(files.some(file=>!['image','audio','video'].includes(file.mimetype.split('/')[0])))throw new ApiError(422,'Only image, audio, and video files are allowed');return tx(async db=>{const post=(await db.query('INSERT INTO showcase_posts(creator_id,category_id,content,visibility) VALUES($1,$2,$3,$4) RETURNING *',[req.user.sub,req.body.category_id,text(req.body.content),req.body.visibility||'public'])).rows[0];for(const[file,index]of files.entries())await db.query('INSERT INTO showcase_post_media(post_id,mime_type,media_blob,file_name,sort_order) VALUES($1,$2,$3,$4,$5)',[post.id,file.mimetype,file.buffer,file.originalname,index]);return post;});}));
+app.post('/showcase',auth(),noHirer,upload.array('media',10),run(async req=>{const files=req.files||[];if(files.some(file=>!['image','audio','video'].includes(file.mimetype.split('/')[0])))throw new ApiError(422,'Only image, audio, and video files are allowed');return tx(async db=>{const post=(await db.query('INSERT INTO showcase_posts(creator_id,category_id,content,visibility) VALUES($1,$2,$3,$4) RETURNING *',[req.user.sub,req.body.category_id,text(req.body.content),req.body.visibility||'public'])).rows[0];for(const[index,file]of files.entries())await db.query('INSERT INTO showcase_post_media(post_id,mime_type,media_blob,file_name,sort_order) VALUES($1,$2,$3,$4,$5)',[post.id,file.mimetype,file.buffer,decodeName(file.originalname).slice(0,255),index]);return post;});}));
 async function visiblePost(id){return one(`SELECT id FROM showcase_posts WHERE id=$1 AND visibility='public' AND deleted_at IS NULL`,[uuid(id)]);}
 app.delete('/showcase/:id',run(async req=>{const r=await query('UPDATE showcase_posts SET deleted_at=now() WHERE id=$1 AND(creator_id=$2 OR $3=\'admin\') RETURNING id',[uuid(req.params.id),req.user.sub,req.user.role]);if(!r.rowCount)throw new ApiError(403,'Not your post');}));
 async function toggleReaction(table,field,id,user){await tx(async db=>{await db.query('SELECT pg_advisory_xact_lock(hashtext($1))',[`${table}:${id}:${user}`]);const removed=await db.query(`DELETE FROM ${table} WHERE ${field}=$1 AND user_id=$2 AND reaction='love'`,[id,user]);if(!removed.rowCount)await db.query(`INSERT INTO ${table}(${field},user_id,reaction) VALUES($1,$2,'love')`,[id,user]);});}
@@ -601,5 +601,71 @@ app.post('/courses/:id/materials/:materialId/ai',run(async req=>{
   const system=`${aiSystemPrompt}\n\n${about}\n${access}\nStay focused on helping the learner understand this material and the topic around it.`;
   const result=await askGemini(req.user.sub,{system,messages,attachment});
   return{...result,context};
+}));
+// ---- Global search: people, courses, contests, webinars, jobs and communities in one place ----
+const searchEscape=value=>value.replace(/[\\%_]/g,'\\$&');
+const categoryMatch=(table,fk,alias)=>`EXISTS(SELECT 1 FROM ${table} sc JOIN interest_categories sic ON sic.id=sc.category_id WHERE sc.${fk}=${alias}.id AND sic.name ILIKE $1)`;
+const shortDay=value=>value?new Date(value).toISOString().slice(0,10):'';
+// Each type has a WHERE builder (u = placeholder of the user id, r = of the role) plus SELECT/ORDER and a mapper to a common result shape.
+const searchTypes={
+  users:{
+    roles:['learner','hirer','admin'],label:'People',
+    from:()=>`users u WHERE u.account_status='active' AND(u.name ILIKE $1 OR u.username::text ILIKE $1 OR u.uddeepto_id ILIKE $1 OR coalesce(u.headline,'') ILIKE $1)`,
+    select:'u.id,u.uddeepto_id,u.name,u.username,u.headline,u.role::text role,(u.picture IS NOT NULL) has_picture',order:'(u.name ILIKE $2) DESC,u.name',
+    map:row=>({type:'users',id:row.id,title:row.name,subtitle:[`@${row.username}`,row.headline||row.role].filter(Boolean).join(' · '),href:`/profile/${row.uddeepto_id}`,image:row.has_picture?`/api/backend/frontend/profile/${row.id}/picture`:null,meta:row.uddeepto_id}),
+  },
+  courses:{
+    roles:['learner','admin'],label:'Courses',
+    from:()=>`courses c LEFT JOIN instructors ins ON ins.id=c.instructor_id WHERE c.status='published' AND(c.title ILIKE $1 OR c.description ILIKE $1 OR coalesce(ins.name,'') ILIKE $1 OR ${categoryMatch('course_categories','course_id','c')})`,
+    select:`c.id,c.title,c.price,c.currency,(c.cover_image IS NOT NULL) has_cover_image,ins.name instructor_name,${catNamesSql('courses','c')} category_name`,order:'(c.title ILIKE $2) DESC,c.published_at DESC NULLS LAST',
+    map:row=>({type:'courses',id:row.id,title:row.title,subtitle:[row.instructor_name,row.category_name].filter(Boolean).join(' · '),href:`/courses/${row.id}`,image:row.has_cover_image?`/api/backend/frontend/course-covers/${row.id}`:null,meta:Number(row.price)===0?'Free':`${row.currency} ${Number(row.price)}`}),
+  },
+  contests:{
+    roles:['learner','admin'],label:'Contests',
+    from:()=>`contests c WHERE c.status IN('published','completed') AND(c.name ILIKE $1 OR c.description ILIKE $1 OR ${categoryMatch('contest_categories','contest_id','c')})`,
+    select:`c.id,c.name,c.starting_time,c.ending_time,c.status::text status,${catNamesSql('contests','c')} category_name`,order:'(c.name ILIKE $2) DESC,c.starting_time DESC',
+    map:row=>({type:'contests',id:row.id,title:row.name,subtitle:row.category_name||'Contest',href:`/contests/${row.id}`,image:null,meta:new Date(row.ending_time)<new Date()||row.status==='completed'?'Ended':new Date(row.starting_time)>new Date()?`Starts ${shortDay(row.starting_time)}`:'Live now'}),
+  },
+  webinars:{
+    roles:['learner','admin'],label:'Webinars',
+    from:()=>`webinars w WHERE w.status IN('scheduled','live','completed') AND(w.name ILIKE $1 OR w.description ILIKE $1 OR ${categoryMatch('webinar_categories','webinar_id','w')} OR EXISTS(SELECT 1 FROM webinar_speakers ws JOIN instructors si ON si.id=ws.instructor_id WHERE ws.webinar_id=w.id AND si.name ILIKE $1))`,
+    select:`w.id,w.name,w.starting_time,w.ending_time,w.status::text status,${speakerNamesSql('w')} speaker_names`,order:'(w.name ILIKE $2) DESC,w.starting_time DESC',
+    map:row=>({type:'webinars',id:row.id,title:row.name,subtitle:row.speaker_names?`with ${row.speaker_names}`:'Webinar',href:`/webinars/${row.id}`,image:null,meta:new Date(row.ending_time)<new Date()||row.status==='completed'?'Ended':new Date(row.starting_time)>new Date()?`Starts ${shortDay(row.starting_time)}`:'Live now'}),
+  },
+  jobs:{
+    roles:['learner','hirer','admin'],label:'Jobs',
+    from:(u,r)=>`jobs j JOIN users ju ON ju.id=j.creator_id WHERE((j.status='open' AND(j.application_deadline IS NULL OR j.application_deadline>now())) OR j.creator_id=${u} OR ${r}='admin') AND(j.title ILIKE $1 OR j.description ILIKE $1 OR coalesce(j.location,'') ILIKE $1 OR ju.name ILIKE $1)`,
+    select:'j.id,j.title,j.location,j.is_remote,j.type::text type,j.status::text status,ju.name company',order:'(j.title ILIKE $2) DESC,j.created_at DESC',
+    map:row=>({type:'jobs',id:row.id,title:row.title,subtitle:[row.company,row.is_remote?'Remote':row.location].filter(Boolean).join(' · '),href:`/jobs/${row.id}`,image:null,meta:row.type.replaceAll('_',' ')}),
+  },
+  communities:{
+    roles:['learner'],label:'Communities',
+    from:(u)=>`communities c WHERE(NOT c.is_private OR c.creator_id=${u} OR EXISTS(SELECT 1 FROM community_members m WHERE m.community_id=c.id AND m.member_id=${u} AND m.status='approved')) AND(c.name ILIKE $1 OR c.description ILIKE $1 OR ${categoryMatch('community_categories','community_id','c')})`,
+    select:`c.id,c.name,c.description,(SELECT count(*) FROM community_members WHERE community_id=c.id AND status='approved')::int member_count`,order:'(c.name ILIKE $2) DESC,c.created_at DESC',
+    map:row=>({type:'communities',id:row.id,title:row.name,subtitle:(row.description||'').slice(0,90),href:`/communities/${row.id}`,image:null,meta:`${row.member_count} member${row.member_count===1?'':'s'}`}),
+  },
+};
+app.get('/search',run(async req=>{
+  const q=String(req.query.q||'').trim().slice(0,100);
+  const allowed=Object.keys(searchTypes).filter(key=>searchTypes[key].roles.includes(req.user.role));
+  const labels=Object.fromEntries(allowed.map(key=>[key,searchTypes[key].label]));
+  if(q.length<2)return{q,types:allowed,labels,counts:{},results:{}};
+  const type=req.query.type?String(req.query.type):'';
+  if(type&&!allowed.includes(type))throw new ApiError(422,'Unknown search type');
+  const limit=Math.min(Math.max(parseInt(req.query.limit)||(type?20:4),1),50);
+  const offset=type?Math.max(parseInt(req.query.offset)||0,0):0;
+  const like=`%${searchEscape(q)}%`,prefix=`${searchEscape(q)}%`;
+  const counts={},results={};
+  await Promise.all(allowed.map(async key=>{
+    const config=searchTypes[key];
+    const bindings=(sql,values)=>values.slice(0,Math.max(...[...sql.matchAll(/\$(\d+)/g)].map(match=>Number(match[1]))));
+    const countSql=`SELECT count(*) FROM ${config.from('$2','$3')}`;
+    counts[key]=Number((await query(countSql,bindings(countSql,[like,req.user.sub,req.user.role]))).rows[0].count);
+    if(type&&type!==key)return;
+    const rowsSql=`SELECT ${config.select} FROM ${config.from('$5','$6')} ORDER BY ${config.order} LIMIT $3 OFFSET $4`;
+    const rows=(await query(rowsSql,bindings(rowsSql,[like,prefix,limit,offset,req.user.sub,req.user.role]))).rows;
+    results[key]=rows.map(config.map);
+  }));
+  return{q,types:allowed,labels,counts,results};
 }));
 listen(app,process.env.FRONTEND_API_PORT||4010,'frontend-api');

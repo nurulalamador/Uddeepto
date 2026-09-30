@@ -13,6 +13,7 @@ export const sections = {
   settings: "Settings",
   ai: "AI Assistant",
   "job-management": "Job Management",
+  search: "Search",
 };
 export function allowedSections(role) {
   if (role === "admin")
@@ -75,7 +76,7 @@ export function allowedCategorizedSections(role) {
 }
 export function canAccess(role, section) {
   // Hirers reach individual job pages (/jobs/[id]) from Job Management.
-  return section === "profile" || allowedSections(role).includes(section) || (role === "hirer" && section === "jobs");
+  return section === "profile" || section === "search" || allowedSections(role).includes(section) || (role === "hirer" && section === "jobs");
 }
 export function timeline(item, now = Date.now()) {
   if (["cancelled", "completed", "archived"].includes(item.status))

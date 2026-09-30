@@ -345,7 +345,7 @@ function PostForm({ categories, onDone }) {
     try {
       const body = new FormData(event.currentTarget);
       media.forEach(({ file }) => body.append("media", file));
-      await api("showcase", { method: "POST", body });
+      await api("frontend/showcase", { method: "POST", body });
       await onDone();
     } catch (requestError) {
       setError(requestError.message);

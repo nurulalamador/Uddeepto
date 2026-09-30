@@ -7,6 +7,7 @@ import AiAssistant from "./workspace/ai-assistant";
 import LearnerDashboard from "./workspace/learner-dashboard";
 import HirerDashboard from "./workspace/hirer-dashboard";
 import JobManagement from "./workspace/job-management";
+import SearchPage from "./workspace/search-page";
 import Communities from "./workspace/communities";
 import Jobs from "./workspace/jobs";
 import Messages from "./workspace/messages";
@@ -31,6 +32,7 @@ export default function WorkspacePage({ section }) {
   if (section === "webinars") return <Webinars />;
   if (section === "ai") return <AiAssistant />;
   if (section === "job-management") return <JobManagement />;
+  if (section === "search") return <SearchPage />;
   if (section === "communities") return <Communities />;
   if (section === "jobs") return <Jobs />;
   if (section === "messages") return <Messages />;

@@ -25,6 +25,51 @@ app.get('/dashboard',run(async req=>{
   if(req.user.role==='hirer')return {...(await one(`SELECT (SELECT count(*) FROM jobs WHERE creator_id=$1) jobs,(SELECT count(*) FROM jobs WHERE creator_id=$1 AND status='open') open_jobs,(SELECT count(*) FROM job_applications a JOIN jobs j ON j.id=a.job_id WHERE j.creator_id=$1) applications,(SELECT count(*) FROM showcase_posts WHERE creator_id=$1 AND deleted_at IS NULL) posts`,[id])),recent:(await query('SELECT j.title,a.status FROM job_applications a JOIN jobs j ON j.id=a.job_id WHERE j.creator_id=$1 ORDER BY a.applied_at DESC LIMIT 5',[id])).rows};
   return {...(await one(`SELECT (SELECT count(*) FROM course_enrollments WHERE user_id=$1 AND status IN ('active','completed')) enrollments,(SELECT count(*) FROM contest_participants WHERE participant_id=$1) contests,(SELECT count(*) FROM community_members WHERE member_id=$1 AND status='approved') communities,(SELECT count(*) FROM job_applications WHERE applicant_id=$1) applications`,[id])),recent:(await query(`SELECT c.title,e.status FROM course_enrollments e JOIN courses c ON c.id=e.course_id WHERE e.user_id=$1 AND e.status IN('active','completed') ORDER BY e.enrolled_at DESC LIMIT 5`,[id])).rows,upcoming:(await query(`SELECT id,name,status,starting_time FROM webinars WHERE status='scheduled' AND starting_time>now() ORDER BY starting_time LIMIT 3`)).rows};
 }));
+app.get('/dashboard/learner',run(async req=>{
+  learner(req);
+  const id=req.user.sub;
+  const stats=await one(`SELECT
+    (SELECT count(*) FROM course_enrollments WHERE user_id=$1 AND status IN('active','completed'))::int enrolled,
+    (SELECT count(*) FROM course_enrollments WHERE user_id=$1 AND status='completed')::int completed_courses,
+    (SELECT count(*) FROM completed_course_materials WHERE user_id=$1)::int materials_done,
+    (SELECT count(*) FROM course_materials m JOIN course_enrollments e ON e.course_id=m.course_id AND e.user_id=$1 AND e.status IN('active','completed'))::int materials_total,
+    (SELECT count(*) FROM contest_participants WHERE participant_id=$1)::int contests_joined,
+    (SELECT count(*) FROM contest_participants p JOIN contests c ON c.id=p.contest_id WHERE p.participant_id=$1 AND p.rank BETWEEN 1 AND 3 AND c.status='completed')::int podiums,
+    (SELECT count(*) FROM community_members WHERE member_id=$1 AND status='approved')::int communities,
+    (SELECT count(*) FROM job_applications WHERE applicant_id=$1)::int applications,
+    (SELECT count(*) FROM webinar_participants WHERE participant_id=$1 AND status IN('registered','attended'))::int webinars`,[id]);
+  const continueLearning=(await query(`SELECT c.id,c.title,(c.cover_image IS NOT NULL) has_cover_image,ins.name instructor_name,e.status::text status,e.last_accessed_at,
+      (SELECT count(*) FROM course_materials WHERE course_id=c.id)::int progress_total,
+      (SELECT count(*) FROM completed_course_materials WHERE course_id=c.id AND user_id=$1)::int progress_done,
+      coalesce((SELECT m.id FROM course_materials m WHERE m.course_id=c.id AND NOT EXISTS(SELECT 1 FROM completed_course_materials cm WHERE cm.material_id=m.id AND cm.user_id=$1) ORDER BY m.sort_order LIMIT 1),(SELECT m.id FROM course_materials m WHERE m.course_id=c.id ORDER BY m.sort_order LIMIT 1)) next_material_id
+    FROM course_enrollments e JOIN courses c ON c.id=e.course_id LEFT JOIN instructors ins ON ins.id=c.instructor_id
+    WHERE e.user_id=$1 AND e.status IN('active','completed') ORDER BY (e.status='active') DESC,e.last_accessed_at DESC NULLS LAST,e.enrolled_at DESC LIMIT 4`,[id])).rows;
+  const activity=(await query(`SELECT d.day::date::text AS day,coalesce(a.n,0)::int AS count
+    FROM generate_series((now() AT TIME ZONE 'Asia/Dhaka')::date-13,(now() AT TIME ZONE 'Asia/Dhaka')::date,interval '1 day') AS d(day)
+    LEFT JOIN(SELECT (completed_at AT TIME ZONE 'Asia/Dhaka')::date AS day,count(*) AS n FROM completed_course_materials WHERE user_id=$1 AND completed_at>now()-interval '16 days' GROUP BY 1) a ON a.day=d.day::date ORDER BY d.day`,[id])).rows;
+  const activeDays=new Set((await query(`SELECT DISTINCT (completed_at AT TIME ZONE 'Asia/Dhaka')::date::text AS day FROM completed_course_materials WHERE user_id=$1 AND completed_at>now()-interval '90 days'`,[id])).rows.map(row=>row.day));
+  const todayDhaka=(await one("SELECT (now() AT TIME ZONE 'Asia/Dhaka')::date::text today")).today;
+  let streak=0;
+  for(let cursor=new Date(todayDhaka+'T00:00:00Z'),first=true;streak<=90;cursor.setUTCDate(cursor.getUTCDate()-1),first=false){
+    if(activeDays.has(cursor.toISOString().slice(0,10)))streak++;
+    else if(!first)break;
+  }
+  const schedule=(await query(`SELECT * FROM(
+      SELECT 'webinar'::text kind,w.id,w.name,w.starting_time,w.ending_time FROM webinar_participants p JOIN webinars w ON w.id=p.webinar_id WHERE p.participant_id=$1 AND p.status='registered' AND w.ending_time>now() AND w.status IN('scheduled','live')
+      UNION ALL
+      SELECT 'contest'::text,c.id,c.name,c.starting_time,c.ending_time FROM contest_participants p JOIN contests c ON c.id=p.contest_id WHERE p.participant_id=$1 AND c.ending_time>now() AND c.status='published'
+    ) s ORDER BY starting_time LIMIT 6`,[id])).rows;
+  const discover=(await query(`SELECT * FROM(
+      SELECT 'webinar'::text kind,w.id,w.name,w.starting_time,w.ending_time FROM webinars w WHERE w.status IN('scheduled','live') AND w.ending_time>now() AND NOT EXISTS(SELECT 1 FROM webinar_participants p WHERE p.webinar_id=w.id AND p.participant_id=$1 AND p.status IN('registered','attended'))
+      UNION ALL
+      SELECT 'contest'::text,c.id,c.name,c.starting_time,c.ending_time FROM contests c WHERE c.status='published' AND c.ending_time>now() AND NOT EXISTS(SELECT 1 FROM contest_participants p WHERE p.contest_id=c.id AND p.participant_id=$1)
+    ) s ORDER BY starting_time LIMIT 4`,[id])).rows;
+  const applications=(await query(`SELECT a.job_id,j.title,u.name company,a.status::text status,a.applied_at FROM job_applications a JOIN jobs j ON j.id=a.job_id JOIN users u ON u.id=j.creator_id WHERE a.applicant_id=$1 ORDER BY a.applied_at DESC LIMIT 4`,[id])).rows;
+  const communities=(await query(`SELECT c.id,c.name,(SELECT count(*) FROM community_members WHERE community_id=c.id AND status='approved')::int member_count FROM communities c JOIN community_members m ON m.community_id=c.id AND m.member_id=$1 AND m.status='approved' ORDER BY m.approved_at DESC NULLS LAST LIMIT 4`,[id])).rows;
+  const flags=await one(`SELECT (picture IS NOT NULL) picture,coalesce(headline,'')<>'' headline,coalesce(bio,'')<>'' bio,EXISTS(SELECT 1 FROM user_interests WHERE user_id=$1) interests,EXISTS(SELECT 1 FROM user_education WHERE user_id=$1) education,EXISTS(SELECT 1 FROM user_experiences WHERE user_id=$1) experience FROM users WHERE id=$1`,[id]);
+  const checklist=[['picture','Add a profile picture'],['headline','Write a headline'],['bio','Tell people about yourself'],['interests','Choose your interests'],['education','Add your education'],['experience','Add your experience']].map(([key,label])=>({key,label,done:flags[key]}));
+  return{stats,continue_learning:continueLearning,activity,streak,schedule,discover,applications,communities,profile:{percent:Math.round(100*checklist.filter(item=>item.done).length/checklist.length),checklist}};
+}));
 app.get('/people',run(async req=>(await query(`SELECT id,uddeepto_id,name,username,role,(picture IS NOT NULL) has_picture FROM users WHERE account_status='active' AND (name ILIKE $1 OR username::text ILIKE $1 OR uddeepto_id ILIKE $1) ORDER BY name LIMIT 30`,[`%${String(req.query.q||'').slice(0,100)}%`])).rows));
 const uddeeptoIdPattern=/^\d{3}-\d{3}-\d{3}$/;
 const asDate=value=>{if(value===undefined||value===null||value==='')return null;const text=String(value);const full=/^\d{4}-\d{2}$/.test(text)?`${text}-01`:text;if(!/^\d{4}-\d{2}-\d{2}$/.test(full)||Number.isNaN(Date.parse(full)))throw new ApiError(422,'Enter a valid date');return full;};
@@ -80,7 +125,8 @@ app.get('/showcase/:id',run(async req=>one(`SELECT ${showcaseProjection} ${showc
 app.get('/showcase/:id/media/:mediaId',auth(false),run(async(req,res)=>{const media=await one('SELECT mime_type,media_blob,file_name FROM showcase_post_media m JOIN showcase_posts p ON p.id=m.post_id WHERE m.id=$1 AND m.post_id=$2 AND p.deleted_at IS NULL AND p.visibility=\'public\'',[uuid(req.params.mediaId),uuid(req.params.id)]);if(!media)throw new ApiError(404,'Media not found');res.type(media.mime_type).set('Content-Disposition',`inline; filename="${String(media.file_name||'media').replace(/"/g,'')}"`).send(media.media_blob);}));
 app.get('/instructors/:id/image',run(async(req,res)=>{const instructor=await one('SELECT image_blob,image_mime_type FROM instructors WHERE id=$1',[uuid(req.params.id)]);if(!instructor.image_blob)throw new ApiError(404,'Instructor image not found');res.set('Cache-Control','private, max-age=300').type(instructor.image_mime_type).send(instructor.image_blob);}));
 app.get('/course-covers/:id',run(async(req,res)=>{const course=await one(`SELECT cover_image,cover_image_mime_type FROM courses WHERE id=$1 AND(status='published' OR creator_id=$2 OR $3='admin')`,[uuid(req.params.id),req.user.sub,req.user.role]);if(!course.cover_image)throw new ApiError(404,'Course cover not found');res.set('Cache-Control','private, max-age=300').type(course.cover_image_mime_type).send(course.cover_image);}));
-app.post('/showcase',auth(),upload.array('media',10),run(async req=>{const files=req.files||[];if(files.some(file=>!['image','audio','video'].includes(file.mimetype.split('/')[0])))throw new ApiError(422,'Only image, audio, and video files are allowed');return tx(async db=>{const post=(await db.query('INSERT INTO showcase_posts(creator_id,category_id,content,visibility) VALUES($1,$2,$3,$4) RETURNING *',[req.user.sub,req.body.category_id,text(req.body.content),req.body.visibility||'public'])).rows[0];for(const[file,index]of files.entries())await db.query('INSERT INTO showcase_post_media(post_id,mime_type,media_blob,file_name,sort_order) VALUES($1,$2,$3,$4,$5)',[post.id,file.mimetype,file.buffer,file.originalname,index]);return post;});}));
+const noHirer=asyncHandler(async(req,_res,next)=>{const account=(await query('SELECT role FROM users WHERE id=$1',[req.user.sub])).rows[0];if(account?.role==='hirer')throw new ApiError(403,'Hiring accounts can view the showcase but not post to it');next();});
+app.post('/showcase',auth(),noHirer,upload.array('media',10),run(async req=>{const files=req.files||[];if(files.some(file=>!['image','audio','video'].includes(file.mimetype.split('/')[0])))throw new ApiError(422,'Only image, audio, and video files are allowed');return tx(async db=>{const post=(await db.query('INSERT INTO showcase_posts(creator_id,category_id,content,visibility) VALUES($1,$2,$3,$4) RETURNING *',[req.user.sub,req.body.category_id,text(req.body.content),req.body.visibility||'public'])).rows[0];for(const[file,index]of files.entries())await db.query('INSERT INTO showcase_post_media(post_id,mime_type,media_blob,file_name,sort_order) VALUES($1,$2,$3,$4,$5)',[post.id,file.mimetype,file.buffer,file.originalname,index]);return post;});}));
 async function visiblePost(id){return one(`SELECT id FROM showcase_posts WHERE id=$1 AND visibility='public' AND deleted_at IS NULL`,[uuid(id)]);}
 app.delete('/showcase/:id',run(async req=>{const r=await query('UPDATE showcase_posts SET deleted_at=now() WHERE id=$1 AND(creator_id=$2 OR $3=\'admin\') RETURNING id',[uuid(req.params.id),req.user.sub,req.user.role]);if(!r.rowCount)throw new ApiError(403,'Not your post');}));
 async function toggleReaction(table,field,id,user){await tx(async db=>{await db.query('SELECT pg_advisory_xact_lock(hashtext($1))',[`${table}:${id}:${user}`]);const removed=await db.query(`DELETE FROM ${table} WHERE ${field}=$1 AND user_id=$2 AND reaction='love'`,[id,user]);if(!removed.rowCount)await db.query(`INSERT INTO ${table}(${field},user_id,reaction) VALUES($1,$2,'love')`,[id,user]);});}
@@ -219,15 +265,74 @@ app.delete('/communities/:id/chats/:chatId/messages/:messageId',run(async req=>{
   if(m.sender_id!==req.user.sub&&!c.can_manage)throw new ApiError(403,'You can only delete your own messages');
   await query('UPDATE community_chat_messages SET deleted_at=now() WHERE id=$1',[req.params.messageId]);
 }));
-app.get('/jobs',run(async req=>{const[limit,offset]=paging(req);const tab=req.query.tab;const filter=tab==='mine'?`j.creator_id=$1`:tab==='applied'?`a.applicant_id=$1`:`j.status='open' AND(application_deadline IS NULL OR application_deadline>now())`;return(await query(`SELECT j.id,j.creator_id,j.title,j.description,j.status,j.type,j.salary_min,j.salary_max,j.currency,j.location,j.is_remote,j.application_deadline,u.name creator_name,a.status application_status FROM jobs j JOIN users u ON u.id=j.creator_id LEFT JOIN job_applications a ON a.job_id=j.id AND a.applicant_id=$1 WHERE ${filter} AND(j.title ILIKE $2 OR j.description ILIKE $2) AND($3='' OR j.type::text=$3) ORDER BY j.created_at DESC LIMIT $4 OFFSET $5`,[req.user.sub,`%${String(req.query.q||'').slice(0,200)}%`,req.query.type||'',limit,offset])).rows;}));
+const distanceSql=(lat,lng)=>`(CASE WHEN ${lat}::float8 IS NULL OR j.latitude IS NULL THEN NULL ELSE 6371*acos(least(1,greatest(-1,cos(radians(${lat}::float8))*cos(radians(j.latitude::float8))*cos(radians(j.longitude::float8)-radians(${lng}::float8))+sin(radians(${lat}::float8))*sin(radians(j.latitude::float8)))))END)`;
+const finiteOrNull=(value,limit)=>{if(value===undefined||value==='')return null;const n=Number(value);if(!Number.isFinite(n)||Math.abs(n)>limit)throw new ApiError(422,'Invalid map position');return n;};
+app.get('/jobs',run(async req=>{
+  const[limit,offset]=paging(req);
+  const tab=req.query.tab;
+  const filter=tab==='mine'?`j.creator_id=$1`:tab==='applied'?`a.applicant_id=$1`:`j.status='open' AND(j.application_deadline IS NULL OR j.application_deadline>now())`;
+  const lat=finiteOrNull(req.query.lat,90),lng=finiteOrNull(req.query.lng,180),radius=finiteOrNull(req.query.radius,20040);
+  if((lat===null)!==(lng===null))throw new ApiError(422,'Send both latitude and longitude');
+  const mapOnly=req.query.map==='1';
+  const category=req.query.category?uuid(req.query.category):'';
+  const sortColumn={salary:'coalesce(x.salary_max,x.salary_min)',deadline:'x.application_deadline',created:'x.created_at'}[String(req.query.sort||'')];
+  const direction=req.query.direction==='asc'?'ASC':'DESC';
+  const orderBy=sortColumn?`${sortColumn} ${direction} NULLS LAST,x.created_at DESC`:`${lat!==null?'x.distance_km ASC NULLS LAST,':''}x.created_at DESC`;
+  const distance=distanceSql('$6','$7');
+  const rows=(await query(`SELECT * FROM(SELECT j.id,j.creator_id,j.title,j.description,j.status,j.type,j.salary_min,j.salary_max,j.currency,j.salary_period,j.location,j.latitude::float8 latitude,j.longitude::float8 longitude,j.is_remote,j.application_deadline,j.created_at,(SELECT count(*) FROM job_applications ap WHERE ap.job_id=j.id)::int application_count,u.name creator_name,${catDetailsSql('jobs','j')} category_details,a.status application_status,${distance} distance_km FROM jobs j JOIN users u ON u.id=j.creator_id LEFT JOIN job_applications a ON a.job_id=j.id AND a.applicant_id=$1 WHERE ${filter} AND(j.title ILIKE $2 OR j.description ILIKE $2 OR j.location ILIKE $2) AND($3='' OR j.type::text=$3) AND($9='' OR j.category_id::text=$9 OR EXISTS(SELECT 1 FROM job_categories jc WHERE jc.job_id=j.id AND jc.category_id::text=$9))${mapOnly?' AND j.latitude IS NOT NULL':''}) x WHERE($8::float8 IS NULL OR x.distance_km<=$8::float8) ORDER BY ${orderBy} LIMIT $4 OFFSET $5`,[req.user.sub,`%${String(req.query.q||'').slice(0,200)}%`,req.query.type||'',limit,offset,lat,lng,radius,category])).rows;
+  return rows.map(row=>({...row,distance_km:row.distance_km===null?null:Number(row.distance_km)}));
+}));
+const hirerOnly=req=>{if(req.user.role!=='hirer')throw new ApiError(403,'Hiring account required');};
+app.get('/jobs/applicants',run(async req=>{
+  if(!['hirer','admin'].includes(req.user.role))throw new ApiError(403,'Hiring account required');
+  const[limit,offset]=paging(req);
+  const jobId=req.query.job?uuid(req.query.job):null;
+  const status=req.query.status?z.enum(['applied','shortlisted','accepted','rejected','withdrawn']).parse(req.query.status):null;
+  const like=`%${String(req.query.q||'').slice(0,100)}%`;
+  return(await query(`SELECT a.job_id,j.title job_title,a.applicant_id,u.name,u.username,u.uddeepto_id,(u.picture IS NOT NULL) has_picture,u.headline,a.status::text status,a.applied_at,a.cover_letter,(a.resume_blob IS NOT NULL) has_resume
+    FROM job_applications a JOIN jobs j ON j.id=a.job_id JOIN users u ON u.id=a.applicant_id
+    WHERE (j.creator_id=$1 OR $2='admin') AND($3::uuid IS NULL OR a.job_id=$3) AND($4::text IS NULL OR a.status::text=$4) AND(u.name ILIKE $5 OR u.username::text ILIKE $5)
+    ORDER BY a.applied_at DESC LIMIT $6 OFFSET $7`,[req.user.sub,req.user.role,jobId,status,like,limit,offset])).rows;
+}));
+app.get('/dashboard/hirer',run(async req=>{
+  hirerOnly(req);
+  const id=req.user.sub;
+  const stats=await one(`SELECT
+    (SELECT count(*) FROM jobs WHERE creator_id=$1)::int jobs,
+    (SELECT count(*) FROM jobs WHERE creator_id=$1 AND status='open' AND (application_deadline IS NULL OR application_deadline>now()))::int open_jobs,
+    (SELECT count(*) FROM job_applications a JOIN jobs j ON j.id=a.job_id WHERE j.creator_id=$1)::int applicants,
+    (SELECT count(*) FROM job_applications a JOIN jobs j ON j.id=a.job_id WHERE j.creator_id=$1 AND a.status='applied')::int new_applicants,
+    (SELECT count(*) FROM job_applications a JOIN jobs j ON j.id=a.job_id WHERE j.creator_id=$1 AND a.status='shortlisted')::int shortlisted,
+    (SELECT count(*) FROM job_applications a JOIN jobs j ON j.id=a.job_id WHERE j.creator_id=$1 AND a.status='accepted')::int accepted,
+    (SELECT count(*) FROM job_applications a JOIN jobs j ON j.id=a.job_id WHERE j.creator_id=$1 AND a.status='rejected')::int rejected,
+    (SELECT count(*) FROM job_applications a JOIN jobs j ON j.id=a.job_id WHERE j.creator_id=$1 AND a.applied_at>now()-interval '7 days')::int applicants_week`,[id]);
+  const recent=(await query(`SELECT a.job_id,j.title job_title,a.applicant_id,u.name,u.uddeepto_id,(u.picture IS NOT NULL) has_picture,u.headline,a.status::text status,a.applied_at
+    FROM job_applications a JOIN jobs j ON j.id=a.job_id JOIN users u ON u.id=a.applicant_id WHERE j.creator_id=$1 ORDER BY a.applied_at DESC LIMIT 6`,[id])).rows;
+  const topJobs=(await query(`SELECT * FROM(SELECT j.id,j.title,j.status::text status,j.application_deadline,j.created_at,
+      (SELECT count(*) FROM job_applications WHERE job_id=j.id)::int application_count,
+      (SELECT count(*) FROM job_applications WHERE job_id=j.id AND status='applied')::int new_count
+    FROM jobs j WHERE j.creator_id=$1) x ORDER BY new_count DESC,created_at DESC LIMIT 5`,[id])).rows;
+  const closing=(await query(`SELECT id,title,application_deadline FROM jobs WHERE creator_id=$1 AND status='open' AND application_deadline>now() AND application_deadline<now()+interval '7 days' ORDER BY application_deadline LIMIT 4`,[id])).rows;
+  const activity=(await query(`SELECT d.day::date::text AS day,coalesce(a.n,0)::int AS count
+    FROM generate_series((now() AT TIME ZONE 'Asia/Dhaka')::date-13,(now() AT TIME ZONE 'Asia/Dhaka')::date,interval '1 day') AS d(day)
+    LEFT JOIN(SELECT (a.applied_at AT TIME ZONE 'Asia/Dhaka')::date AS day,count(*) AS n FROM job_applications a JOIN jobs j ON j.id=a.job_id WHERE j.creator_id=$1 AND a.applied_at>now()-interval '16 days' GROUP BY 1) a ON a.day=d.day::date ORDER BY d.day`,[id])).rows;
+  return{stats,recent,top_jobs:topJobs,closing,activity};
+}));
+app.get('/jobs/:id',run(async req=>{
+  const id=uuid(req.params.id);
+  const job=await one(`SELECT j.id,j.creator_id,j.title,j.description,j.status::text status,j.type::text type,j.salary_min,j.salary_max,j.currency,j.salary_period,j.location,j.latitude::float8 latitude,j.longitude::float8 longitude,j.is_remote,j.criteria,j.application_deadline,j.created_at,u.name creator_name,u.uddeepto_id creator_uddeepto_id,(u.picture IS NOT NULL) creator_has_picture,a.status::text application_status,a.applied_at,(j.creator_id=$2 OR $3='admin') is_owner FROM jobs j JOIN users u ON u.id=j.creator_id LEFT JOIN job_applications a ON a.job_id=j.id AND a.applicant_id=$2 WHERE j.id=$1 AND(j.status<>'draft' OR j.creator_id=$2 OR $3='admin')`,[id,req.user.sub,req.user.role]);
+  if(job.is_owner)job.application_count=Number((await one('SELECT count(*) FROM job_applications WHERE job_id=$1',[id])).count);
+  job.accepting=job.status==='open'&&(!job.application_deadline||new Date(job.application_deadline)>new Date());
+  return job;
+}));
 app.get('/jobs/:id/applications',run(async req=>{await ownJob(req);return(await query('SELECT a.applicant_id,a.status,a.cover_letter,a.applied_at,a.resume_blob IS NOT NULL has_resume,u.name,u.username FROM job_applications a JOIN users u ON u.id=a.applicant_id WHERE job_id=$1 ORDER BY applied_at DESC LIMIT 100',[req.params.id])).rows;}));
 app.get('/jobs/:id/applications/:userId/resume',run(async(req,res)=>{await ownJob(req);const a=await one('SELECT resume_blob,resume_mime_type FROM job_applications WHERE job_id=$1 AND applicant_id=$2',[req.params.id,uuid(req.params.userId)]);if(!a.resume_blob)throw new ApiError(404,'Resume not found');res.set('Content-Disposition','attachment; filename="resume.pdf"').type('application/octet-stream').send(a.resume_blob);}));
 app.patch('/jobs/:id/applications/:userId',run(async req=>{await ownJob(req);const status=z.enum(['shortlisted','accepted','rejected','applied']).parse(req.body.status);await query('UPDATE job_applications SET status=$1 WHERE job_id=$2 AND applicant_id=$3',[status,req.params.id,uuid(req.params.userId)]);}));
 app.patch('/jobs/:id/status',run(async req=>{await ownJob(req);await query('UPDATE jobs SET status=$1 WHERE id=$2',[z.enum(['open','closed']).parse(req.body.status),req.params.id]);}));
-app.get('/messages',run(async req=>{learner(req);return(await query(`SELECT c.id,c.updated_at,u.name,u.id other_user_id,(u.picture IS NOT NULL) other_has_picture,(SELECT content FROM messages WHERE conversation_id=c.id AND deleted_at IS NULL ORDER BY sent_at DESC LIMIT 1) last_message FROM conversations c JOIN conversation_members mine ON mine.conversation_id=c.id AND mine.user_id=$1 JOIN conversation_members other ON other.conversation_id=c.id AND other.user_id<>$1 JOIN users u ON u.id=other.user_id WHERE (SELECT count(*) FROM conversation_members WHERE conversation_id=c.id)=2 ORDER BY c.updated_at DESC LIMIT 100`,[req.user.sub])).rows;}));
-app.post('/messages',run(async req=>{learner(req);const other=uuid(req.body.user_id);if(other===req.user.sub)throw new ApiError(422,'Choose another person');await one(`SELECT id FROM users WHERE id=$1 AND account_status='active'`,[other]);return tx(async db=>{await db.query('SELECT pg_advisory_xact_lock(hashtext($1))',[[other,req.user.sub].sort().join(':')]);const found=await db.query(`SELECT a.conversation_id id FROM conversation_members a JOIN conversation_members b ON b.conversation_id=a.conversation_id WHERE a.user_id=$1 AND b.user_id=$2 AND (SELECT count(*) FROM conversation_members WHERE conversation_id=a.conversation_id)=2 LIMIT 1`,[req.user.sub,other]);if(found.rowCount)return found.rows[0];const c=(await db.query('INSERT INTO conversations DEFAULT VALUES RETURNING id')).rows[0];await db.query('INSERT INTO conversation_members(conversation_id,user_id) VALUES($1,$2),($1,$3)',[c.id,req.user.sub,other]);return c;});}));
-app.get('/messages/:id',run(async req=>{learner(req);await conversationAccess(req);await query('UPDATE conversation_members SET last_read_at=now() WHERE conversation_id=$1 AND user_id=$2',[req.params.id,req.user.sub]);return(await query(`SELECT * FROM(SELECT id,sender_id,content,sent_at FROM messages WHERE conversation_id=$1 AND deleted_at IS NULL ORDER BY sent_at DESC LIMIT 100) latest ORDER BY sent_at`,[req.params.id])).rows;}));
-app.post('/messages/:id',run(async req=>{learner(req);await conversationAccess(req);return tx(async db=>{const m=(await db.query('INSERT INTO messages(conversation_id,sender_id,content) VALUES($1,$2,$3) RETURNING id',[req.params.id,req.user.sub,text(req.body.content)])).rows[0];await db.query('UPDATE conversations SET updated_at=now() WHERE id=$1',[req.params.id]);return m;});}));
+app.get('/messages',run(async req=>{return(await query(`SELECT c.id,c.updated_at,u.name,u.id other_user_id,(u.picture IS NOT NULL) other_has_picture,(SELECT content FROM messages WHERE conversation_id=c.id AND deleted_at IS NULL ORDER BY sent_at DESC LIMIT 1) last_message FROM conversations c JOIN conversation_members mine ON mine.conversation_id=c.id AND mine.user_id=$1 JOIN conversation_members other ON other.conversation_id=c.id AND other.user_id<>$1 JOIN users u ON u.id=other.user_id WHERE (SELECT count(*) FROM conversation_members WHERE conversation_id=c.id)=2 ORDER BY c.updated_at DESC LIMIT 100`,[req.user.sub])).rows;}));
+app.post('/messages',run(async req=>{const other=uuid(req.body.user_id);if(other===req.user.sub)throw new ApiError(422,'Choose another person');await one(`SELECT id FROM users WHERE id=$1 AND account_status='active'`,[other]);return tx(async db=>{await db.query('SELECT pg_advisory_xact_lock(hashtext($1))',[[other,req.user.sub].sort().join(':')]);const found=await db.query(`SELECT a.conversation_id id FROM conversation_members a JOIN conversation_members b ON b.conversation_id=a.conversation_id WHERE a.user_id=$1 AND b.user_id=$2 AND (SELECT count(*) FROM conversation_members WHERE conversation_id=a.conversation_id)=2 LIMIT 1`,[req.user.sub,other]);if(found.rowCount)return found.rows[0];const c=(await db.query('INSERT INTO conversations DEFAULT VALUES RETURNING id')).rows[0];await db.query('INSERT INTO conversation_members(conversation_id,user_id) VALUES($1,$2),($1,$3)',[c.id,req.user.sub,other]);return c;});}));
+app.get('/messages/:id',run(async req=>{await conversationAccess(req);await query('UPDATE conversation_members SET last_read_at=now() WHERE conversation_id=$1 AND user_id=$2',[req.params.id,req.user.sub]);return(await query(`SELECT * FROM(SELECT id,sender_id,content,sent_at FROM messages WHERE conversation_id=$1 AND deleted_at IS NULL ORDER BY sent_at DESC LIMIT 100) latest ORDER BY sent_at`,[req.params.id])).rows;}));
+app.post('/messages/:id',run(async req=>{await conversationAccess(req);return tx(async db=>{const m=(await db.query('INSERT INTO messages(conversation_id,sender_id,content) VALUES($1,$2,$3) RETURNING id',[req.params.id,req.user.sub,text(req.body.content)])).rows[0];await db.query('UPDATE conversations SET updated_at=now() WHERE id=$1',[req.params.id]);return m;});}));
 const managed={
   users:{table:'users',fields:['name','email','username','role','account_status'],select:'u.id,u.name,u.email,u.username,u.role::text role,u.account_status::text account_status,u.created_at,u.last_login_at',from:'users u',search:['u.name','u.email','u.username'],statusField:'u.account_status',statusValues:['active','suspended','deactivated'],sortable:{created_at:'u.created_at',name:'u.name',email:'u.email',role:'u.role',account_status:'u.account_status'},defaultSort:'u.created_at'},
   interest_categories:{table:'interest_categories',fields:['name','slug','icon','description','is_active','submission_kind'],select:'id,name,slug,icon,description,is_active,submission_kind,created_at',search:['name','slug','description'],statusField:'is_active',statusValues:['true','false'],sortable:{created_at:'created_at',name:'name',slug:'slug'},defaultSort:'created_at'},
@@ -247,6 +352,7 @@ const speakersJsonSql=alias=>`coalesce((SELECT json_agg(json_build_object('id',i
 const speakerNamesSql=alias=>`(SELECT string_agg(ins.name,', ' ORDER BY ws.sort_order) FROM webinar_speakers ws JOIN instructors ins ON ins.id=ws.instructor_id WHERE ws.webinar_id=${alias}.id)`;
 const catIdsSql=(kind,alias)=>{const[jt,fk]=catTables[kind];return`coalesce(nullif((SELECT array_agg(cc.category_id::text ORDER BY ic.name) FROM ${jt} cc JOIN interest_categories ic ON ic.id=cc.category_id WHERE cc.${fk}=${alias}.id),'{}'),CASE WHEN ${alias}.category_id IS NULL THEN '{}'::text[] ELSE ARRAY[${alias}.category_id::text] END)`;};
 managed.webinars.fields.push('recording_url');
+managed.jobs.fields.push('latitude','longitude');managed.jobs.select=managed.jobs.select.replace('j.application_deadline,','j.application_deadline,j.latitude::float8 latitude,j.longitude::float8 longitude,');
 managed.webinars.select=managed.webinars.select.replace('w.meeting_url,','w.meeting_url,w.recording_url,')+`,${speakersJsonSql('w')} speakers,${speakerNamesSql('w')} speaker_names`;
 managed.webinars.search.push(`(${speakerNamesSql('w')})`);
 function speakerIds(body,required){let raw=body.speaker_ids;if(typeof raw==='string'){try{raw=JSON.parse(raw);}catch{throw new ApiError(422,'Invalid speakers');}}if(raw===undefined&&!required)return undefined;const ids=[...new Set(z.array(z.string().uuid()).max(30).parse(raw??[]))];if(!ids.length)throw new ApiError(422,'Add at least one speaker');return ids;}
@@ -413,4 +519,87 @@ app.get('/manage/contests/:id/problems',run(async req=>{admin(req);return(await 
 app.post('/manage/contests/:id/problems',run(async req=>{admin(req);const b=z.object({name:z.string().min(1),description:z.string().min(1),points:z.number().nonnegative()}).parse(req.body);return tx(async db=>{await db.query('SELECT id FROM contests WHERE id=$1 FOR UPDATE',[uuid(req.params.id)]);return(await db.query(`INSERT INTO contest_problems(creator_id,contest_id,name,description,points,sort_order) VALUES($1,$2,$3,$4,$5,(SELECT coalesce(max(sort_order),-1)+1 FROM contest_problems WHERE contest_id=$2)) RETURNING id`,[req.user.sub,req.params.id,b.name,b.description,b.points])).rows[0];});}));
 app.get('/manage/contests/:id/submissions',run(async req=>{admin(req);return(await query('SELECT s.id,s.content,s.score,s.status,s.problem_id,u.name,s.mime_type,s.file_name,(s.file_url IS NOT NULL) has_file FROM contest_submissions s JOIN users u ON u.id=s.participant_id WHERE contest_id=$1 ORDER BY submitted_at DESC LIMIT 100',[uuid(req.params.id)])).rows;}));
 app.patch('/manage/submissions/:id',run(async req=>{admin(req);const b=z.object({score:z.number().nonnegative(),status:z.enum(['accepted','rejected','disqualified','judging'])}).parse(req.body);await tx(async db=>{const sub=(await db.query('SELECT contest_id,participant_id FROM contest_submissions WHERE id=$1',[uuid(req.params.id)])).rows[0];if(!sub)throw new ApiError(404,'Submission not found');await db.query('SELECT 1 FROM contest_participants WHERE contest_id=$1 AND participant_id=$2 FOR UPDATE',[sub.contest_id,sub.participant_id]);await db.query('UPDATE contest_submissions SET score=$1,status=$2,judged_at=now(),judged_by=$3 WHERE id=$4',[b.score,b.status,req.user.sub,req.params.id]);await db.query(`UPDATE contest_participants SET points=(SELECT coalesce(sum(best),0) FROM(SELECT max(score) best FROM contest_submissions WHERE contest_id=$1 AND participant_id=$2 AND status='accepted' GROUP BY problem_id) scores) WHERE contest_id=$1 AND participant_id=$2`,[sub.contest_id,sub.participant_id]);});}));
+// ---- AI assistant (Google Gemini free API). The key stays on the server. ----
+const aiSystemPrompt=`You are Uddeepto AI, a friendly and knowledgeable learning assistant inside Uddeepto, a skill development platform with courses, contests, webinars, communities and jobs.
+- Reply in the same language the learner writes in (Bangla, English or a mix).
+- Be accurate, clear and encouraging. Explain step by step when it helps; keep simple answers short.
+- Format answers in GitHub-flavoured Markdown: use headings sparingly, numbered lists for steps, bullet lists for options, tables when comparing, and **bold** for key terms.
+- Put every piece of code in fenced code blocks with a language tag (for example \`\`\`python).
+- Write mathematics in LaTeX: inline as $...$ and display equations as $$...$$.
+- If you are not sure about something, say so instead of guessing. Do not claim to browse the web or to know the learner's private data.`;
+const aiRequests=new Map();
+const aiFallbackModels=['gemini-flash-latest','gemini-3.8-flash','gemini-flash-lite-latest','gemini-2.5-flash'];
+let aiWorkingModel=null;
+const aiMessages=z.array(z.object({role:z.enum(['user','assistant']),content:z.string().trim().min(1).max(8000)})).min(1).max(40);
+const aiBody=z.object({messages:aiMessages}).strict();
+/** Calls Gemini for a learner. attachment = {mimeType, data(base64)} is shown to the model together with the first question. */
+async function askGemini(userId,{system,messages,attachment}){
+  const key=process.env.GEMINI_API_KEY;
+  if(!key)throw new ApiError(503,'The AI assistant is not configured yet. Ask an admin to add a Gemini API key.');
+  if(messages.at(-1).role!=='user')throw new ApiError(422,'Send a question to get an answer');
+  const now=Date.now(),recent=(aiRequests.get(userId)||[]).filter(time=>now-time<60000);
+  if(recent.length>=Number(process.env.AI_REQUESTS_PER_MINUTE||12))throw new ApiError(429,'You are sending messages too quickly. Please wait a moment and try again.');
+  aiRequests.set(userId,[...recent,now]);
+  const contents=messages.slice(-24).map(item=>({role:item.role==='assistant'?'model':'user',parts:[{text:item.content}]}));
+  if(attachment)contents[0].parts.unshift({inlineData:{mimeType:attachment.mimeType,data:attachment.data}});
+  const payload=JSON.stringify({systemInstruction:{parts:[{text:system}]},contents,generationConfig:{temperature:0.7,maxOutputTokens:4096}});
+  // Google retires Gemini models over time, so fall back to newer ones when a model has been removed.
+  const candidates=[...new Set([aiWorkingModel,process.env.GEMINI_MODEL,...aiFallbackModels].filter(Boolean))];
+  // Models can be retired (404) or overloaded (503/500). Try the next model, and one more full round, within a time budget.
+  const retriable=new Set([404,500,502,503,504]);
+  const deadline=Date.now()+55000;
+  let response;
+  attempts:for(let round=0;round<2;round++){
+    for(const model of candidates){
+      const remaining=deadline-Date.now();
+      if(remaining<4000)break attempts;
+      try{
+        response=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`,{method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':key},signal:AbortSignal.timeout(Math.min(25000,remaining)),body:payload});
+      }catch{response=null;continue;}
+      if(response.ok){aiWorkingModel=model;break attempts;}
+      if(!retriable.has(response.status))break attempts;
+      console.error(`[ai] Gemini model "${model}" returned ${response.status}. Trying another model.`);
+    }
+    if(round===0&&Date.now()+6000<deadline)await new Promise(resolve=>setTimeout(resolve,Number(process.env.AI_RETRY_DELAY_MS||1500)));
+  }
+  if(!response)throw new ApiError(504,'The AI assistant took too long to answer. Please try again.');
+  if(response.status===503||response.status===500)throw new ApiError(503,'The AI service is very busy right now. Please try again in a moment.');
+  if(response.status===429)throw new ApiError(429,'The AI assistant is busy right now (free quota reached). Please try again in a little while.');
+  if(!response.ok){console.error('[ai] Gemini error',response.status,(await response.text().catch(()=>'')).slice(0,300));throw new ApiError(502,'The AI assistant could not answer right now. Please try again.');}
+  const data=await response.json();
+  if(data.promptFeedback?.blockReason)throw new ApiError(422,'I can’t help with that request. Try rephrasing your question.');
+  const candidate=data.candidates?.[0];
+  const text=(candidate?.content?.parts||[]).map(part=>part.text||'').join('').trim();
+  if(!text)throw new ApiError(502,'The AI assistant returned an empty answer. Please try again.');
+  return{reply:text,truncated:candidate?.finishReason==='MAX_TOKENS'};
+}
+const learnerOnly=req=>{if(req.user.role!=='learner')throw new ApiError(403,'The AI assistant is available to learners');};
+app.post('/ai/chat',run(async req=>{
+  learnerOnly(req);
+  const{messages}=aiBody.parse(req.body);
+  return askGemini(req.user.sub,{system:aiSystemPrompt,messages});
+}));
+
+// Ask about the course material the learner is looking at. Text lessons, small PDFs and small videos are given to the model in full;
+// other files are described by their title and description only, and the answer says which level of context was used.
+const AI_INLINE_LIMIT=15*1024*1024;
+app.post('/courses/:id/materials/:materialId/ai',run(async req=>{
+  learnerOnly(req);
+  const m=await materialAccess(req);
+  const{messages}=aiBody.parse(req.body);
+  const course=await one('SELECT title FROM courses WHERE id=$1',[m.course_id]);
+  let attachment=null,context='metadata',lessonText='';
+  if(m.type==='text'&&m.content_text){lessonText=m.content_text.slice(0,20000);context='full';}
+  else if(m.file_url&&!/^https?:/i.test(m.file_url)&&Number(m.file_size)<=AI_INLINE_LIMIT&&(m.mime_type==='application/pdf'||m.mime_type.startsWith('video/')||m.mime_type==='text/plain')){
+    try{attachment={mimeType:m.mime_type,data:(await fs.promises.readFile(storedPath(m.file_url))).toString('base64')};context='full';}catch{/* file missing: fall back to metadata */}
+  }
+  const kind={video:'lecture video',document:'document',text:'reading lesson',other:'file'}[m.type]||'material';
+  const about=`The learner is studying the course "${course.title}" and is asking about this ${kind}: "${m.name}".${m.description?` Description: ${m.description}`:''}`;
+  const access=context==='full'
+    ?(attachment?`The full ${kind} is attached to the first message. Base your answers on it and refer to specific parts (timestamps for videos, sections or pages for documents) when useful.`:`The full lesson text is below. Base your answers on it.\n\n"""\n${lessonText}\n"""`)
+    :'You cannot open the file itself, only its title and description. Answer from that and from general knowledge, and say clearly when a question needs the actual content.';
+  const system=`${aiSystemPrompt}\n\n${about}\n${access}\nStay focused on helping the learner understand this material and the topic around it.`;
+  const result=await askGemini(req.user.sub,{system,messages,attachment});
+  return{...result,context};
+}));
 listen(app,process.env.FRONTEND_API_PORT||4010,'frontend-api');

@@ -45,6 +45,7 @@ function feedUrl(query, category, offset = 0) {
 }
 
 export default function Showcase() {
+  const user = useUser();
   const [search, setSearch] = useState("");
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("");
@@ -199,9 +200,11 @@ export default function Showcase() {
             hasIcon
           />
         </div>
-        <button className="button" onClick={() => setCreate(true)}>
-          <Plus size={18} /> Create a post
-        </button>
+        {user.role !== "hirer" && (
+          <button className="button" onClick={() => setCreate(true)}>
+            <Plus size={18} /> Create a post
+          </button>
+        )}
       </div>
 
       <div className="feed-layout">

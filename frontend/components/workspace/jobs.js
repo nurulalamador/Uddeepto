@@ -1,5 +1,264 @@
-'use client';
-import{useState}from'react';import Link from'next/link';import{Plus,MapPin,ArrowUpRight,Briefcase,Download}from'lucide-react';import{api}from'@/lib/api';import{useUser}from'../shell';import{useResource,State,Heading,SearchBox,Pager,Empty,Modal,Action,Badge,date,money}from'../ui';
-export default function Jobs(){const user=useUser(),isLearner=user.role==='learner',hirer=['hirer','admin'].includes(user.role),[tab,setTab]=useState(hirer?'mine':'explore'),[q,setQ]=useState(''),[type,setType]=useState(''),[page,setPage]=useState(0),[selected,setSelected]=useState(null),[create,setCreate]=useState(false);const r=useResource(`frontend/jobs?tab=${tab}&q=${encodeURIComponent(q)}&type=${type}&offset=${page*12}&limit=12`);return <>{!isLearner&&<Heading eyebrow="YOUR NEXT OPPORTUNITY" title={hirer?'Great teams start here.':'Make your next move.'} description={hirer?'Create opportunities and discover the people behind the applications.':'Find a role that puts your skills to work.'}>{hirer&&<button className="button" onClick={()=>setCreate(true)}><Plus size={18}/> Post a job</button>}</Heading>}<div className="tabs">{(hirer?['mine','explore']:['explore','applied']).map(t=><button key={t} className={tab===t?'active':''} onClick={()=>{setTab(t);setPage(0);}}>{t==='mine'?'My job posts':t==='applied'?'My applications':'Explore jobs'}</button>)}</div><div className="toolbar"><SearchBox value={q} onChange={v=>{setQ(v);setPage(0);}} placeholder="Search jobs…"/><select aria-label="Job type" value={type} onChange={e=>{setType(e.target.value);setPage(0);}}><option value="">All job types</option>{['permanent','contract','internship','part_time','freelance','one_time'].map(t=><option value={t} key={t}>{t.replaceAll('_',' ')}</option>)}</select></div><State resource={r}>{r.data?.length?<div className="job-list">{r.data.map(j=><article key={j.id} className="card job-card"><span className="job-logo"><Briefcase size={28}/></span><div><div className="row"><h2>{j.title}</h2><Badge>{j.application_status||j.status}</Badge></div><p>{j.creator_name}</p><div className="row metadata"><MapPin size={15}/>{j.is_remote?'Remote':j.location||'Location not specified'}<span>·</span>{j.type.replaceAll('_',' ')}</div></div><div className="job-end"><strong>{j.salary_min?money(j.salary_min,j.currency):'Salary negotiable'}</strong><button className="text-link" onClick={()=>setSelected(j)}>{j.creator_id===user.id?'Manage applications':'View opportunity'} <ArrowUpRight size={17}/></button></div></article>)}</div>:<Empty title={tab==='mine'?'Your next hire starts with a job post':'No matching opportunities'} text="Try a different search or check back soon."/>}</State><Pager page={page} setPage={setPage} hasMore={r.data?.length===12}/>{create&&<Modal title="Post an opportunity" onClose={()=>setCreate(false)}><JobForm onDone={()=>{setCreate(false);r.reload();}}/></Modal>}{selected&&<Modal title={selected.title} onClose={()=>setSelected(null)}><JobDetail job={selected}/></Modal>}</>;}
-export function JobForm({onDone}){const[error,setError]=useState(''),[busy,setBusy]=useState(false);return <form className="stack" onSubmit={async e=>{e.preventDefault();setBusy(true);try{const body=Object.fromEntries(new FormData(e.currentTarget));body.is_remote=body.is_remote==='true';body.salary_min=body.salary_min?Number(body.salary_min):null;body.salary_max=body.salary_max?Number(body.salary_max):null;body.application_deadline=body.application_deadline?new Date(body.application_deadline).toISOString():null;await api('jobs',{method:'POST',body});onDone();}catch(e){setError(e.message);}finally{setBusy(false);}}}><label>Job title<input name="title" required maxLength={250}/></label><label>Description and requirements<textarea name="description" required rows={6}/></label><div className="grid two"><label>Type<select name="type">{['permanent','contract','internship','part_time','freelance','one_time'].map(t=><option key={t} value={t}>{t.replaceAll('_',' ')}</option>)}</select></label><label>Workplace<select name="is_remote"><option value="false">On-site / Hybrid</option><option value="true">Remote</option></select></label><label>Location<input name="location"/></label><label>Deadline<input name="application_deadline" type="datetime-local"/></label><label>Minimum salary (BDT)<input name="salary_min" type="number" min="0" step="0.01"/></label><label>Maximum salary (BDT)<input name="salary_max" type="number" min="0" step="0.01"/></label></div><input type="hidden" name="status" value="open"/>{error&&<p className="notice error" role="alert">{error}</p>}<button className="button" disabled={busy}>{busy?'Publishing…':'Publish job'}</button></form>;}
-function JobDetail({job}){const user=useUser(),owner=job.creator_id===user.id||user.role==='admin';const r=useResource(owner?`frontend/jobs/${job.id}/applications`:null),[notice,setNotice]=useState(''),[error,setError]=useState(''),[busy,setBusy]=useState(false);return <div className="stack"><div className="row"><Badge>{job.type}</Badge><Badge>{job.status}</Badge></div><p className="preserve">{job.description}</p>{job.application_deadline&&<p>Apply by {date(job.application_deadline)}</p>}{notice&&<p className="notice success">{notice}</p>}{owner?<><div className="row"><Action className="button secondary" onClick={async()=>{await api(`frontend/jobs/${job.id}/status`,{method:'PATCH',body:{status:job.status==='open'?'closed':'open'}});setNotice('Job status updated.');}}>Toggle open / closed</Action></div><h3>Candidate applications</h3><State resource={r}>{r.data?.length?r.data.map(a=><article className="card" key={a.applicant_id}><Link href={`/profile/${a.applicant_id}`} className="text-link">{a.name} <ArrowUpRight size={15}/></Link><p className="preserve">{a.cover_letter}</p>{a.has_resume&&<a href={`/api/backend/frontend/jobs/${job.id}/applications/${a.applicant_id}/resume`} target="_blank" rel="noreferrer" className="text-link"><Download size={16}/> Download resume</a>}<label>Application status<select value={a.status} onChange={async e=>{try{await api(`frontend/jobs/${job.id}/applications/${a.applicant_id}`,{method:'PATCH',body:{status:e.target.value}});r.reload();}catch(e){setError(e.message);}}}>{['applied','shortlisted','accepted','rejected','withdrawn'].map(s=><option key={s}>{s}</option>)}</select></label></article>):<Empty title="No applicants yet"/>}</State></>:job.application_status?<Badge>{job.application_status}</Badge>:<form className="stack" onSubmit={async e=>{e.preventDefault();setBusy(true);try{await api(`jobs/${job.id}/apply`,{method:'POST',body:new FormData(e.currentTarget)});setNotice('Application sent. Good luck!');}catch(e){setError(e.message);}finally{setBusy(false);}}}><label>Cover letter<textarea name="cover_letter" required rows={5}/></label><label>Resume (PDF)<input name="resume" type="file" accept="application/pdf" required/></label><button disabled={busy||!!notice||job.status!=='open'} className="button">{busy?'Sending…':'Send application'}</button></form>}{error&&<p role="alert" className="notice error">{error}</p>}</div>;}
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { ArrowDown, ArrowUp, ArrowUpRight, Briefcase, LayoutGrid, Map as MapIcon, MapPin, Navigation, Plus } from "lucide-react";
+import { useUser } from "../shell";
+import { Badge, Dropdown, Empty, Heading, Modal, Pager, SearchBox, State, money, useResource } from "../ui";
+import { CategoryChips } from "./courses";
+import JobForm, { JOB_TYPES, typeLabel } from "./job-form";
+import { JobsMap } from "./job-map";
+
+const PAGE_SIZE = 12;
+export function salaryLabel(job) {
+  if (job.salary_min && job.salary_max) return `${money(job.salary_min, job.currency)} – ${money(job.salary_max, job.currency)}`;
+  if (job.salary_min) return `From ${money(job.salary_min, job.currency)}`;
+  if (job.salary_max) return `Up to ${money(job.salary_max, job.currency)}`;
+  return "Salary negotiable";
+}
+
+function JobCard({ job, user }) {
+  return (
+    <article className="card job-card">
+      <span className="job-logo">
+        <Briefcase size={28} />
+      </span>
+      <div>
+        <div className="row">
+          <h2>{job.title}</h2>
+          <Badge>{job.application_status || job.status}</Badge>
+        </div>
+        <p>{job.creator_name}</p>
+        <CategoryChips categories={job.category_details} limit={2} />
+        <div className="row metadata">
+          <MapPin size={15} />
+          {job.is_remote ? "Remote" : job.location || "Location not specified"}
+          <span>·</span>
+          {typeLabel(job.type)}
+        </div>
+      </div>
+      <div className="job-end">
+        <strong>{salaryLabel(job)}</strong>
+        <Link className="text-link" href={`/jobs/${job.id}`}>
+          {job.creator_id === user.id ? "Manage applications" : "View opportunity"} <ArrowUpRight size={17} />
+        </Link>
+      </div>
+    </article>
+  );
+}
+
+function usePosition() {
+  const [status, setStatus] = useState("idle");
+  const [position, setPosition] = useState(null);
+  const locate = () => {
+    if (!navigator.geolocation) {
+      setStatus("unavailable");
+      return;
+    }
+    setStatus("locating");
+    navigator.geolocation.getCurrentPosition(
+      (result) => {
+        setPosition({ lat: Number(result.coords.latitude.toFixed(5)), lng: Number(result.coords.longitude.toFixed(5)) });
+        setStatus("ready");
+      },
+      () => setStatus("denied"),
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 },
+    );
+  };
+  useEffect(() => {
+    locate();
+    // Ask once when the map view opens.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  return { status, position, locate };
+}
+
+function ViewToggle({ cards, setView, floating = false }) {
+  return (
+    <div className={`segmented${floating ? " floating" : ""}`} role="group" aria-label="Job view">
+      <button type="button" className={cards ? "active" : ""} aria-pressed={cards} onClick={() => setView("cards")}>
+        <LayoutGrid size={16} /> Cards
+      </button>
+      <button type="button" className={!cards ? "active" : ""} aria-pressed={!cards} onClick={() => setView("map")}>
+        <MapIcon size={16} /> Map
+      </button>
+    </div>
+  );
+}
+
+/** Full-size map: just the map, with floating controls on top of it. */
+function MapView({ filters, setView }) {
+  const router = useRouter();
+  const { status, position, locate } = usePosition();
+  const waiting = status === "locating" || status === "idle";
+  const geo = position ? `&lat=${position.lat}&lng=${position.lng}` : "";
+  const resource = useResource(waiting ? null : `frontend/jobs?${filters}&map=1&limit=200${geo}`);
+  const jobs = resource.data || [];
+  const rawNotice =
+    status === "denied"
+      ? "Location access is blocked. Showing Dhaka — allow location access, then tap “Use my location”."
+      : status === "unavailable"
+        ? "Your browser can’t share your location. Showing Dhaka."
+        : resource.error
+          ? resource.error
+          : !waiting && !resource.loading && !jobs.length
+            ? "No jobs with a map position match your filters."
+            : "";
+  const [visibleNotice, setVisibleNotice] = useState("");
+  const shown = useRef(new Set());
+  useEffect(() => {
+    if (!rawNotice || waiting || resource.loading || shown.current.has(rawNotice)) return;
+    shown.current.add(rawNotice);
+    setVisibleNotice(rawNotice);
+    const timer = setTimeout(() => setVisibleNotice(""), 5000);
+    return () => clearTimeout(timer);
+  }, [rawNotice, waiting, resource.loading]);
+
+  return (
+    <div className="jobs-map-stage">
+      <JobsMap jobs={jobs} userPosition={position} onOpen={(job) => router.push(`/jobs/${job.id}`)} />
+      <button type="button" className="map-fab" onClick={locate} disabled={status === "locating"} aria-label="Use my location">
+        <Navigation size={18} /> {status === "locating" ? "Locating…" : "Use my location"}
+      </button>
+      {(waiting || resource.loading) && (
+        <div className="map-toast" role="status">
+          <span className="spinner" /> {waiting ? "Getting your location…" : "Finding jobs…"}
+        </div>
+      )}
+      {visibleNotice && !waiting && !resource.loading && (
+        <div className="map-toast" role="status">
+          {visibleNotice}
+          <button type="button" className="map-toast-close" aria-label="Dismiss" onClick={() => setVisibleNotice("")}>
+            ×
+          </button>
+        </div>
+      )}
+      <ViewToggle cards={false} setView={setView} floating />
+    </div>
+  );
+}
+
+const SORTS = [
+  { value: "", label: "Newest first" },
+  { value: "salary", label: "Salary" },
+  { value: "deadline", label: "Application deadline" },
+];
+
+export default function Jobs() {
+  const user = useUser();
+  const isLearner = user.role === "learner";
+  const hirer = ["hirer", "admin"].includes(user.role);
+  const [tab, setTab] = useState(hirer ? "mine" : "explore");
+  const [view, setView] = useState("cards");
+  const [query, setQuery] = useState("");
+  const [type, setType] = useState("");
+  const [category, setCategory] = useState("");
+  const [sort, setSort] = useState("");
+  const [direction, setDirection] = useState("desc");
+  const [page, setPage] = useState(0);
+  const [create, setCreate] = useState(false);
+  const categories = useResource("users/interests");
+  const canMap = tab !== "applied";
+  const cards = view === "cards" || !canMap;
+  const filters = `tab=${tab}&q=${encodeURIComponent(query)}&type=${type}&category=${category}&sort=${sort}&direction=${direction}`;
+  const resource = useResource(cards ? `frontend/jobs?${filters}&offset=${page * PAGE_SIZE}&limit=${PAGE_SIZE}` : null);
+  const reset = (setter) => (value) => {
+    setter(value);
+    setPage(0);
+  };
+
+  return (
+    <div className={`courses-page jobs-page${cards ? "" : " map-mode"}`}>
+      {!isLearner && (
+        <Heading
+          eyebrow="YOUR NEXT OPPORTUNITY"
+          title={hirer ? "Great teams start here." : "Make your next move."}
+          description={hirer ? "Create opportunities and discover the people behind the applications." : "Find a role that puts your skills to work."}
+        >
+          {hirer && (
+            <button className="button" onClick={() => setCreate(true)}>
+              <Plus size={18} /> Post a job
+            </button>
+          )}
+        </Heading>
+      )}
+
+      <div className="courses-sticky">
+        <div className="tabs">
+          {(hirer ? ["mine", "explore"] : ["explore", "applied"]).map((value) => (
+            <button
+              key={value}
+              className={tab === value ? "active" : ""}
+              onClick={() => {
+                setTab(value);
+                setPage(0);
+              }}
+            >
+              {value === "mine" ? "My job posts" : value === "applied" ? "My applications" : "Explore jobs"}
+            </button>
+          ))}
+        </div>
+        <div className="toolbar jobs-toolbar">
+          <SearchBox value={query} onChange={reset(setQuery)} placeholder="Search jobs or places…" />
+          <Dropdown
+            ariaLabel="Filter by job type"
+            value={type}
+            onChange={reset(setType)}
+            options={[{ value: "", label: "All job types" }, ...JOB_TYPES.map((value) => ({ value, label: typeLabel(value) }))]}
+          />
+          <Dropdown
+            ariaLabel="Filter by category"
+            value={category}
+            onChange={reset(setCategory)}
+            options={[{ value: "", label: "All categories" }, ...(categories.data || []).map((item) => ({ value: String(item.id), label: item.name, iconName: item.icon }))]}
+            hasIcon
+          />
+          <Dropdown ariaLabel="Sort jobs" value={sort} onChange={reset(setSort)} options={SORTS} />
+          <button
+            type="button"
+            className="sort-direction"
+            disabled={!sort}
+            aria-label={direction === "desc" ? "Sorted high to low. Switch to low to high" : "Sorted low to high. Switch to high to low"}
+            title={direction === "desc" ? "High to low" : "Low to high"}
+            onClick={() => reset(setDirection)(direction === "desc" ? "asc" : "desc")}
+          >
+            {direction === "desc" ? <ArrowDown size={18} /> : <ArrowUp size={18} />}
+            <span>{direction === "desc" ? "High to low" : "Low to high"}</span>
+          </button>
+          {canMap && cards && <ViewToggle cards setView={setView} />}
+        </div>
+      </div>
+
+      {cards ? (
+        <>
+          <State resource={resource}>
+            {resource.data?.length ? (
+              <div className="job-list">
+                {resource.data.map((job) => (
+                  <JobCard job={job} user={user} key={job.id} />
+                ))}
+              </div>
+            ) : (
+              <Empty title={tab === "mine" ? "Your next hire starts with a job post" : "No matching opportunities"} text="Try a different search or check back soon." />
+            )}
+          </State>
+          <Pager page={page} setPage={setPage} hasMore={resource.data?.length === PAGE_SIZE} />
+        </>
+      ) : (
+        <MapView filters={filters} setView={setView} />
+      )}
+
+      {create && (
+        <Modal title="Post an opportunity" onClose={() => setCreate(false)}>
+          <JobForm
+            onDone={() => {
+              setCreate(false);
+              resource.reload();
+            }}
+          />
+        </Modal>
+      )}
+    </div>
+  );
+}

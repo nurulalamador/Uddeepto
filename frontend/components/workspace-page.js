@@ -1,9 +1,12 @@
 "use client";
-import Dashboard from "./workspace/dashboard";
 import Showcase from "./workspace/showcase";
 import Courses from "./workspace/courses";
 import Contests from "./workspace/contests";
 import Webinars from "./workspace/webinars";
+import AiAssistant from "./workspace/ai-assistant";
+import LearnerDashboard from "./workspace/learner-dashboard";
+import HirerDashboard from "./workspace/hirer-dashboard";
+import JobManagement from "./workspace/job-management";
 import Communities from "./workspace/communities";
 import Jobs from "./workspace/jobs";
 import Messages from "./workspace/messages";
@@ -16,7 +19,7 @@ import { useUser } from "./shell";
 export default function WorkspacePage({ section }) {
   const user = useUser();
   if (section === "dashboard")
-    return user.role === "admin" ? <AdminDashboard /> : <Dashboard />;
+    return user.role === "admin" ? <AdminDashboard /> : user.role === "learner" ? <LearnerDashboard /> : <HirerDashboard />;
   if (section === "moderation") return <AdminModeration />;
   if (section === "settings") return <AdminSettings />;
   if (section === "admin") return <Admin />;
@@ -26,6 +29,8 @@ export default function WorkspacePage({ section }) {
   if (section === "courses") return <Courses />;
   if (section === "contests") return <Contests />;
   if (section === "webinars") return <Webinars />;
+  if (section === "ai") return <AiAssistant />;
+  if (section === "job-management") return <JobManagement />;
   if (section === "communities") return <Communities />;
   if (section === "jobs") return <Jobs />;
   if (section === "messages") return <Messages />;

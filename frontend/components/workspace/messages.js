@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Plus, Send } from "lucide-react";
 import { api } from "@/lib/api";
 import { useUser } from "../shell";
@@ -9,12 +10,34 @@ import { Action, date, Empty, Modal, State, UserAvatar, useResource } from "../u
 export default function Messages() {
   const user = useUser();
   const conversations = useResource("frontend/messages");
+  const router = useRouter();
+  const params = useSearchParams();
+  const startWith = params.get("with");
   const [selected, setSelected] = useState(null);
   const [create, setCreate] = useState(false);
   const [text, setText] = useState("");
   const stream = useResource(
     selected ? `frontend/messages/${selected.id}` : null,
   );
+
+  // /messages?with=<userId> opens (or creates) the conversation with that person.
+  useEffect(() => {
+    if (!startWith) return;
+    let live = true;
+    api("frontend/messages", { method: "POST", body: { user_id: startWith } })
+      .then(async (conversation) => {
+        const list = await api("frontend/messages");
+        if (!live) return;
+        setSelected(list.find((item) => item.id === conversation.id) || null);
+        conversations.reload();
+      })
+      .catch(() => {})
+      .finally(() => live && router.replace("/messages"));
+    return () => {
+      live = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [startWith]);
 
   useEffect(() => {
     if (!selected) return;

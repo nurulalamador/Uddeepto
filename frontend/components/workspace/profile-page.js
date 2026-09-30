@@ -12,6 +12,7 @@ import {
   GraduationCap,
   Lock,
   MapPin,
+  MessageCircle,
   Phone,
   Plus,
   Trash2,
@@ -165,6 +166,11 @@ export default function ProfilePage({ refId }) {
               <button type="button" className="button" onClick={() => setDialog({ type: "profile" })}>
                 <Edit3 size={16} /> Edit profile
               </button>
+            )}
+            {!isSelf && me.role !== "admin" && (
+              <Link className="button" href={`/messages?with=${profile.id}`}>
+                <MessageCircle size={16} /> Send message
+              </Link>
             )}
           </div>
         </div>

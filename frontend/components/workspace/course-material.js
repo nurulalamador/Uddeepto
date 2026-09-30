@@ -6,6 +6,7 @@ import { ArrowLeft, ArrowRight, Check, Lock } from "lucide-react";
 import { State, useResource } from "../ui";
 import { useShellActions } from "../shell";
 import { ProgressBar } from "./courses";
+import MaterialAi from "./material-ai";
 import { Viewer, formatBytes, materialIcon } from "./course-detail";
 
 export default function CourseMaterial({ courseId, materialId }) {
@@ -78,6 +79,7 @@ export default function CourseMaterial({ courseId, materialId }) {
                     material.
                   </p>
                 )}
+                <MaterialAi key={material.id} courseId={course.id} material={material} />
                 <ol className="material-list">
                   {materials.map((item, position) => {
                     const Icon = materialIcon(item.type);

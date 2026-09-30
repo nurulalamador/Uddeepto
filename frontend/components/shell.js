@@ -6,8 +6,10 @@ import { usePathname } from "next/navigation";
 import {
   ArrowLeft,
   ArrowUpRight,
+  Bot,
   BookOpen,
   Briefcase,
+  ClipboardList,
   EllipsisVertical,
   LayoutDashboard,
   LogOut,
@@ -45,6 +47,8 @@ const icons = {
   admin: SlidersHorizontal,
   moderation: ShieldCheck,
   settings: Settings,
+  ai: Bot,
+  "job-management": ClipboardList,
 };
 
 export default function Shell({ user, children }) {
@@ -57,7 +61,9 @@ export default function Shell({ user, children }) {
       ? { back: user.role === "admin" ? "/moderation" : "/showcase", label: user.role === "admin" ? "Back to moderation" : "Back to community", title: "Community", subtitle: "Post" }
       : isMaterial
         ? { back: `/courses/${segments[1]}`, label: "Back to course", title: "Course material", subtitle: "Material" }
-        : segments[0] === "communities" && segments.length > 1
+        : segments[0] === "jobs" && segments.length > 1
+          ? { back: user.role === "hirer" ? "/job-management" : "/jobs", label: user.role === "hirer" ? "Back to job management" : "Back to jobs", title: "Job", subtitle: "Details" }
+          : segments[0] === "communities" && segments.length > 1
           ? { back: "/communities", label: "Back to communities", title: "Community", subtitle: "Channels" }
           : segments[0] === "webinars" && segments.length > 1
           ? { back: "/webinars", label: "Back to webinars", title: segments[1] === "previous" ? "Webinars" : "Webinar", subtitle: segments[1] === "previous" ? "Previous webinars" : "Details" }
@@ -114,7 +120,7 @@ export default function Shell({ user, children }) {
                   <nav>
                     {group.sections.map((key) => {
                       const Icon = icons[key];
-                      const active = adminPostDetail ? key === "moderation" : path === key;
+                      const active = adminPostDetail ? key === "moderation" : path === key || (user.role === "hirer" && key === "job-management" && path === "jobs");
                       return (
                         <Link onClick={() => setOpen(false)} className={active ? "active" : ""} href={`/${key}`} key={key}>
                           <Icon size={20} />

@@ -14,7 +14,8 @@ async function proxy(request,{params}) {
   try {
     const streamUpload = isMaterialUpload(request.method, path);
     const longRequest = streamUpload || isMaterialFile(request.method, path);
-    const timeout = () => AbortSignal.timeout(longRequest ? 30*60*1000 : 25000);
+    const aiRequest = path[0] === 'frontend' && path[1] === 'ai';
+    const timeout = () => AbortSignal.timeout(longRequest ? 30*60*1000 : aiRequest ? 70000 : 25000);
     if (streamUpload && Number(request.headers.get('content-length')||0) > MAX_UPLOAD_BYTES) return Response.json({error:'File is too large'},{status:413});
     const body = ['GET','HEAD'].includes(request.method) || streamUpload ? undefined : await request.arrayBuffer();
     if (body?.byteLength > 11*1024*1024) return Response.json({error:'File is too large'},{status:413});

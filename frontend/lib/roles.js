@@ -11,11 +11,13 @@ export const sections = {
   admin: "Management",
   moderation: "Moderation",
   settings: "Settings",
+  ai: "AI Assistant",
+  "job-management": "Job Management",
 };
 export function allowedSections(role) {
   if (role === "admin")
     return ["dashboard", "courses", "contests", "webinars", "jobs", "admin", "moderation", "settings"];
-  if (role === "hirer") return ["dashboard", "showcase", "jobs"];
+  if (role === "hirer") return ["dashboard", "showcase", "job-management", "messages", "profile"];
   return [
     "dashboard",
     "showcase",
@@ -24,6 +26,7 @@ export function allowedSections(role) {
     "webinars",
     "communities",
     "jobs",
+    "ai",
     "messages",
     "profile",
   ];
@@ -44,7 +47,15 @@ export function allowedCategorizedSections(role) {
     return [
       {
         title: "Overview",
-        sections: ["dashboard", "showcase", "jobs"],
+        sections: ["dashboard", "showcase"],
+      },
+      {
+        title: "Hiring",
+        sections: ["job-management"],
+      },
+      {
+        title: "Social",
+        sections: ["messages", "profile"],
       },
     ];
   return [
@@ -54,7 +65,7 @@ export function allowedCategorizedSections(role) {
     },
     {
       title: "Workspace",
-      sections: ["courses", "contests", "webinars", "jobs"],
+      sections: ["courses", "contests", "webinars", "jobs", "ai"],
     },
     {
       title: "Social",
@@ -63,7 +74,8 @@ export function allowedCategorizedSections(role) {
   ];
 }
 export function canAccess(role, section) {
-  return section === "profile" || allowedSections(role).includes(section);
+  // Hirers reach individual job pages (/jobs/[id]) from Job Management.
+  return section === "profile" || allowedSections(role).includes(section) || (role === "hirer" && section === "jobs");
 }
 export function timeline(item, now = Date.now()) {
   if (["cancelled", "completed", "archived"].includes(item.status))

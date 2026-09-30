@@ -6,6 +6,7 @@ export default async function Page({ params }) {
   const { section } = await params;
   if (!sections[section]) notFound();
   const user = await currentUser();
+  if (user?.role === "hirer" && section === "jobs") redirect("/job-management");
   if (user && !canAccess(user.role, section)) redirect("/dashboard");
   return <WorkspacePage section={section} />;
 }

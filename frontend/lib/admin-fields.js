@@ -56,6 +56,7 @@ export const adminFields = {
     type: ["permanent", "contract", "internship", "part_time", "freelance", "one_time"],
     status: ["draft", "open", "closed", "filled", "cancelled"],
     location: "text",
+    latitude: "location",
     criteria: "textarea",
     salary_min: "number",
     salary_max: "number",

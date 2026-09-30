@@ -13,6 +13,7 @@ test('frontend adapter: SQL and authorization integration',async t=>{
   await db.exec(await readFile(new URL('../../backend/database/008_contest_submission_kinds.sql',import.meta.url),'utf8'));
   await db.exec(await readFile(new URL('../../backend/database/009_webinar_speakers.sql',import.meta.url),'utf8'));
   await db.exec(await readFile(new URL('../../backend/database/010_profile_details.sql',import.meta.url),'utf8'));
+  await db.exec(await readFile(new URL('../../backend/database/011_job_locations.sql',import.meta.url),'utf8'));
   process.env.UPLOAD_DIR=mkdtempSync(join(tmpdir(),'uddeepto-uploads-'));
   let source=await readFile(new URL('../../backend/services/frontend/src/server.js',import.meta.url),'utf8');
   source=source.replace("import bcrypt from 'bcryptjs';","const bcrypt={hash:async value=>'test-only:'+value};")
@@ -120,8 +121,120 @@ test('frontend adapter: SQL and authorization integration',async t=>{
       const fresh=(await query("INSERT INTO users(name,email,username,password_hash) VALUES('Fresh','fresh@example.com','fresh_user','x') RETURNING uddeepto_id")).rows[0];assert.match(fresh.uddeepto_id,/^\d{3}-\d{3}-\d{3}$/);
       await query("DELETE FROM users WHERE username='fresh_user'");
     });
+    await t.test('ai assistant: learner-only, validated history, Gemini call and error handling',async()=>{
+      const realFetch=globalThis.fetch,calls=[];
+      let mode='ok';
+      globalThis.fetch=async(url,options)=>{
+        if(!String(url).startsWith('https://generativelanguage.googleapis.com/'))return realFetch(url,options);
+        calls.push({url:String(url),headers:options.headers,body:JSON.parse(options.body)});
+        if(String(url).includes('/models/retired-model:'))return new Response('{}',{status:404});
+        if(mode==='busy'||(mode==='busy-first'&&String(url).includes('/models/gemini-flash-latest:')))return Response.json({error:{code:503,status:'UNAVAILABLE'}},{status:503});
+        if(mode==='quota')return new Response('{}',{status:429});
+        if(mode==='blocked')return Response.json({promptFeedback:{blockReason:'SAFETY'}});
+        if(mode==='empty')return Response.json({candidates:[{content:{parts:[]}}]});
+        return Response.json({candidates:[{content:{parts:[{text:'Here is **code**:\n\n'},{text:'```js\nconsole.log(1)\n```'}]},finishReason:'STOP'}]});
+      };
+      try{
+        delete process.env.GEMINI_API_KEY;
+        assert.equal((await request('/ai/chat',{method:'POST',body:{messages:[{role:'user',content:'hi'}]}})).status,503);
+        process.env.GEMINI_API_KEY='test-key';process.env.GEMINI_MODEL='retired-model';process.env.AI_REQUESTS_PER_MINUTE='10';process.env.AI_RETRY_DELAY_MS='0';
+        assert.equal((await request('/ai/chat',{as:'Hirer',method:'POST',body:{messages:[{role:'user',content:'hi'}]}})).status,403);
+        assert.equal((await request('/ai/chat',{method:'POST',body:{messages:[]}})).status,422);
+        assert.equal((await request('/ai/chat',{method:'POST',body:{messages:[{role:'assistant',content:'last is not a user turn'}]}})).status,422);
+        assert.equal((await request('/ai/chat',{method:'POST',body:{messages:[{role:'user',content:'x'.repeat(8001)}]}})).status,422);
+        assert.equal(calls.length,0);
+        const answer=await ok('/ai/chat',{method:'POST',body:{messages:[{role:'user',content:'Explain loops'},{role:'assistant',content:'Loops repeat.'},{role:'user',content:'Show code'}]}});
+        assert.ok(answer.reply.includes('**code**'));assert.ok(answer.reply.includes('console.log(1)'));assert.equal(answer.truncated,false);
+        assert.equal(calls.length,2,'a retired model falls back to the next one');assert.ok(calls[0].url.endsWith('/models/retired-model:generateContent'));assert.ok(calls[1].url.endsWith('/models/gemini-flash-latest:generateContent'));assert.equal(calls[1].headers['x-goog-api-key'],'test-key');
+        assert.deepEqual(calls[1].body.contents.map(item=>item.role),['user','model','user']);assert.ok(calls[1].body.systemInstruction.parts[0].text.includes('Markdown'));
+        await ok('/ai/chat',{method:'POST',body:{messages:[{role:'user',content:'next'}]}});assert.equal(calls.length,3,'the working model is remembered');assert.ok(calls[2].url.includes('gemini-flash-latest'));
+        mode='quota';assert.equal((await request('/ai/chat',{method:'POST',body:{messages:[{role:'user',content:'again'}]}})).status,429);
+        mode='blocked';assert.equal((await request('/ai/chat',{method:'POST',body:{messages:[{role:'user',content:'again'}]}})).status,422);
+        mode='empty';assert.equal((await request('/ai/chat',{method:'POST',body:{messages:[{role:'user',content:'again'}]}})).status,502);
+        mode='busy-first';const before=calls.length;const rescued=await ok('/ai/chat',{method:'POST',body:{messages:[{role:'user',content:'busy model'}]}});assert.ok(rescued.reply.length>0);assert.ok(calls.length>before+1,'an overloaded model falls back to another one');assert.ok(calls.at(-1).url.includes('gemini-3.8-flash'));
+        mode='busy';const everyone=await request('/ai/chat',{method:'POST',body:{messages:[{role:'user',content:'all busy'}]}});assert.equal(everyone.status,503);assert.match(everyone.data.error,/very busy/);
+        mode='ok';
+        for(let i=0;i<3;i++)await request('/ai/chat',{method:'POST',body:{messages:[{role:'user',content:'burst'}]}});
+        const limited=await request('/ai/chat',{method:'POST',body:{messages:[{role:'user',content:'one too many'}]}});assert.equal(limited.status,429);assert.match(limited.data.error,/too quickly/);
+      }finally{globalThis.fetch=realFetch;delete process.env.GEMINI_API_KEY;delete process.env.GEMINI_MODEL;delete process.env.AI_REQUESTS_PER_MINUTE;delete process.env.AI_RETRY_DELAY_MS;}
+    });
+    await t.test('learner dashboard data and material-aware AI chat',async()=>{
+      assert.equal((await request('/dashboard/learner',{as:'Hirer'})).status,403);
+      const empty=await ok('/dashboard/learner',{as:'Other'});
+      assert.equal(empty.activity.length,14);assert.equal(empty.streak,0);assert.equal(empty.profile.checklist.length,6);assert.equal(typeof empty.stats.enrolled,'number');assert.ok(empty.profile.percent>=0&&empty.profile.percent<=100);
+      const c=(await query("INSERT INTO courses(creator_id,title,slug,description,category_id,status,published_at) VALUES($1,'Dash course','dash-course','About',$2,'published',now()) RETURNING id",[ids.Admin,category])).rows[0].id;
+      const lesson=(await query("INSERT INTO course_materials(course_id,name,type,content_text,sort_order,is_preview) VALUES($1,'Loops lesson','text','A for loop repeats a block of code.',0,false) RETURNING id",[c])).rows[0].id;
+      const dir=join(process.env.UPLOAD_DIR,'course-materials',c);(await import('node:fs')).mkdirSync(dir,{recursive:true});(await import('node:fs')).writeFileSync(join(dir,'notes.pdf'),'%PDF-1.4 tiny');
+      const doc=(await query("INSERT INTO course_materials(course_id,name,description,type,mime_type,file_url,file_name,file_size,sort_order) VALUES($1,'Notes','Chapter notes','document','application/pdf',$2,'notes.pdf',13,1) RETURNING id",[c,`/uploads/course-materials/${c}/notes.pdf`])).rows[0].id;
+      const zip=(await query("INSERT INTO course_materials(course_id,name,type,mime_type,file_url,file_name,file_size,sort_order) VALUES($1,'Bundle','other','application/zip',$2,'bundle.zip',13,2) RETURNING id",[c,`/uploads/course-materials/${c}/bundle.zip`])).rows[0].id;
+      const ask=(materialId,as='Other')=>request(`/courses/${c}/materials/${materialId}/ai`,{as,method:'POST',body:{messages:[{role:'user',content:'Explain this'}]}});
+      const realFetch=globalThis.fetch,calls=[];
+      globalThis.fetch=async(url,options)=>{if(!String(url).startsWith('https://generativelanguage.googleapis.com/'))return realFetch(url,options);calls.push(JSON.parse(options.body));return Response.json({candidates:[{content:{parts:[{text:'Sure.'}]},finishReason:'STOP'}]});};
+      process.env.GEMINI_API_KEY='test-key';
+      try{
+        assert.equal((await ask(lesson)).status,403,'not enrolled');
+        assert.equal((await ask(lesson,'Hirer')).status,403);
+        await query('INSERT INTO course_enrollments(course_id,user_id) VALUES($1,$2)',[c,ids.Other]);
+        const text=await ask(lesson);assert.equal(text.status,200);assert.equal(text.data.context,'full');
+        assert.ok(calls[0].systemInstruction.parts[0].text.includes('A for loop repeats a block of code.'));assert.ok(calls[0].systemInstruction.parts[0].text.includes('Dash course'));assert.equal(calls[0].contents[0].parts[0].inlineData,undefined);
+        const pdf=await ask(doc);assert.equal(pdf.data.context,'full');assert.equal(calls[1].contents[0].parts[0].inlineData.mimeType,'application/pdf');assert.equal(Buffer.from(calls[1].contents[0].parts[0].inlineData.data,'base64').toString(),'%PDF-1.4 tiny');assert.ok(calls[1].systemInstruction.parts[0].text.includes('Chapter notes'));
+        const other=await ask(zip);assert.equal(other.data.context,'metadata');assert.ok(calls[2].systemInstruction.parts[0].text.includes('only its title and description'));
+      }finally{globalThis.fetch=realFetch;delete process.env.GEMINI_API_KEY;}
+      await query('INSERT INTO completed_course_materials(course_id,user_id,material_id) VALUES($1,$2,$3)',[c,ids.Other,lesson]);
+      const dash=await ok('/dashboard/learner',{as:'Other'});
+      const mine=dash.continue_learning.find(item=>item.id===c);assert.equal(mine.progress_total,3);assert.equal(mine.progress_done,1);assert.equal(mine.next_material_id,doc);
+      assert.equal(dash.streak,1);assert.equal(dash.activity.at(-1).count,1);assert.equal(dash.stats.materials_done,1);assert.ok(dash.stats.materials_total>=3);
+      await query('DELETE FROM courses WHERE id=$1',[c]);
+    });
+    await t.test('hirer workspace: no showcase posting, messaging, applicants across jobs, dashboard',async()=>{
+      const denied=await request('/showcase',{as:'Hirer',method:'POST',body:{category_id:category,content:'Hiring!'}});assert.equal(denied.status,403);
+      assert.equal((await request('/showcase',{as:'Hirer'})).status,200,'hirers can still read the showcase');
+      const mk=async(title,status='open')=>(await query("INSERT INTO jobs(creator_id,title,description,type,status,is_remote) VALUES($1,$2,'Desc','permanent',$3,true) RETURNING id",[ids.Hirer,title,status])).rows[0].id;
+      const a=await mk('Applicant job A'),b=await mk('Applicant job B');
+      await query("INSERT INTO job_applications(job_id,applicant_id,cover_letter,status) VALUES($1,$2,'Hello A','applied'),($3,$2,'Hello B','shortlisted'),($1,$4,'Other applicant','accepted')",[a,ids.Learner,b,ids.Other]);
+      assert.equal((await request('/jobs/applicants')).status,403);
+      const all=await ok('/jobs/applicants',{as:'Hirer'});assert.equal(all.length,3);assert.ok(all[0].uddeepto_id&&all[0].job_title&&'has_picture' in all[0]);
+      assert.equal((await ok(`/jobs/applicants?job=${a}`,{as:'Hirer'})).length,2);
+      assert.deepEqual((await ok('/jobs/applicants?status=shortlisted',{as:'Hirer'})).map(x=>x.job_title),['Applicant job B']);
+      assert.equal((await ok('/jobs/applicants?q=Learner',{as:'Hirer'})).every(x=>x.name==='Learner'),true);
+      assert.equal((await request('/jobs/applicants?status=nonsense',{as:'Hirer'})).status,422);
+      assert.equal((await ok('/jobs/applicants',{as:'Admin'})).length>=3,true,'admins see every job');
+      const mine=await ok('/jobs?tab=mine',{as:'Hirer'});assert.equal(mine.find(job=>job.id===a).application_count,2);assert.equal(mine.find(job=>job.id===b).application_count,1);
+      await ok(`/jobs/${a}/applications/${ids.Learner}`,{as:'Hirer',method:'PATCH',body:{status:'shortlisted'}});
+      const conversation=await ok('/messages',{as:'Hirer',method:'POST',body:{user_id:ids.Learner}});
+      await ok(`/messages/${conversation.id}`,{as:'Hirer',method:'POST',body:{content:'Hi, we liked your application'}});
+      assert.equal((await ok('/messages',{as:'Hirer'})).length>=1,true);assert.equal((await ok(`/messages/${conversation.id}`)).at(-1).content,'Hi, we liked your application');
+      const dash=await ok('/dashboard/hirer',{as:'Hirer'});
+      assert.ok(dash.stats.jobs>=2);assert.ok(dash.stats.applicants>=3);assert.equal(dash.stats.accepted,1);assert.equal(dash.stats.shortlisted,2);assert.equal(dash.activity.length,14);assert.equal(dash.recent.length>=3,true);assert.ok(dash.top_jobs.length>=2);assert.equal(dash.activity.at(-1).count>=3,true);
+      assert.equal((await request('/dashboard/hirer')).status,403);
+      await query('DELETE FROM jobs WHERE id=ANY($1::uuid[])',[[a,b]]);
+    });
     await t.test('one-to-one conversation deduplicates and rejects nonmembers',async()=>{const c=await ok('/messages',{method:'POST',body:{user_id:ids.Other}});const again=await ok('/messages',{method:'POST',body:{user_id:ids.Other}});assert.equal(c.id,again.id);await ok(`/messages/${c.id}`,{method:'POST',body:{content:'Hello!'}});assert.equal((await ok(`/messages/${c.id}`,{as:'Other'}))[0].content,'Hello!');assert.equal((await request(`/messages/${c.id}`,{as:'Admin'})).status,404);});
     await t.test('job applications are visible only to owner/admin',async()=>{const job=(await query("INSERT INTO jobs(creator_id,title,description,type,status) VALUES($1,'Developer','Build things','permanent','open') RETURNING id",[ids.Hirer])).rows[0].id;await query('INSERT INTO job_applications(job_id,applicant_id,cover_letter) VALUES($1,$2,$3)',[job,ids.Learner,'Interested']);assert.equal((await request(`/jobs/${job}/applications`)).status,403);assert.equal((await ok(`/jobs/${job}/applications`,{as:'Hirer'})).length,1);await ok(`/jobs/${job}/applications/${ids.Learner}`,{as:'Hirer',method:'PATCH',body:{status:'shortlisted'}});assert.equal((await ok('/jobs?tab=applied'))[0].application_status,'shortlisted');});
+    await t.test('jobs: map positions, nearby search and job page data',async()=>{
+      const mk=async(title,lat,lng,extra="'open'")=>(await query(`INSERT INTO jobs(creator_id,title,description,type,status,location,latitude,longitude,is_remote) VALUES($1,$2,'Do things','permanent',${extra},$2,$3,$4,false) RETURNING id`,[ids.Hirer,title,lat,lng])).rows[0].id;
+      const near=await mk('Near Gulshan',23.7925,90.4078),mid=await mk('Mid Savar',23.8583,90.2667),far=await mk('Far Chattogram',22.3569,91.7832);
+      const remote=(await query("INSERT INTO jobs(creator_id,title,description,type,status,is_remote) VALUES($1,'Remote job','Anywhere','contract','open',true) RETURNING id",[ids.Hirer])).rows[0].id;
+      const draft=await mk('Hidden draft',23.79,90.41,"'draft'");
+      assert.equal((await request('/jobs?tab=explore&map=1&lat=200&lng=90')).status,422);
+      assert.equal((await request('/jobs?tab=explore&map=1&lat=23.8')).status,422);
+      let list=await ok('/jobs?tab=explore&map=1&limit=100');const onMap=list.map(job=>job.id);
+      assert.ok(onMap.includes(near)&&onMap.includes(far));assert.equal(onMap.includes(remote),false,'jobs without a position are not on the map');assert.equal(onMap.includes(draft),false);
+      list=await ok('/jobs?tab=explore&map=1&lat=23.8103&lng=90.4125&radius=25&limit=100');
+      assert.deepEqual(list.filter(job=>[near,mid,far].includes(job.id)).map(job=>job.id),[near,mid].slice(0,list.filter(job=>[near,mid,far].includes(job.id)).length));
+      assert.equal(list.some(job=>job.id===far),false);const nearRow=list.find(job=>job.id===near);assert.ok(nearRow.distance_km>0&&nearRow.distance_km<3);assert.equal(typeof nearRow.latitude,'number');
+      list=await ok('/jobs?tab=explore&map=1&lat=23.8103&lng=90.4125&limit=100');assert.equal(list.some(job=>job.id===far),true);assert.ok(list.findIndex(job=>job.id===near)<list.findIndex(job=>job.id===far));
+      list=await ok('/jobs?tab=explore&lat=23.8103&lng=90.4125&radius=5');assert.equal(list.some(job=>job.id===remote),false,'radius search excludes jobs without a position');
+      await query('UPDATE jobs SET category_id=$2,salary_min=$3 WHERE id=$1',[near,category,50000]);await query('UPDATE jobs SET salary_min=$2 WHERE id=$1',[mid,20000]);
+      list=await ok(`/jobs?tab=explore&category=${category}&limit=100`);assert.equal(list.some(job=>job.id===near),true);assert.equal(list.some(job=>job.id===far),false);assert.equal(list.find(job=>job.id===near).category_details[0].name,'Web Development');
+      assert.equal((await request('/jobs?tab=explore&category=nope')).status,422);
+      list=(await ok('/jobs?tab=explore&sort=salary&direction=desc&limit=100')).filter(job=>[near,mid].includes(job.id));assert.deepEqual(list.map(job=>job.id),[near,mid]);
+      list=(await ok('/jobs?tab=explore&sort=salary&direction=asc&limit=100')).filter(job=>[near,mid].includes(job.id));assert.deepEqual(list.map(job=>job.id),[mid,near]);
+      const page=await ok(`/jobs/${near}`);assert.equal(page.title,'Near Gulshan');assert.equal(page.is_owner,false);assert.equal(page.accepting,true);assert.equal(page.creator_name,'Hirer');assert.equal(page.application_count,undefined);
+      const mine=await ok(`/jobs/${near}`,{as:'Hirer'});assert.equal(mine.is_owner,true);assert.equal(mine.application_count,0);
+      assert.equal((await request(`/jobs/${draft}`)).status,404);assert.equal((await request(`/jobs/${draft}`,{as:'Hirer'})).status,200);
+      await query('DELETE FROM jobs WHERE id=ANY($1::uuid[])',[[near,mid,far,remote,draft]]);
+    });
     await t.test('webinar capacity enforced and meeting URL private before registration',async()=>{const w=(await query("INSERT INTO webinars(creator_id,name,description,category_id,status,starting_time,ending_time,capacity,meeting_url) VALUES($1,'Live session','Learn together',$2,'scheduled',now()+interval '1 day',now()+interval '2 days',1,'https://example.com/meeting') RETURNING id",[ids.Admin,category])).rows[0].id;assert.equal((await ok(`/detail/webinars/${w}`)).meeting_url,null);await ok(`/webinars/${w}/join`,{method:'POST'});assert.equal((await ok(`/detail/webinars/${w}`)).meeting_url,'https://example.com/meeting');assert.equal((await request(`/webinars/${w}/join`,{as:'Other',method:'POST'})).status,409);assert.equal((await ok('/catalog/webinars?tab=upcoming')).length,1);});
     await t.test('contest entry, submission, admin judging and leaderboard',async()=>{const c=(await query("INSERT INTO contests(creator_id,name,description,category_id,status,starting_time,ending_time) VALUES($1,'Challenge','Try your skills',$2,'published',now()-interval '1 hour',now()+interval '1 hour') RETURNING id",[ids.Admin,category])).rows[0].id;const p=await ok(`/manage/contests/${c}/problems`,{as:'Admin',method:'POST',body:{name:'First problem',description:'Explain your approach',points:100}});await ok(`/contests/${c}/join`,{method:'POST'});const s=await ok(`/contests/${c}/submit`,{method:'POST',body:{problem_id:p.id,content:'My solution'}});await ok(`/manage/submissions/${s.id}`,{as:'Admin',method:'PATCH',body:{score:75,status:'accepted'}});assert.equal(Number((await ok(`/detail/contests/${c}`)).leaderboard[0].points),75);assert.equal((await ok('/catalog/contests?tab=ongoing')).length,1);});
     await t.test('course materials: uploads stay out of the database, access follows enrollment, progress and recommendations update',async()=>{

@@ -25,6 +25,7 @@ import {
 import { api } from "@/lib/api";
 import { adminFields } from "@/lib/admin-fields";
 import AdminContent from "./admin-content";
+import { LocationPicker } from "./job-map";
 import { Action, Badge, CategoryPicker, Empty, Modal, SearchBox, State, useResource } from "../ui";
 
 const PAGE_SIZE = 20;
@@ -226,6 +227,7 @@ function RecordForm({ table, item, onDone }) {
   const categories = useResource("users/interests");
   const [categoryIds, setCategoryIds] = useState(() => (item.category_ids?.length ? item.category_ids : item.category_id ? [item.category_id] : []).map(String));
   const [speakers, setSpeakers] = useState(() => item.speakers || []);
+  const [position, setPosition] = useState(() => (item.latitude != null && item.longitude != null ? { lat: Number(item.latitude), lng: Number(item.longitude) } : null));
   const [error, setError] = useState(""); const [busy, setBusy] = useState(false);
   const [coverPreview, setCoverPreview] = useState(item.has_cover_image ? `/api/backend/frontend/course-covers/${item.id}` : "");
   const [removeCover, setRemoveCover] = useState(false);
@@ -243,6 +245,10 @@ function RecordForm({ table, item, onDone }) {
     try {
       if (adminFields[table].category_id === "category" && table !== "jobs" && !categoryIds.length) throw new Error("Select at least one interest.");
       form.category_ids = JSON.stringify(categoryIds);
+      if (table === "jobs") {
+        form.latitude = position ? position.lat : null;
+        form.longitude = position ? position.lng : null;
+      }
       if (table === "webinars") {
         if (!speakers.length) throw new Error("Add at least one speaker.");
         form.speaker_ids = JSON.stringify(speakers.map((speaker) => speaker.id));
@@ -283,6 +289,7 @@ function RecordForm({ table, item, onDone }) {
       if (Array.isArray(type)) return <label key={field}>{label}<select name={field} defaultValue={value} required={requiredFields[table]?.includes(field)}>{type.map((option) => <option key={option} value={option}>{humanize(option)}</option>)}</select></label>;
       if (type === "category") return <CategoryPicker key={field} categories={categories.data || []} value={categoryIds} onChange={setCategoryIds} />;
       if (type === "instructor") return <InstructorPicker key={field} item={item} />;
+      if (type === "location") return <div className="wide field-block" key={field}><span className="field-label">Location on map</span><LocationPicker value={position} onChange={setPosition} /></div>;
       if (type === "speakers") return <SpeakerPicker key={field} value={speakers} onChange={setSpeakers} />;
       if (type === "boolean") return <label key={field}>{label}<select name={field} defaultValue={String(Boolean(value))}><option value="true">Yes</option><option value="false">No</option></select></label>;
       if (type === "textarea") return <label className="wide" key={field}>{label}<textarea name={field} defaultValue={value} rows={field === "description" || field === "criteria" ? 4 : 3} maxLength={10000} required={requiredFields[table]?.includes(field)} /></label>;

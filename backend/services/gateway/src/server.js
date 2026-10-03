@@ -24,7 +24,18 @@ app.use(
   }),
 );
 app.use(rateLimit({ windowMs: 60000, limit: 180 }));
-app.get("/health", (_q, s) => s.json({ service: "gateway", status: "ok" }));
+// Several copies of the gateway can run behind the load balancer; --port and --id tell them apart.
+const argument = (name) =>
+  process.argv.find((a) => a.startsWith(`--${name}=`))?.split("=")[1];
+const port = argument("port") || process.env.GATEWAY_PORT || 4000;
+const instance = argument("id") || process.env.GATEWAY_ID || `gateway-${port}`;
+app.use((_q, s, next) => {
+  s.setHeader("X-Gateway-Instance", instance);
+  next();
+});
+app.get("/health", (_q, s) =>
+  s.json({ service: "gateway", instance, status: "ok" }),
+);
 const routes = {
   auth: ["AUTH_URL", 4001],
   users: ["USERS_URL", 4002],
@@ -54,6 +65,17 @@ app.use(
   }),
 );
 app.use((_q, s) => s.status(404).json({ error: "Route not found" }));
-app.listen(process.env.GATEWAY_PORT || 4000, () =>
-  console.log("gateway listening"),
+const server = app.listen(port, () =>
+  console.log(`${instance} listening on ${port}`),
 );
+// Stay open longer than the load balancer's idle connections so reused sockets are not reset.
+server.keepAliveTimeout = 65000;
+server.headersTimeout = 66000;
+server.requestTimeout = 0;
+const shutdown = () => {
+  server.close(() => process.exit(0));
+  server.closeIdleConnections?.();
+  setTimeout(() => process.exit(0), 10000).unref();
+};
+process.on("SIGTERM", shutdown);
+process.on("SIGINT", shutdown);

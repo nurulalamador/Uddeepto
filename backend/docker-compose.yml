@@ -1,13 +1,39 @@
+# Traffic path: client -> loadbalancer (:4000) -> gateway-1 / gateway-2 -> services
+x-service: &service
+  build: {context: ., dockerfile: Dockerfile}
+  env_file: .env
+  restart: unless-stopped
+
+# Inside the compose network the services are reached by name, not localhost.
+x-internal-urls: &internal-urls
+  AUTH_URL: http://auth:4001
+  USERS_URL: http://users:4002
+  COURSES_URL: http://courses:4003
+  COMMUNITY_URL: http://community:4004
+  CONTESTS_URL: http://contests:4005
+  WEBINARS_URL: http://webinars:4006
+  JOBS_URL: http://jobs:4007
+  MESSAGES_URL: http://messages:4008
+  PAYMENTS_URL: http://payments:4009
+  FRONTEND_API_URL: http://frontend-api:4010
+
 services:
-  gateway:
-    build: {context: ., dockerfile: Dockerfile}
-    command: npm start -w services/gateway
-    env_file: .env
+  loadbalancer:
+    <<: *service
+    command: npm start -w services/loadbalancer
+    environment:
+      LB_PORT: 4000
+      GATEWAY_URLS: http://gateway-1:4000,http://gateway-2:4000
     ports: ["4000:4000"]
-  auth: &service
-    build: {context: ., dockerfile: Dockerfile}
-    command: npm start -w services/auth
-    env_file: .env
+    depends_on: [gateway-1, gateway-2]
+  gateway-1: &gateway
+    <<: *service
+    command: npm start -w services/gateway -- --port=4000 --id=gateway-1
+    environment: *internal-urls
+  gateway-2:
+    <<: *gateway
+    command: npm start -w services/gateway -- --port=4000 --id=gateway-2
+  auth: {<<: *service, command: npm start -w services/auth}
   users: {<<: *service, command: npm start -w services/users}
   courses: {<<: *service, command: npm start -w services/courses}
   community: {<<: *service, command: npm start -w services/community}
@@ -16,3 +42,4 @@ services:
   jobs: {<<: *service, command: npm start -w services/jobs}
   messages: {<<: *service, command: npm start -w services/messages}
   payments: {<<: *service, command: npm start -w services/payments}
+  frontend-api: {<<: *service, command: npm start -w services/frontend}

@@ -18,12 +18,10 @@ test("community report API validates, deduplicates, and protects posts", async (
     new URL("../../backend/services/community/src/server.js", import.meta.url),
     "utf8",
   );
+  // The service file may use single or double quotes (it is auto-formatted), so match both.
   source = source
-    .replace("import express from'express';", `import express from ${JSON.stringify(import.meta.resolve("express"))};`)
-    .replace(
-      "import{createApp,resourceRouter,query,asyncHandler,auth,ApiError,page,listen}from'@uddeepto/common';",
-      `import{createApp,resourceRouter,query,asyncHandler,auth,ApiError,page,listen}from ${JSON.stringify(new URL("./harness.js", import.meta.url).href)};`,
-    );
+    .replace(/(['"])express\1/, () => JSON.stringify(import.meta.resolve("express")))
+    .replace(/(['"])@uddeepto\/common\1/, () => JSON.stringify(new URL("./harness.js", import.meta.url).href));
   await import("data:text/javascript;base64," + Buffer.from(source).toString("base64"));
   await once(server, "listening");
 

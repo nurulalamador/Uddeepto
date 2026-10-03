@@ -7,7 +7,7 @@ import { api } from "@/lib/api";
 import { InterestIcon, useResource } from "./ui";
 import Markdown from "./markdown";
 
-const STARTERS = ["I’m new here — where should I start?", "I want a job in tech", "I love creative work"];
+const STARTERS = ["I’m new here, where should I start?", "I want a job in tech", "I love creative work"];
 
 /** Interests found in an AI reply (by exact name) that the person has not picked yet. */
 function mentioned(text, categories, selected) {
@@ -59,7 +59,7 @@ function AiGuide({ categories, selected, onAdd }) {
         </span>
         <div>
           <h2>Confused about which interest to choose?</h2>
-          <p>Discuss with our AI Assistant — it will suggest interests that fit you.</p>
+          <p>Discuss with our AI Assistant, it will suggest interests that fit you.</p>
         </div>
       </header>
 

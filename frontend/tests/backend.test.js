@@ -16,11 +16,11 @@ test('frontend adapter: SQL and authorization integration',async t=>{
   await db.exec(await readFile(new URL('../../backend/database/011_job_locations.sql',import.meta.url),'utf8'));
   process.env.UPLOAD_DIR=mkdtempSync(join(tmpdir(),'uddeepto-uploads-'));
   let source=await readFile(new URL('../../backend/services/frontend/src/server.js',import.meta.url),'utf8');
-  source=source.replace("import bcrypt from 'bcryptjs';","const bcrypt={hash:async value=>'test-only:'+value};")
-    .replace("'@uddeepto/common'",JSON.stringify(new URL('./harness.js',import.meta.url).href))
-    .replace("'node:url'","'node:url'")
-    .replace("'express'",JSON.stringify(import.meta.resolve('express')))
-    .replace("'zod'",JSON.stringify(import.meta.resolve('zod')));
+  // The service file may use single or double quotes (it is auto-formatted), so match both.
+  source=source.replace(/import bcrypt from ['"]bcryptjs['"];/,()=>"const bcrypt={hash:async value=>'test-only:'+value};")
+    .replace(/(['"])@uddeepto\/common\1/,()=>JSON.stringify(new URL('./harness.js',import.meta.url).href))
+    .replace(/(['"])express\1/,()=>JSON.stringify(import.meta.resolve('express')))
+    .replace(/(['"])zod\1/,()=>JSON.stringify(import.meta.resolve('zod')));
   await import('data:text/javascript;base64,'+Buffer.from(source).toString('base64'));await once(server,'listening');
   const base=`http://127.0.0.1:${server.address().port}`;
   const ids={};for(const[name,role]of[['Learner','learner'],['Other','learner'],['Hirer','hirer'],['Admin','admin']])ids[name]=(await query('INSERT INTO users(name,email,username,password_hash,role) VALUES($1,$2,$3,$4,$5) RETURNING id',[name,`${name}@example.com`,name,'test-only',role])).rows[0].id;

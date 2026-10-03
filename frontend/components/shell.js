@@ -84,8 +84,8 @@ export default function Shell({ user, children }) {
   const profileRef = useRef(null);
   const updateDetailSubtitle = useCallback((value) => setDetailSubtitle(value || ""), []);
   const allowed = allowedCategorizedSections(user.role);
-  // Learners and hirers must pick at least one interest before using the workspace.
-  const needsInterests = user.role !== "admin" && Array.isArray(user.interests) && user.interests.length === 0;
+  // Learners must pick at least one interest before using the workspace (hirers and admins can skip it).
+  const needsInterests = user.role === "learner" && Array.isArray(user.interests) && user.interests.length === 0;
 
   async function logout() {
     await fetch("/api/auth/logout", { method: "POST" });

@@ -6,7 +6,8 @@ Plain JavaScript, Express, direct PostgreSQL (`pg`) এবং Supabase-hosted Po
 
 | Service | Port | Gateway path |
 |---|---:|---|
-| Gateway | 4000 | `/api/v1/*` |
+| Load balancer | 4000 | public entry point, `/api/v1/*` |
+| Gateway 1 / Gateway 2 | 4101 / 4102 | internal copies of the gateway |
 | Auth | 4001 | `/api/v1/auth` |
 | Users/Profile | 4002 | `/api/v1/users` |
 | Courses | 4003 | `/api/v1/courses` |
@@ -16,6 +17,26 @@ Plain JavaScript, Express, direct PostgreSQL (`pg`) এবং Supabase-hosted Po
 | Jobs | 4007 | `/api/v1/jobs` |
 | Direct messages | 4008 | `/api/v1/messages` |
 | Payments | 4009 | `/api/v1/payments` |
+
+## Load balancer
+
+```
+client / Next.js BFF -> load balancer :4000 -> gateway-1 :4101 / gateway-2 :4102 -> services
+```
+
+`services/loadbalancer` is a small dependency-free Node HTTP balancer. Callers keep using port 4000 (`BACKEND_URL`), so nothing in the frontend changes.
+
+- **Distribution:** round-robin by default; `LB_STRATEGY=least-connections` sends work to the least busy gateway.
+- **Health checks:** each gateway's `/health` is probed every 5 s (every 1 s while it is down). Two failures take it out of rotation; one success brings it back. A refused or reset connection removes it immediately.
+- **Failover:** `GET`/`HEAD`/`OPTIONS` requests that hit a dead gateway are retried on the other one. `POST`/`PUT`/`DELETE` are never replayed, so nothing is created twice. If no gateway is healthy the balancer answers `503` with `Retry-After`.
+- **Streaming:** bodies are piped, not buffered, so large uploads, Range requests and downloads work as before.
+- **Endpoints:** `GET /health` (balancer + how many gateways are healthy; use this for the platform health check), `GET /lb/status` (per-gateway detail; localhost only, or send header `x-lb-token` matching `LB_STATUS_TOKEN`).
+- **Which copy answered:** every response carries `X-Gateway-Instance` and `X-Load-Balancer`.
+- **Config:** `LB_PORT`, `GATEWAY_URLS` (comma separated), `LB_STRATEGY`, `LB_STATUS_TOKEN`. Run another gateway copy with `npm start -w services/gateway -- --port=4103 --id=gateway-3` and add its URL to `GATEWAY_URLS`.
+- **Tests:** `npm run test:lb`.
+- **Docker:** `docker-compose.yml` starts `loadbalancer` + `gateway-1` + `gateway-2` and the services.
+
+Things that stay per-gateway: the gateway's in-memory rate limit (180 requests/min) is counted separately in each copy, so the effective total is roughly doubled. Only the gateway is replicated; the services behind it are still one copy each.
 
 ## Supabase setup
 

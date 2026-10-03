@@ -3,6 +3,7 @@ WORKDIR /app
 COPY package*.json ./
 COPY packages/common/package.json packages/common/package.json
 COPY services/gateway/package.json services/gateway/package.json
+COPY services/loadbalancer/package.json services/loadbalancer/package.json
 COPY services/auth/package.json services/auth/package.json
 COPY services/users/package.json services/users/package.json
 COPY services/courses/package.json services/courses/package.json
@@ -12,6 +13,7 @@ COPY services/webinars/package.json services/webinars/package.json
 COPY services/jobs/package.json services/jobs/package.json
 COPY services/messages/package.json services/messages/package.json
 COPY services/payments/package.json services/payments/package.json
+COPY services/frontend/package.json services/frontend/package.json
 RUN npm install --omit=dev
 COPY . .
 USER node

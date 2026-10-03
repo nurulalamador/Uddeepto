@@ -8,9 +8,10 @@
     "services/*"
   ],
   "scripts": {
-    "dev": "concurrently -n gateway,auth,users,courses,community,contests,webinars,jobs,messages,payments -c auto \"npm:dev -w services/gateway\" \"npm:dev -w services/auth\" \"npm:dev -w services/users\" \"npm:dev -w services/courses\" \"npm:dev -w services/community\" \"npm:dev -w services/contests\" \"npm:dev -w services/webinars\" \"npm:dev -w services/jobs\" \"npm:dev -w services/messages\" \"npm:dev -w services/payments\" \"npm:dev -w services/frontend\"",
-    "start": "concurrently -n gateway,auth,users,courses,community,contests,webinars,jobs,messages,payments -c auto \"npm:start -w services/gateway\" \"npm:start -w services/auth\" \"npm:start -w services/users\" \"npm:start -w services/courses\" \"npm:start -w services/community\" \"npm:start -w services/contests\" \"npm:start -w services/webinars\" \"npm:start -w services/jobs\" \"npm:start -w services/messages\" \"npm:start -w services/payments\" \"npm:start -w services/frontend\"",
-    "check": "node scripts/check.mjs"
+    "dev": "concurrently -n gateway-1,gateway-2,loadbalancer,auth,users,courses,community,contests,webinars,jobs,messages,payments,frontend-api -c auto \"npm run dev -w services/gateway -- --port=4101 --id=gateway-1\" \"npm run dev -w services/gateway -- --port=4102 --id=gateway-2\" \"npm:dev -w services/loadbalancer\" \"npm:dev -w services/auth\" \"npm:dev -w services/users\" \"npm:dev -w services/courses\" \"npm:dev -w services/community\" \"npm:dev -w services/contests\" \"npm:dev -w services/webinars\" \"npm:dev -w services/jobs\" \"npm:dev -w services/messages\" \"npm:dev -w services/payments\" \"npm:dev -w services/frontend\"",
+    "start": "concurrently -n gateway-1,gateway-2,loadbalancer,auth,users,courses,community,contests,webinars,jobs,messages,payments,frontend-api -c auto \"npm run start -w services/gateway -- --port=4101 --id=gateway-1\" \"npm run start -w services/gateway -- --port=4102 --id=gateway-2\" \"npm:start -w services/loadbalancer\" \"npm:start -w services/auth\" \"npm:start -w services/users\" \"npm:start -w services/courses\" \"npm:start -w services/community\" \"npm:start -w services/contests\" \"npm:start -w services/webinars\" \"npm:start -w services/jobs\" \"npm:start -w services/messages\" \"npm:start -w services/payments\" \"npm:start -w services/frontend\"",
+    "check": "node scripts/check.mjs",
+    "test:lb": "npm test -w services/loadbalancer"
   },
   "devDependencies": {
     "concurrently": "^9.1.2"

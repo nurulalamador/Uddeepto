@@ -7,6 +7,7 @@ export const sections = {
   communities: "Communities",
   jobs: "Jobs",
   messages: "Messages",
+  notifications: "Notifications",
   profile: "Profile",
   admin: "Management",
   moderation: "Moderation",
@@ -17,8 +18,8 @@ export const sections = {
 };
 export function allowedSections(role) {
   if (role === "admin")
-    return ["dashboard", "courses", "contests", "webinars", "jobs", "admin", "moderation", "settings"];
-  if (role === "hirer") return ["dashboard", "showcase", "job-management", "messages", "profile"];
+    return ["dashboard", "notifications", "courses", "contests", "webinars", "jobs", "admin", "moderation", "settings"];
+  if (role === "hirer") return ["dashboard", "showcase", "job-management", "messages", "notifications", "profile"];
   return [
     "dashboard",
     "showcase",
@@ -29,6 +30,7 @@ export function allowedSections(role) {
     "jobs",
     "ai",
     "messages",
+    "notifications",
     "profile",
   ];
 }
@@ -37,7 +39,7 @@ export function allowedCategorizedSections(role) {
     return [
       {
         title: "Admin console",
-        sections: ["dashboard"],
+        sections: ["dashboard", "notifications"],
       },
       {
         title: "Operations",
@@ -56,7 +58,7 @@ export function allowedCategorizedSections(role) {
       },
       {
         title: "Social",
-        sections: ["messages", "profile"],
+        sections: ["messages", "notifications", "profile"],
       },
     ];
   return [
@@ -70,7 +72,7 @@ export function allowedCategorizedSections(role) {
     },
     {
       title: "Social",
-      sections: ["communities", "messages", "profile"],
+      sections: ["communities", "messages", "notifications", "profile"],
     },
   ];
 }

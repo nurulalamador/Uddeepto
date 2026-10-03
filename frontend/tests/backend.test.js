@@ -14,6 +14,7 @@ test('frontend adapter: SQL and authorization integration',async t=>{
   await db.exec(await readFile(new URL('../../backend/database/009_webinar_speakers.sql',import.meta.url),'utf8'));
   await db.exec(await readFile(new URL('../../backend/database/010_profile_details.sql',import.meta.url),'utf8'));
   await db.exec(await readFile(new URL('../../backend/database/011_job_locations.sql',import.meta.url),'utf8'));
+  await db.exec(await readFile(new URL('../../backend/database/012_notifications.sql',import.meta.url),'utf8'));
   process.env.UPLOAD_DIR=mkdtempSync(join(tmpdir(),'uddeepto-uploads-'));
   let source=await readFile(new URL('../../backend/services/frontend/src/server.js',import.meta.url),'utf8');
   // The service file may use single or double quotes (it is auto-formatted), so match both.

@@ -45,6 +45,8 @@ const server = http.createServer((req, res) => {
   balancer.handle(req, res);
 });
 
+// WebSocket connections (live updates) are tunnelled to a gateway.
+server.on("upgrade", (req, socket, head) => balancer.upgrade(req, socket, head));
 // Uploads and downloads can legitimately take a long time; never cut them off here.
 server.requestTimeout = 0;
 server.headersTimeout = 65000;

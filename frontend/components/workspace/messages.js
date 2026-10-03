@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Plus, Send } from "lucide-react";
 import { api } from "@/lib/api";
 import { useUser } from "../shell";
+import { useRealtime, useSocketEvent } from "../realtime";
 import { Action, date, Empty, Modal, State, UserAvatar, useResource } from "../ui";
 
 export default function Messages() {
@@ -19,6 +20,12 @@ export default function Messages() {
   const stream = useResource(
     selected ? `frontend/messages/${selected.id}` : null,
   );
+  const { socket, connected } = useRealtime();
+  const [typing, setTyping] = useState(null);
+  const typingTimer = useRef(null);
+  const lastTypingSent = useRef(0);
+  const streamBox = useRef(null);
+  const wasConnected = useRef(connected);
 
   // /messages?with=<userId> opens (or creates) the conversation with that person.
   useEffect(() => {
@@ -39,22 +46,71 @@ export default function Messages() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [startWith]);
 
+  // Messages arrive over the socket; polling is only the fallback while it is down.
   useEffect(() => {
-    if (!selected) return;
+    if (!selected || connected) return;
     const timer = setInterval(() => {
       if (document.visibilityState === "visible") stream.reload();
     }, 8000);
     return () => clearInterval(timer);
-  }, [selected]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selected, connected]);
+
+  // After a dropped connection, fetch whatever was missed.
+  useEffect(() => {
+    if (connected && !wasConnected.current) {
+      conversations.reload();
+      if (selected) stream.reload();
+    }
+    wasConnected.current = connected;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [connected]);
+
+  const addToStream = (message) =>
+    stream.setData((list) => (list?.some((item) => item.id === message.id) ? list : [...(list || []), message]));
+  // Newest conversation first, with its last message shown in the list.
+  const bumpConversation = (id, message) =>
+    conversations.setData((list) => {
+      const found = list?.find((item) => item.id === id);
+      if (!found) return list;
+      return [{ ...found, last_message: message.content, updated_at: message.sent_at }, ...list.filter((item) => item.id !== id)];
+    });
+
+  useSocketEvent("message:new", (event) => {
+    if (!conversations.data?.some((item) => item.id === event.conversation_id)) conversations.reload();
+    else bumpConversation(event.conversation_id, event.message);
+    if (selected && event.conversation_id === selected.id) addToStream(event.message);
+    if (event.message.sender_id !== user.id) setTyping(null);
+  });
+  useSocketEvent("typing", (event) => {
+    if (event.scope !== "dm") return;
+    setTyping({ conversation_id: event.conversation_id, name: event.name });
+    clearTimeout(typingTimer.current);
+    typingTimer.current = setTimeout(() => setTyping(null), 3500);
+  });
+  useEffect(() => () => clearTimeout(typingTimer.current), []);
+
+  // Keep the newest message in view.
+  useEffect(() => {
+    const element = streamBox.current;
+    if (element) element.scrollTop = element.scrollHeight;
+  }, [stream.data?.length, selected?.id]);
+
+  function announceTyping() {
+    const now = Date.now();
+    if (!socket || !connected || !selected || now - lastTypingSent.current < 2000) return;
+    lastTypingSent.current = now;
+    socket.emit("typing", { scope: "dm", conversation_id: selected.id });
+  }
 
   async function sendMessage() {
-    await api(`frontend/messages/${selected.id}`, {
+    const message = await api(`frontend/messages/${selected.id}`, {
       method: "POST",
       body: { content: text },
     });
     setText("");
-    stream.reload();
-    conversations.reload();
+    addToStream(message);
+    bumpConversation(selected.id, message);
   }
 
   return (
@@ -94,7 +150,7 @@ export default function Messages() {
                 <UserAvatar id={selected.other_user_id} name={selected.name} hasPicture={selected.other_has_picture} />
                 <h3>{selected.name}</h3>
               </header>
-              <div className="message-stream">
+              <div className="message-stream" ref={streamBox}>
                 <State resource={stream}>
                   {stream.data?.map((message) => (
                     <article
@@ -107,12 +163,18 @@ export default function Messages() {
                   ))}
                 </State>
               </div>
+              <p className="typing-indicator" aria-live="polite">
+                {typing?.conversation_id === selected.id ? `${typing.name} is typing…` : ""}
+              </p>
               <div className="message-compose">
                 <textarea
                   rows={2}
                   value={text}
                   maxLength={10000}
-                  onChange={(event) => setText(event.target.value)}
+                  onChange={(event) => {
+                    setText(event.target.value);
+                    if (event.target.value.trim()) announceTyping();
+                  }}
                   placeholder={`Message ${selected.name}…`}
                   aria-label="Message"
                 />

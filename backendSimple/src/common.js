@@ -1,13 +1,17 @@
-import dotenv from "dotenv";
+import fs from "node:fs";
 import { fileURLToPath } from "node:url";
-dotenv.config({
-  path: fileURLToPath(new URL("../../../.env", import.meta.url)),
-});
+import dotenv from "dotenv";
+// Use backendSimple/.env; fall back to the old backend's .env so one file can serve both locally.
+for (const file of ["../.env", "../../backend/.env"]) {
+  const path = fileURLToPath(new URL(file, import.meta.url));
+  if (fs.existsSync(path)) {
+    dotenv.config({ path });
+    break;
+  }
+}
 import pg from "pg";
 import jwt from "jsonwebtoken";
 import express from "express";
-import helmet from "helmet";
-import rateLimit from "express-rate-limit";
 import multer from "multer";
 import { ZodError } from "zod";
 import { createNotifier, NOTIFICATION_TYPES } from "./notifications.js";
@@ -29,7 +33,7 @@ export const pool = new Pool({
     process.env.DATABASE_SSL === "false"
       ? false
       : { rejectUnauthorized: false },
-  max: 10,
+  max: Number(process.env.DB_POOL_MAX) || 10,
   idleTimeoutMillis: 30000,
 });
 export const query = (text, params = []) => pool.query(text, params);
@@ -56,17 +60,10 @@ export class ApiError extends Error {
 }
 export const asyncHandler = (fn) => (req, res, next) =>
   Promise.resolve(fn(req, res, next)).catch(next);
+// Each feature module gets its own router. Parsing, security headers and rate limiting
+// are applied once for the whole server in app.js instead of once per module.
 export function createApp(name) {
-  const app = express();
-  app.disable("x-powered-by");
-  // Requests arrive through the gateway (behind the load balancer), which sets X-Forwarded-For.
-  app.set("trust proxy", 1);
-  app.use(helmet());
-  app.use(express.json({ limit: "1mb" }));
-  app.use(express.urlencoded({ extended: false }));
-  app.use(
-    rateLimit({ windowMs: 60000, limit: 300, standardHeaders: "draft-7" }),
-  );
+  const app = express.Router();
   app.get(
     "/health",
     asyncHandler(async (_q, r) => {
@@ -199,12 +196,6 @@ export function notFound(req, res) {
   res
     .status(404)
     .json({ error: `Route not found: ${req.method} ${req.originalUrl}` });
-}
-export function listen(app, port, name) {
-  app.use(notFound, errors);
-  return app.listen(port, () =>
-    console.log(`${name} listening on ${port}`),
-  );
 }
 // Notification helpers (see notifications.js).
 export { NOTIFICATION_TYPES };

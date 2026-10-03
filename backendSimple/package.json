@@ -1,0 +1,28 @@
+{
+  "name": "uddeepto-backend-simple",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Single-process Uddeepto backend: same /api/v1 API as ../backend, built for small hosts such as Render.",
+  "scripts": {
+    "dev": "node --watch src/server.js",
+    "start": "node --max-old-space-size=384 src/server.js",
+    "test": "node --test \"test/*.test.js\""
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^5.1.0",
+    "express-rate-limit": "^7.5.0",
+    "helmet": "^8.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "multer": "^2.0.0",
+    "pg": "^8.16.0",
+    "socket.io": "^4.8.4",
+    "zod": "^3.25.0"
+  }
+}

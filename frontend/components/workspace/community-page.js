@@ -7,6 +7,7 @@ import { Crown, Hash, Lock, LogOut, MessageCircle, Plus, Send, Shield, SmilePlus
 import { api } from "@/lib/api";
 import { Action, State, useResource } from "../ui";
 import { useShellActions, useUser } from "../shell";
+import { useRealtime, useSocketEvent } from "../realtime";
 import { CategoryChips } from "./courses";
 
 const reactionEmoji = { like: "👍", love: "❤️", celebrate: "🎉", insightful: "💡", curious: "🤔" };
@@ -99,6 +100,9 @@ function JoinPanel({ community, reload }) {
 }
 
 function Room({ community, reload }) {
+  useSocketEvent("community:chat_created", (event) => {
+    if (event.community_id === community.id) reload();
+  });
   const router = useRouter();
   const params = useSearchParams();
   const channelId = params.get("channel") || "";
@@ -290,6 +294,10 @@ function ChatPanel({ community, channel }) {
   const list = useRef(null);
   const stick = useRef(true);
   const base = `frontend/communities/${community.id}/chats/${channel.id}`;
+  const { socket, connected } = useRealtime();
+  const [typers, setTypers] = useState({});
+  const typingTimers = useRef({});
+  const lastTypingSent = useRef(0);
 
   const load = useCallback(async () => {
     try {
@@ -304,11 +312,90 @@ function ChatPanel({ community, channel }) {
 
   useEffect(() => {
     load();
+  }, [load]);
+
+  // Live: join this community's room (again after every reconnect, then catch up on what was missed).
+  useEffect(() => {
+    if (!socket || !connected) return;
+    socket.emit("community:join", community.id);
+    load();
+    return () => {
+      socket.emit("community:leave", community.id);
+    };
+  }, [socket, connected, community.id, load]);
+
+  // Polling is only the fallback while the socket is down.
+  useEffect(() => {
+    if (connected) return;
     const timer = setInterval(() => {
       if (document.visibilityState === "visible") load();
     }, 4000);
     return () => clearInterval(timer);
-  }, [load]);
+  }, [connected, load]);
+
+  const here = (event) => event.community_id === community.id && event.chat_id === channel.id;
+  useSocketEvent("community:message", (event) => {
+    if (!here(event)) return;
+    setMessages((current) => (current && !current.some((item) => item.id === event.message.id) ? [...current, event.message] : current));
+    setTypers((current) => {
+      const { [event.message.sender_id]: _gone, ...rest } = current;
+      return rest;
+    });
+  });
+  useSocketEvent("community:message_deleted", (event) => {
+    if (here(event)) setMessages((current) => current?.filter((item) => item.id !== event.message_id));
+  });
+  useSocketEvent("community:reaction", (event) => {
+    // My own reactions are already shown optimistically.
+    if (!here(event) || event.user_id === me.id) return;
+    setMessages((current) =>
+      current?.map((item) => {
+        if (item.id !== event.message_id) return item;
+        const existing = item.reactions.find((entry) => entry.reaction === event.reaction);
+        let reactions;
+        if (event.added) {
+          reactions = existing
+            ? item.reactions.map((entry) => (entry.reaction === event.reaction ? { ...entry, count: Number(entry.count) + 1 } : entry))
+            : [...item.reactions, { reaction: event.reaction, count: 1, mine: false }];
+        } else {
+          reactions = item.reactions
+            .map((entry) => (entry.reaction === event.reaction ? { ...entry, count: Number(entry.count) - 1 } : entry))
+            .filter((entry) => Number(entry.count) > 0);
+        }
+        return { ...item, reactions };
+      }),
+    );
+  });
+  useSocketEvent("typing", (event) => {
+    if (event.scope !== "community" || !here(event)) return;
+    setTypers((current) => ({ ...current, [event.user_id]: event.name }));
+    clearTimeout(typingTimers.current[event.user_id]);
+    typingTimers.current[event.user_id] = setTimeout(() => {
+      setTypers((current) => {
+        const { [event.user_id]: _gone, ...rest } = current;
+        return rest;
+      });
+    }, 3500);
+  });
+  useEffect(() => {
+    const timers = typingTimers.current;
+    return () => Object.values(timers).forEach(clearTimeout);
+  }, []);
+
+  function announceTyping() {
+    const now = Date.now();
+    if (!socket || !connected || now - lastTypingSent.current < 2000) return;
+    lastTypingSent.current = now;
+    socket.emit("typing", { scope: "community", community_id: community.id, chat_id: channel.id });
+  }
+  const typingNames = Object.values(typers);
+  const typingText = !typingNames.length
+    ? ""
+    : typingNames.length === 1
+      ? `${typingNames[0]} is typing…`
+      : typingNames.length === 2
+        ? `${typingNames[0]} and ${typingNames[1]} are typing…`
+        : "Several people are typing…";
 
   useEffect(() => {
     const element = list.current;
@@ -329,10 +416,10 @@ function ChatPanel({ community, channel }) {
     if (!content || sending) return;
     setSending(true);
     try {
-      await api(base, { method: "POST", body: { content } });
+      const message = await api(base, { method: "POST", body: { content } });
       setText("");
       stick.current = true;
-      await load();
+      setMessages((current) => (current?.some((item) => item.id === message.id) ? current : [...(current || []), message]));
     } catch (requestError) {
       setError(requestError.message);
     } finally {
@@ -489,6 +576,9 @@ function ChatPanel({ community, channel }) {
           {error}
         </p>
       )}
+      <p className="typing-indicator room-typing" aria-live="polite">
+        {typingText}
+      </p>
       <form
         className="room-composer"
         onSubmit={(event) => {
@@ -504,6 +594,7 @@ function ChatPanel({ community, channel }) {
           placeholder={`Message #${channel.name}`}
           onChange={(event) => {
             setText(event.target.value);
+            if (event.target.value.trim()) announceTyping();
             event.target.style.height = "auto";
             event.target.style.height = `${Math.min(event.target.scrollHeight, 140)}px`;
           }}

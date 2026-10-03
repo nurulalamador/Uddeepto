@@ -67,7 +67,9 @@ npm run build
 npm start
 ```
 
-For production, set `BACKEND_URL` to the public HTTPS gateway URL and `APP_ORIGIN` to the exact frontend HTTPS origin. Do not expose JWT secrets or the Supabase database URL in the frontend environment.
+For production, set `BACKEND_URL` to the public HTTPS gateway URL and `APP_ORIGIN` to the exact frontend HTTPS origin.
+
+Live updates (Socket.IO): the browser opens a WebSocket straight to the backend. By default the address is `BACKEND_URL` without `/api/v1`; set `SOCKET_URL` (server-side) if the browser must use a different public address. The backend's `CORS_ORIGINS` must include the frontend origin. If the socket cannot connect, the app keeps working with its normal polling. Do not expose JWT secrets or the Supabase database URL in the frontend environment.
 
 ## Important production note
 

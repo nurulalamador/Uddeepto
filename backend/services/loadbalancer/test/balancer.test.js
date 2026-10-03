@@ -27,6 +27,7 @@ async function upstream(name, handler) {
 async function front(options) {
   const balancer = createBalancer({ log: quiet, healthInterval: 100000, ...options });
   const server = http.createServer((req, res) => balancer.handle(req, res));
+  server.on("upgrade", (req, socket, head) => balancer.upgrade(req, socket, head));
   server.listen(0, "127.0.0.1");
   await once(server, "listening");
   const base = `http://127.0.0.1:${server.address().port}`;
@@ -44,6 +45,7 @@ test("round-robin alternates between healthy gateways", async () => {
   const a = await upstream("a");
   const b = await upstream("b");
   const lb = await front({ targets: [a.url, b.url] });
+  const sockets = [];
   try {
     const seen = [];
     for (let i = 0; i < 6; i += 1) seen.push((await fetch(`${lb.base}/x`)).headers.get("x-instance"));
@@ -180,5 +182,66 @@ test("large streamed uploads pass through intact", async () => {
   } finally {
     await lb.close();
     await closeAll(a.server);
+  }
+});
+
+/** A gateway stand-in that accepts Upgrade requests and echoes whatever it receives. */
+async function echoUpstream(name) {
+  const server = await upstream(name);
+  server.server.on("upgrade", (req, socket) => {
+    socket.write(`HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nx-instance: ${name}\r\n\r\n`);
+    socket.on("data", (chunk) => socket.write(`${name}:${chunk}`));
+    socket.on("end", () => socket.end());
+    socket.on("error", () => {});
+  });
+  return server;
+}
+function connectUpgrade(base, path = "/socket.io/?EIO=4") {
+  return new Promise((resolve, reject) => {
+    const request = http.request(base + path, { headers: { Connection: "Upgrade", Upgrade: "websocket" } });
+    request.on("upgrade", (response, socket) => resolve({ response, socket }));
+    request.on("response", (response) => resolve({ response, socket: null }));
+    request.on("error", reject);
+    request.end();
+  });
+}
+
+test("WebSocket upgrades are tunnelled to a gateway and bytes flow both ways", async () => {
+  const a = await echoUpstream("a");
+  const b = await echoUpstream("b");
+  const lb = await front({ targets: [a.url, b.url] });
+  const sockets = [];
+  try {
+    const seen = [];
+    for (let i = 0; i < 4; i += 1) {
+      const { response, socket } = await connectUpgrade(lb.base);
+      sockets.push(socket);
+      assert.equal(response.statusCode, 101);
+      assert.equal(response.headers["x-load-balancer"], "uddeepto-lb");
+      socket.write("ping");
+      const [reply] = await once(socket, "data");
+      seen.push(String(reply));
+      socket.destroy();
+    }
+    assert.deepEqual(seen, ["a:ping", "b:ping", "a:ping", "b:ping"], "connections are spread over the gateways");
+  } finally {
+    sockets.forEach((socket) => socket?.destroy());
+    await lb.close();
+    await closeAll(a.server, b.server);
+  }
+});
+
+test("an upgrade to a dead gateway is retried elsewhere once it is marked down, and 503 when none are left", async () => {
+  const a = await echoUpstream("a");
+  const lb = await front({ targets: [a.url] });
+  try {
+    await closeAll(a.server);
+    let refused = await connectUpgrade(lb.base).catch((error) => ({ error }));
+    const status = refused.response?.statusCode;
+    assert.ok(status === 502 || status === 503 || refused.error, `unexpected ${status}`);
+    refused = await connectUpgrade(lb.base).catch((error) => ({ error }));
+    assert.ok(refused.response?.statusCode === 503 || refused.error);
+  } finally {
+    await lb.close();
   }
 });

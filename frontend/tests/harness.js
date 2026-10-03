@@ -12,5 +12,16 @@ export const multer=Object.assign(()=>({single:()=>((q,_s,n)=>{const type=q.head
 export const allow=()=>((_q,_s,n)=>n());
 export const page=req=>({limit:Math.min(Math.max(Number(req.query.limit)||20,1),100),offset:Math.max(Number(req.query.offset)||0,0)});
 export const resourceRouter=()=>express.Router();
-export let server;
-export function listen(app){app.use((e,_q,s,_n)=>s.status(e.status||(e.name==='ZodError'?422:500)).json({error:e.message}));server=app.listen(0,'127.0.0.1');}
+export let server;export const servers=[];
+export function listen(app){app.use((e,_q,s,_n)=>s.status(e.status||(e.name==='ZodError'?422:500)).json({error:e.message}));server=app.listen(0,'127.0.0.1');servers.push(server);return server;}
+// The real notification code, run against the in-memory database.
+import{createNotifier,NOTIFICATION_TYPES}from'../../backend/packages/common/src/notifications.js';
+export{NOTIFICATION_TYPES};
+// Live updates: the real emit code and the real socket server, run against the in-memory database.
+import{emit,emitBatch,emitLocal,leaveRoom,userRoom,verifyInternalToken}from'../../backend/packages/common/src/realtime.js';import{createRealtime}from'../../backend/packages/common/src/realtime-server.js';
+export{emit,emitBatch,emitLocal,leaveRoom,userRoom,verifyInternalToken};
+export const attachRealtime=(httpServer,options)=>createRealtime(httpServer,options);
+export const signSocketTicket=user=>String(user.id);export const verifySocketTicket=ticket=>{if(!ticket)throw new Error('missing ticket');return{sub:ticket};};
+export const{notify,unnotify,notifyAdmins,notifyInterested,notifyApplicationStatus}=createNotifier(query,items=>emitBatch(items.map(item=>({rooms:[userRoom(item.to)],event:item.event,payload:item.payload}))));
+// Used by the auth module.
+export const validate=schema=>(q,_s,n)=>{try{q.body=schema.parse(q.body);n();}catch(e){n(e);}};export const signAccess=()=>'access-token';export const signRefresh=()=>'refresh-'+Math.random();export const verifyRefresh=()=>({exp:Math.floor(Date.now()/1000)+3600});export const publicUser='id,name,email,username,role';export const platformSetting=async(_key,fallback)=>fallback;

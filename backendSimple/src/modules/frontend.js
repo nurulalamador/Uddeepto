@@ -12,7 +12,6 @@ import {
   auth,
   allow,
   ApiError,
-  listen,
   upload,
   multer,
   notify,
@@ -30,7 +29,7 @@ import {
   userRoom,
   leaveRoom,
   verifyInternalToken,
-} from "@uddeepto/common";
+} from "../common.js";
 const app = createApp("frontend-api");
 // Other services hand their live updates to this process, which owns the socket connections.
 app.post("/internal/emit", (req, res) => {
@@ -2962,9 +2961,15 @@ app.delete(
   }),
 );
 // ---- Course materials: files live in backend storage, the database keeps only file_url ----
+// Locally, share the old backend's upload folder when it exists so either backend serves the same files.
+const SHARED_UPLOADS = fileURLToPath(
+  new URL("../../../backend/uploads", import.meta.url),
+);
 const UPLOAD_ROOT = path.resolve(
   process.env.UPLOAD_DIR ||
-    fileURLToPath(new URL("../../../uploads", import.meta.url)),
+    (fs.existsSync(SHARED_UPLOADS)
+      ? SHARED_UPLOADS
+      : fileURLToPath(new URL("../../uploads", import.meta.url))),
 );
 const MB = 1024 * 1024;
 const materialTypes = ["text", "video", "document", "other"];
@@ -4226,9 +4231,4 @@ export const realtimeOptions = {
       )
     ).rows.map((row) => row.id),
 };
-const server = listen(
-  app,
-  process.env.FRONTEND_API_PORT || 4010,
-  "frontend-api",
-);
-attachRealtime(server, realtimeOptions);
+export default app;

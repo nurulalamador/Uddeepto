@@ -248,8 +248,80 @@ export function createBalancer({
     attempt();
   }
 
+  /**
+   * WebSocket (Upgrade) requests: open the same kind of request to a healthy gateway and, once it
+   * answers 101, pass the raw bytes both ways. The connection then lives until either side closes.
+   */
+  function upgrade(req, clientSocket, head) {
+    const backend = pick(new Set());
+    const refuse = (status, text) => {
+      clientSocket.end(
+        `HTTP/1.1 ${status} ${text}\r\nConnection: close\r\nContent-Length: 0\r\n\r\n`,
+      );
+    };
+    if (!backend) return refuse(503, "Service Unavailable");
+    clientSocket.on("error", () => upstream.destroy());
+    const headers = { ...req.headers };
+    const client = req.socket.remoteAddress;
+    headers["x-forwarded-for"] = headers["x-forwarded-for"]
+      ? `${headers["x-forwarded-for"]}, ${client}`
+      : client;
+    headers["x-forwarded-proto"] ||= req.socket.encrypted ? "https" : "http";
+    const upstream = http.request({
+      host: backend.host,
+      port: backend.port,
+      method: req.method,
+      path: req.url,
+      headers,
+      agent: false,
+    });
+    backend.active += 1;
+    const release = () => {
+      backend.active = Math.max(0, backend.active - 1);
+    };
+    upstream.on("upgrade", (response, upstreamSocket, upstreamHead) => {
+      backend.served += 1;
+      let lines = `HTTP/1.1 ${response.statusCode} ${response.statusMessage}\r\n`;
+      for (let i = 0; i < response.rawHeaders.length; i += 2)
+        lines += `${response.rawHeaders[i]}: ${response.rawHeaders[i + 1]}\r\n`;
+      clientSocket.write(`${lines}x-load-balancer: ${name}\r\n\r\n`);
+      if (upstreamHead.length) clientSocket.write(upstreamHead);
+      if (head.length) upstreamSocket.write(head);
+      upstreamSocket.pipe(clientSocket);
+      clientSocket.pipe(upstreamSocket);
+      const close = () => {
+        release();
+        upstreamSocket.destroy();
+        clientSocket.destroy();
+      };
+      // Sockets from an HTTP server stay half-open after the other side hangs up, so end on "end" too.
+      for (const socket of [upstreamSocket, clientSocket]) {
+        socket.on("end", close);
+        socket.on("error", close);
+        socket.on("close", close);
+      }
+    });
+    // The gateway answered with an ordinary response (for example 401): relay it as it is.
+    upstream.on("response", (response) => {
+      release();
+      let lines = `HTTP/1.1 ${response.statusCode} ${response.statusMessage}\r\n`;
+      for (let i = 0; i < response.rawHeaders.length; i += 2)
+        lines += `${response.rawHeaders[i]}: ${response.rawHeaders[i + 1]}\r\n`;
+      clientSocket.write(`${lines}\r\n`);
+      response.pipe(clientSocket);
+    });
+    upstream.on("error", (error) => {
+      release();
+      backend.errors += 1;
+      if (CONNECTION_ERRORS.has(error.code)) markDown(backend, error.code);
+      refuse(502, "Bad Gateway");
+    });
+    upstream.end();
+  }
+
   return {
     handle,
+    upgrade,
     backends,
     checkAll,
     start() {

@@ -57,6 +57,14 @@ for (const [path, [key, port]] of Object.entries(routes))
       pathRewrite: (url) => (path === "showcase" ? "/showcase" + url : url),
     }),
   );
+// Live updates: Socket.IO connections go to the frontend API, which owns the sockets.
+const live = createProxyMiddleware({
+  target: process.env.FRONTEND_API_URL || "http://localhost:4010",
+  changeOrigin: true,
+  ws: true,
+  pathFilter: "/socket.io",
+});
+app.use(live);
 app.use(
   "/api/v1/frontend",
   createProxyMiddleware({
@@ -68,6 +76,7 @@ app.use((_q, s) => s.status(404).json({ error: "Route not found" }));
 const server = app.listen(port, () =>
   console.log(`${instance} listening on ${port}`),
 );
+server.on("upgrade", live.upgrade);
 // Stay open longer than the load balancer's idle connections so reused sockets are not reset.
 server.keepAliveTimeout = 65000;
 server.headersTimeout = 66000;

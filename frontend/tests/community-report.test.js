@@ -13,6 +13,7 @@ test("community report API validates, deduplicates, and protects posts", async (
     .replace(/CREATE EXTENSION IF NOT EXISTS (pgcrypto|citext);/g, "")
     .replace(/\bCITEXT\b/g, "TEXT");
   await db.exec(schema);
+  await db.exec(await readFile(new URL("../../backend/database/012_notifications.sql", import.meta.url), "utf8"));
 
   let source = await readFile(
     new URL("../../backend/services/community/src/server.js", import.meta.url),

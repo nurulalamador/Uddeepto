@@ -11,6 +11,7 @@ import SearchPage from "./workspace/search-page";
 import Communities from "./workspace/communities";
 import Jobs from "./workspace/jobs";
 import Messages from "./workspace/messages";
+import Notifications from "./workspace/notifications";
 import Profile from "./workspace/profile-page";
 import Admin from "./workspace/admin";
 import AdminDashboard from "./workspace/admin-dashboard";
@@ -36,6 +37,7 @@ export default function WorkspacePage({ section }) {
   if (section === "communities") return <Communities />;
   if (section === "jobs") return <Jobs />;
   if (section === "messages") return <Messages />;
+  if (section === "notifications") return <Notifications />;
   if (section === "profile") return <Profile />;
   return <Admin />;
 }

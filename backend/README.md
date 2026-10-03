@@ -30,6 +30,7 @@ client / Next.js BFF -> load balancer :4000 -> gateway-1 :4101 / gateway-2 :4102
 - **Health checks:** each gateway's `/health` is probed every 5 s (every 1 s while it is down). Two failures take it out of rotation; one success brings it back. A refused or reset connection removes it immediately.
 - **Failover:** `GET`/`HEAD`/`OPTIONS` requests that hit a dead gateway are retried on the other one. `POST`/`PUT`/`DELETE` are never replayed, so nothing is created twice. If no gateway is healthy the balancer answers `503` with `Retry-After`.
 - **Streaming:** bodies are piped, not buffered, so large uploads, Range requests and downloads work as before.
+- **WebSocket:** `Upgrade` request-ও একটা healthy gateway-তে tunnel হয় (live updates এর জন্য), সংযোগ চলাকালীন বাইট দুই দিকে সরাসরি যায়।
 - **Endpoints:** `GET /health` (balancer + how many gateways are healthy; use this for the platform health check), `GET /lb/status` (per-gateway detail; localhost only, or send header `x-lb-token` matching `LB_STATUS_TOKEN`).
 - **Which copy answered:** every response carries `X-Gateway-Instance` and `X-Load-Balancer`.
 - **Config:** `LB_PORT`, `GATEWAY_URLS` (comma separated), `LB_STRATEGY`, `LB_STATUS_TOKEN`. Run another gateway copy with `npm start -w services/gateway -- --port=4103 --id=gateway-3` and add its URL to `GATEWAY_URLS`.
@@ -37,6 +38,40 @@ client / Next.js BFF -> load balancer :4000 -> gateway-1 :4101 / gateway-2 :4102
 - **Docker:** `docker-compose.yml` starts `loadbalancer` + `gateway-1` + `gateway-2` and the services.
 
 Things that stay per-gateway: the gateway's in-memory rate limit (180 requests/min) is counted separately in each copy, so the effective total is roughly doubled. Only the gateway is replicated; the services behind it are still one copy each.
+
+## Notifications
+
+Database: Supabase SQL Editor-এ `database/012_notifications.sql` চালান (একবারই, নিরাপদে বারবার চালানো যায়)। না চালালে অ্যাপ ঠিকই চলবে, শুধু notification তৈরি হবে না (logে `notification failed` দেখাবে)।
+
+API (`/api/v1/frontend/...`, সব role): `GET /notifications?filter=unread&category=jobs&limit&offset`, `GET /notifications/unread-count`, `PATCH /notifications/:id {read}`, `POST /notifications/read-all {category?}`, `DELETE /notifications/:id`, `DELETE /notifications` (পড়া গুলো মুছে ফেলে)।
+
+কে কখন পায়:
+
+| Role | কখন |
+|---|---|
+| Learner | তার post-এ like/comment, comment-এ like · apply করা job-এ shortlisted/accepted/rejected, job বন্ধ হলে · contest-এ submission judge হলে, contest শেষ হলে result ও rank (podium আলাদা), contest বাতিল হলে · community-র join request approved/declined, তার community-তে কেউ join বা request করলে (owner/moderator) · enroll করা course-এ নতুন lesson · interest মেলে এমন নতুন course/contest/webinar/job · webinar/contest শুরু বা শেষের ২৪ ঘণ্টার মধ্যে reminder (app খুললে তৈরি হয়) · moderator তার post সরালে, তার report review হলে · স্বাগতম বার্তা |
+| Hirer | তার job-এ কেউ apply করলে · স্বাগতম বার্তা · (like/comment ইত্যাদি social event) |
+| Admin | নতুন report · নতুন hirer account · hirer নতুন job post করলে |
+
+নিয়ম: নিজের কাজে নিজে notification পায় না; একই ঘটনা (যেমন like → unlike → like) দ্বিতীয়বার notify করে না (`dedupe_key`); unlike করলে না-পড়া like notification সরে যায়; পড়া notification ৬০ দিন, সব ১৮০ দিন পরে মুছে যায়।
+
+কোড: `packages/common/src/notifications.js` (`notify`, `notifyAdmins`, `notifyInterested`, নতুন type এখানে যোগ করুন)। Event-গুলোর hook `services/frontend` (like, comment, application status, contest, admin status পরিবর্তন), `services/auth` (register), `services/community` (join, report), `services/jobs` (apply, job post)-এ।
+
+## Live updates (Socket.IO)
+
+Notification, 1-to-1 message ও community chat এখন socket দিয়ে সাথে সাথে পৌঁছায়। Socket বন্ধ থাকলে (বা না চাইলে) আগের polling-ই fallback হিসেবে চলে, কিছু ভাঙে না।
+
+```
+Browser ──WebSocket──► Load Balancer :4000 ──► Gateway ──► frontend-api (socket server)
+                       (Upgrade tunnel)       (/socket.io)        ▲
+auth / community / jobs  ──HTTP /internal/emit (secret token)─────┘
+```
+
+- **সংযোগ:** Browser Next.js-এর `GET /api/auth/realtime` থেকে URL (`SOCKET_URL` / `NEXT_PUBLIC_SOCKET_URL`, না থাকলে `BACKEND_URL` থেকে `/api/v1` বাদ দিয়ে) আর backend থেকে `POST /api/v1/frontend/realtime/ticket` দিয়ে এক মিনিটের ticket নেয়। Access token cookie থেকে বেরোয় না। শুধু WebSocket transport, তাই sticky session লাগে না।
+- **Room:** `user:<id>` (একজনের সব tab), `community:<id>` (সদস্য, join করার সময় সদস্যপদ যাচাই হয়)। সদস্য বাদ পড়লে বা leave করলে room থেকে সরে যায়, suspended account ৫ মিনিটের মধ্যে বিচ্ছিন্ন হয়।
+- **Event:** `notification`, `notification:removed`, `notification:changed`, `message:new`, `community:message`, `community:reaction`, `community:message_deleted`, `community:chat_created`, `typing`।
+- **কোড:** `packages/common/src/realtime.js` (পাঠানো), `realtime-server.js` (socket server), `notifications.js` (notification তৈরির সময় live copy)। `frontend-api` process-ই socket সামলায়; অন্য service-এর event `FRONTEND_API_URL/internal/emit`-এ যায় (`JWT_ACCESS_SECRET` থেকে বানানো token দিয়ে সুরক্ষিত)।
+- **Production:** `CORS_ORIGINS`-এ frontend-এর origin থাকতে হবে। Browser সরাসরি backend-এর public URL-এ যায়, তাই Next.js-এর server-এ `SOCKET_URL=https://<backend-url>` দিন। `frontend-api` এক কপির বেশি চালালে Redis adapter লাগবে (এখন এক কপি, তাই দরকার নেই)।
 
 ## Supabase setup
 

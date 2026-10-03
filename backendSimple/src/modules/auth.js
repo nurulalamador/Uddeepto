@@ -16,9 +16,8 @@ import {
   publicUser,
   notify,
   notifyAdmins,
-  listen,
   platformSetting,
-} from "@uddeepto/common";
+} from "../common.js";
 const app = createApp("auth");
 const router = express.Router();
 const credentials = z.object({
@@ -195,4 +194,4 @@ async function issue(u) {
 }
 const hash = (s) => crypto.createHash("sha256").update(s).digest("hex");
 app.use("/", router);
-listen(app, process.env.AUTH_PORT || 4001, "auth");
+export default app;

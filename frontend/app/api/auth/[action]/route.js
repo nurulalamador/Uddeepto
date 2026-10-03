@@ -1,7 +1,13 @@
 import { cookies } from 'next/headers';
 import { backend, cookieOptions, checkOrigin, currentUser } from '@/lib/server';
 export async function GET(_request, { params }) {
-  if ((await params).action !== 'me') return Response.json({error:'Not found'}, {status:404});
+  const { action } = await params;
+  // Where the browser opens its live socket: the public backend address (same server as the API).
+  if (action === 'realtime') {
+    const url = process.env.SOCKET_URL || process.env.NEXT_PUBLIC_SOCKET_URL || backend().replace(/\/api\/v1$/, '');
+    return Response.json({ url });
+  }
+  if (action !== 'me') return Response.json({error:'Not found'}, {status:404});
   const user = await currentUser({ refresh: true }); return Response.json({user}, {status:user ? 200 : 401});
 }
 export async function POST(request, { params }) {

@@ -9,8 +9,7 @@ import {
   page,
   notify,
   notifyAdmins,
-  listen,
-} from "@uddeepto/common";
+} from "../common.js";
 const app = createApp("community"),
   r = express.Router();
 r.get(
@@ -256,4 +255,4 @@ r.use(
   }),
 );
 app.use("/", r);
-listen(app, process.env.COMMUNITY_PORT || 4004, "community");
+export default app;

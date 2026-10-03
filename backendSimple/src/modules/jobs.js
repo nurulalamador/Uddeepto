@@ -11,8 +11,7 @@ import {
   notifyAdmins,
   notifyInterested,
   notifyApplicationStatus,
-  listen,
-} from "@uddeepto/common";
+} from "../common.js";
 const app = createApp("jobs"),
   r = express.Router();
 r.use("/", (q, _s, n) => {
@@ -185,4 +184,4 @@ app.get(
   ),
 );
 app.use("/", r);
-listen(app, process.env.JOBS_PORT || 4007, "jobs");
+export default app;

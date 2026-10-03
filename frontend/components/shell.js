@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import {
   ArrowLeft,
   ArrowUpRight,
+  Bell,
   Bot,
   BookOpen,
   Briefcase,
@@ -27,12 +28,14 @@ import {
 } from "lucide-react";
 import { ThemeToggle } from "./theme";
 import { UserAvatar } from "./ui";
+import { api } from "@/lib/api";
+import { RealtimeContext, useOnConnect, useRealtimeConnection, useSocketEvent } from "./realtime";
 import GlobalSearch from "./global-search";
 import InterestGate from "./interest-gate";
 import { allowedCategorizedSections, canAccess, sections } from "@/lib/roles";
 
 const UserContext = createContext(null);
-const ShellActionsContext = createContext({ setDetailSubtitle: () => {} });
+const ShellActionsContext = createContext({ setDetailSubtitle: () => {}, setUnreadCount: () => {} });
 export const useUser = () => useContext(UserContext);
 export const useShellActions = () => useContext(ShellActionsContext);
 
@@ -45,6 +48,7 @@ const icons = {
   communities: Users,
   jobs: Briefcase,
   messages: MessageCircle,
+  notifications: Bell,
   profile: UserRound,
   admin: SlidersHorizontal,
   moderation: ShieldCheck,
@@ -52,6 +56,15 @@ const icons = {
   ai: Bot,
   "job-management": ClipboardList,
 };
+
+// Keeps the unread badge exact: +1 for every pushed notification, a recount after anything else.
+function UnreadSync({ setUnread, loadUnread }) {
+  useSocketEvent("notification", () => setUnread((value) => value + 1));
+  useSocketEvent("notification:removed", () => loadUnread());
+  useSocketEvent("notification:changed", () => loadUnread());
+  useOnConnect(loadUnread);
+  return null;
+}
 
 export default function Shell({ user, children }) {
   const pathname = usePathname();
@@ -81,11 +94,36 @@ export default function Shell({ user, children }) {
   const [open, setOpen] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [detailSubtitle, setDetailSubtitle] = useState("");
+  const [unread, setUnread] = useState(0);
+  const realtime = useRealtimeConnection();
   const profileRef = useRef(null);
   const updateDetailSubtitle = useCallback((value) => setDetailSubtitle(value || ""), []);
   const allowed = allowedCategorizedSections(user.role);
   // Learners must pick at least one interest before using the workspace (hirers and admins can skip it).
   const needsInterests = user.role === "learner" && Array.isArray(user.interests) && user.interests.length === 0;
+
+  // The unread badge: checked on load, every 45 seconds while the tab is visible, and when the tab regains focus.
+  const connectedRef = useRef(false);
+  connectedRef.current = realtime.connected;
+  const loadUnread = useCallback(async () => {
+    try {
+      const result = await api("frontend/notifications/unread-count");
+      setUnread(Number(result.count) || 0);
+    } catch {
+      /* the badge is a convenience; ignore failures */
+    }
+  }, []);
+  useEffect(() => {
+    loadUnread();
+    // The socket keeps the badge current; polling is only the fallback while it is down.
+    const timer = setInterval(() => document.visibilityState === "visible" && !connectedRef.current && loadUnread(), 45000);
+    const onVisible = () => document.visibilityState === "visible" && loadUnread();
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      clearInterval(timer);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
+  }, [loadUnread]);
 
   async function logout() {
     await fetch("/api/auth/logout", { method: "POST" });
@@ -102,8 +140,10 @@ export default function Shell({ user, children }) {
   }, [profileMenuOpen]);
 
   return (
-    <ShellActionsContext.Provider value={{ setDetailSubtitle: updateDetailSubtitle }}>
+    <ShellActionsContext.Provider value={{ setDetailSubtitle: updateDetailSubtitle, setUnreadCount: setUnread }}>
+      <RealtimeContext.Provider value={realtime}>
       <UserContext.Provider value={user}>
+        <UnreadSync setUnread={setUnread} loadUnread={loadUnread} />
         <div className={`app-shell${user.role === "admin" ? " admin-shell" : ""}${postDetail ? " post-detail-shell" : ""}`}>
           {open && <button className="sidebar-overlay" aria-label="Close navigation" onClick={() => setOpen(false)} />}
           <aside className={`sidebar ${open ? "open" : ""}`}>
@@ -129,6 +169,9 @@ export default function Shell({ user, children }) {
                         <Link onClick={() => setOpen(false)} className={active ? "active" : ""} href={`/${key}`} key={key}>
                           <Icon size={20} />
                           {sections[key]}
+                          {key === "notifications" && unread > 0 && (
+                            <span className="nav-badge" aria-label={`${unread} unread`}>{unread > 99 ? "99+" : unread}</span>
+                          )}
                           {active && <span className="active" />}
                         </Link>
                       );
@@ -157,7 +200,7 @@ export default function Shell({ user, children }) {
                 <div className="row"><GlobalSearch /><ThemeToggle /></div>
               </> : <>
                 <div className="row">
-                  <button className="icon-button mobile-menu" onClick={() => setOpen(true)} aria-label="Open navigation"><Menu /></button>
+                  <button className="icon-button mobile-menu" onClick={() => setOpen(true)} aria-label="Open navigation"><Menu />{unread > 0 && <span className="menu-dot" aria-hidden="true" />}</button>
                   <span className="title">{sections[path] || "Workspace"}</span>
                 </div>
                 <div className="row"><GlobalSearch /><ThemeToggle /></div>
@@ -174,6 +217,7 @@ export default function Shell({ user, children }) {
         </div>
         {needsInterests && <InterestGate role={user.role} />}
       </UserContext.Provider>
+      </RealtimeContext.Provider>
     </ShellActionsContext.Provider>
   );
 }

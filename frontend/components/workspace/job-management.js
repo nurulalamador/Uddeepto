@@ -124,7 +124,7 @@ function MyPosts({ resource, onCreate, onApplicants }) {
                       <span>·</span>
                       {typeLabel(job.type)}
                       <span>·</span>
-                      {salaryLabel(job)}
+                      <span className="job-salary">{salaryLabel(job)}</span>
                     </div>
                     <p className="metadata">
                       Posted {date(job.created_at)}

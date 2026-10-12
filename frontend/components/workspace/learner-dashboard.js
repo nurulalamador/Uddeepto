@@ -84,7 +84,7 @@ function ScheduleRow({ item }) {
         <span className="ld-row-text">
           <strong>{item.name}</strong>
           <small>
-            {label} · {live ? "Live now — ends " + date(item.ending_time) : date(item.starting_time)}
+            {label} · {live ? "Live now - ends " + date(item.ending_time) : date(item.starting_time)}
           </small>
         </span>
         {live && <span className="phase-pill ongoing">Live</span>}
@@ -133,7 +133,7 @@ function Body({ user, data, recommended }) {
             {stats.enrolled
               ? week
                 ? `You completed ${week} material${week === 1 ? "" : "s"} this week. Keep the momentum going.`
-                : "Pick up where you left off — even ten minutes today makes a difference."
+                : "Pick up where you left off - even ten minutes today makes a difference."
               : "Start your first course, join a contest or ask the AI assistant anything."}
           </p>
           <div className="ld-hero-actions">
@@ -325,7 +325,7 @@ function Body({ user, data, recommended }) {
             </span>
             <span>
               <strong>Stuck on something?</strong>
-              <small>Ask the AI assistant — in Bangla or English.</small>
+              <small>Ask the AI assistant - in Bangla or English.</small>
             </span>
             <ArrowUpRight size={18} />
           </Link>

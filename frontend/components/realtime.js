@@ -27,7 +27,12 @@ export function useRealtimeConnection() {
         return;
       }
       if (cancelled || !url) return;
-      socket = io(url, {
+      // "localhost" in the configured address means the server machine; from a phone or another
+      // computer that is this page's own host.
+      const target = new URL(url);
+      const local = ["localhost", "127.0.0.1", "[::1]"];
+      if (local.includes(target.hostname) && !local.includes(window.location.hostname)) target.hostname = window.location.hostname;
+      socket = io(target.origin, {
         transports: ["websocket"],
         reconnectionDelayMax: 15000,
         // A fresh one-minute ticket for every (re)connection; the access token never leaves its cookie.

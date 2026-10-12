@@ -503,7 +503,7 @@ app.get(
     ).rows;
     p.experience = (
       await query(
-        "SELECT e.id,e.title,e.workplace,e.location,e.category_id,ic.name category_name,ic.icon category_icon,e.start_date::text start_date,e.end_date::text end_date,e.description FROM user_experiences e JOIN interest_categories ic ON ic.id=e.category_id WHERE e.user_id=$1 ORDER BY (e.end_date IS NULL) DESC,coalesce(e.end_date,e.start_date) DESC,e.start_date DESC",
+        "SELECT e.id,e.title,e.workplace,e.location,e.category_id,coalesce(ic.name,'Others') category_name,ic.icon category_icon,e.start_date::text start_date,e.end_date::text end_date,e.description FROM user_experiences e LEFT JOIN interest_categories ic ON ic.id=e.category_id WHERE e.user_id=$1 ORDER BY (e.end_date IS NULL) DESC,coalesce(e.end_date,e.start_date) DESC,e.start_date DESC",
         [p.id],
       )
     ).rows;
@@ -653,7 +653,8 @@ const experienceBody = z
   .object({
     title: z.string().trim().min(1).max(200),
     workplace: z.string().trim().min(1).max(200),
-    category_id: z.string().uuid(),
+    // null = "Others" (fits none of the interest categories)
+    category_id: z.string().uuid().nullable(),
     location: optionalText(200),
     start_date: monthDate,
     end_date: z.string().optional(),
@@ -3147,10 +3148,12 @@ app.post(
         ];
       }
       const created = await tx(async (db) => {
-        await one("SELECT id FROM courses WHERE id=$1", [courseId]);
-        await db.query("SELECT id FROM courses WHERE id=$1 FOR UPDATE", [
-          courseId,
-        ]);
+        // Check and lock on the transaction's own connection (a second pool connection here could deadlock).
+        const locked = await db.query(
+          "SELECT id FROM courses WHERE id=$1 FOR UPDATE",
+          [courseId],
+        );
+        if (!locked.rowCount) throw new ApiError(404, "Not found");
         return (
           await db.query(
             `INSERT INTO course_materials(course_id,name,description,type,content_text,file_url,file_name,file_size,mime_type,is_preview,sort_order) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,(SELECT coalesce(max(sort_order),-1)+1 FROM course_materials WHERE course_id=$1)) RETURNING id`,

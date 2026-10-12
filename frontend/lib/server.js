@@ -37,7 +37,16 @@ export async function currentUser({ refresh = false } = {}) {
     return response.ok ? await response.json() : null;
   } catch { return null; }
 }
+// Mutating requests must come from this site. With APP_ORIGIN set the origin must match it exactly;
+// otherwise it must match the Host the browser used (request.url is not reliable here: the dev server
+// reports localhost even when the page was opened through a LAN address such as 192.168.x.x).
 export function checkOrigin(request) {
   const origin = request.headers.get('origin');
-  return origin === (process.env.APP_ORIGIN || new URL(request.url).origin);
+  if (!origin) return false;
+  if (process.env.APP_ORIGIN) return origin === process.env.APP_ORIGIN;
+  try {
+    return new URL(origin).host === (request.headers.get('host') || new URL(request.url).host);
+  } catch {
+    return false;
+  }
 }

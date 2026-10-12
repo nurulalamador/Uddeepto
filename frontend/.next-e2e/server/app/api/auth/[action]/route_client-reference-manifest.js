@@ -1,0 +1,1 @@
+globalThis.__RSC_MANIFEST=(globalThis.__RSC_MANIFEST||{});globalThis.__RSC_MANIFEST["/api/auth/[action]/route"]={"moduleLoading":{"prefix":"/_next/"},"ssrModuleMapping":{},"edgeSSRModuleMapping":{},"clientModules":{},"entryCSSFiles":{"C:\\Users\\HP\\Desktop\\Uddeepto\\frontend\\app\\api\\auth\\[action]\\route":[]},"rscModuleMapping":{},"edgeRscModuleMapping":{}};

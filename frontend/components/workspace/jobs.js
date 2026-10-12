@@ -12,7 +12,7 @@ import { JobsMap } from "./job-map";
 
 const PAGE_SIZE = 12;
 export function salaryLabel(job) {
-  if (job.salary_min && job.salary_max) return `${money(job.salary_min, job.currency)} – ${money(job.salary_max, job.currency)}`;
+  if (job.salary_min && job.salary_max) return `${money(job.salary_min, job.currency)} - ${money(job.salary_max, job.currency)}`;
   if (job.salary_min) return `From ${money(job.salary_min, job.currency)}`;
   if (job.salary_max) return `Up to ${money(job.salary_max, job.currency)}`;
   return "Salary negotiable";
@@ -39,7 +39,7 @@ function JobCard({ job, user }) {
         </div>
       </div>
       <div className="job-end">
-        <strong>{salaryLabel(job)}</strong>
+        <strong className="job-salary">{salaryLabel(job)}</strong>
         <Link className="text-link" href={`/jobs/${job.id}`}>
           {job.creator_id === user.id ? "Manage applications" : "View opportunity"} <ArrowUpRight size={17} />
         </Link>
@@ -97,7 +97,7 @@ function MapView({ filters, setView }) {
   const jobs = resource.data || [];
   const rawNotice =
     status === "denied"
-      ? "Location access is blocked. Showing Dhaka — allow location access, then tap “Use my location”."
+      ? "Location access is blocked. Showing Dhaka - allow location access, then tap “Use my location”."
       : status === "unavailable"
         ? "Your browser can’t share your location. Showing Dhaka."
         : resource.error

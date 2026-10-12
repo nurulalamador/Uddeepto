@@ -1,0 +1,20 @@
+{
+  "components\\workspace\\job-map.js -> leaflet": {
+    "id": 9722,
+    "files": [
+      "static/chunks/d0deef33.c7f6c9c5490cc179.js"
+    ]
+  },
+  "node_modules\\next\\dist\\client\\index.js -> ../pages/_app": {
+    "id": 1966,
+    "files": [
+      "static/chunks/1966.1560d0f43ac9a41a.js"
+    ]
+  },
+  "node_modules\\next\\dist\\client\\index.js -> ../pages/_error": {
+    "id": 3899,
+    "files": [
+      "static/chunks/3899.ff1481e7c444a0fc.js"
+    ]
+  }
+}

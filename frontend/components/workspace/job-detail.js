@@ -56,7 +56,7 @@ function JobBody({ job, reload }) {
             <li>
               <MapPin size={16} /> {job.is_remote ? "Remote" : job.location || "Location not specified"}
             </li>
-            <li>
+            <li className="job-salary">
               <Wallet size={16} /> {salaryLabel(job)}
               {job.salary_period && job.salary_period !== "fixed" && (job.salary_min || job.salary_max) ? ` / ${job.salary_period.replace("ly", "")}` : ""}
             </li>

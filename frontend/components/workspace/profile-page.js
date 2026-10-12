@@ -18,6 +18,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { api } from "@/lib/api";
+import { copyText } from "@/lib/clipboard";
 import { Empty, Heading, InterestIcon, Modal, State, useResource } from "../ui";
 import { useUser } from "../shell";
 import { EditProfileForm, EducationForm, ExperienceForm } from "./profile-forms";
@@ -33,7 +34,7 @@ function formatRange(start, end) {
   const years = Math.floor(months / 12);
   const rest = months % 12;
   const length = [years ? `${years} yr${years > 1 ? "s" : ""}` : "", rest ? `${rest} mo${rest > 1 ? "s" : ""}` : ""].filter(Boolean).join(" ");
-  return `${monthFormat.format(from)} – ${end ? monthFormat.format(asUtc(end)) : "Present"}${length ? ` · ${length}` : ""}`;
+  return `${monthFormat.format(from)} - ${end ? monthFormat.format(asUtc(end)) : "Present"}${length ? ` · ${length}` : ""}`;
 }
 
 function CopyButton({ value, label }) {
@@ -45,12 +46,9 @@ function CopyButton({ value, label }) {
       aria-label={label}
       title={label}
       onClick={async () => {
-        try {
-          await navigator.clipboard.writeText(value);
+        if (await copyText(value)) {
           setCopied(true);
           setTimeout(() => setCopied(false), 1600);
-        } catch {
-          /* clipboard unavailable */
         }
       }}
     >
@@ -130,13 +128,14 @@ export default function ProfilePage({ refId }) {
   const done = () => {
     setDialog(null);
     resource.reload();
+    // The sidebar shows the signed-in person's name and picture; refresh it too.
+    router.refresh();
   };
 
   if (!profile) return <State resource={resource}>{null}</State>;
 
   const isSelf = profile.is_self;
   const personal = profile.personal;
-  const profileUrl = typeof window === "undefined" ? "" : `${window.location.origin}/profile/${profile.uddeepto_id}`;
 
   return (
     <div className="pf">
@@ -280,7 +279,6 @@ export default function ProfilePage({ refId }) {
             </strong>
             <div className="pf-id-actions">
               <CopyButton value={profile.uddeepto_id} label="Copy Uddeepto ID" />
-              <CopyButton value={profileUrl} label="Copy profile link" />
             </div>
             <small>Share your profile link: /profile/{profile.uddeepto_id}</small>
           </div>

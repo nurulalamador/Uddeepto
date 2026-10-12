@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Bot, Check, Copy, Plus, RotateCcw, Send, Sparkles } from "lucide-react";
 import { api } from "@/lib/api";
+import { copyText } from "@/lib/clipboard";
 import { useUser } from "../shell";
 import { UserAvatar } from "../ui";
 import Markdown from "../markdown";
@@ -25,12 +26,9 @@ function CopyReply({ text }) {
       type="button"
       className="ai-action"
       onClick={async () => {
-        try {
-          await navigator.clipboard.writeText(text);
+        if (await copyText(text)) {
           setCopied(true);
           setTimeout(() => setCopied(false), 1600);
-        } catch {
-          /* clipboard unavailable */
         }
       }}
     >

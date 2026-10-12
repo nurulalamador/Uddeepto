@@ -10,6 +10,8 @@ import {
   Bot,
   BookOpen,
   Briefcase,
+  ChevronLeft,
+  ChevronRight,
   ClipboardList,
   EllipsisVertical,
   LayoutDashboard,
@@ -66,7 +68,7 @@ function UnreadSync({ setUnread, loadUnread }) {
   return null;
 }
 
-export default function Shell({ user, children }) {
+export default function Shell({ user, children, defaultCollapsed = false }) {
   const pathname = usePathname();
   const segments = pathname.split("/").filter(Boolean);
   const path = segments[0] === "instructors" ? "courses" : segments[0];
@@ -95,6 +97,15 @@ export default function Shell({ user, children }) {
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [detailSubtitle, setDetailSubtitle] = useState("");
   const [unread, setUnread] = useState(0);
+  // Desktop sidebar: full width, or only icons (logo, menu icons, profile picture). Remembered in a cookie
+  // so the server renders the right width on the first paint.
+  const [collapsed, setCollapsed] = useState(defaultCollapsed);
+  const toggleCollapsed = () =>
+    setCollapsed((value) => {
+      document.cookie = `ud_sidebar=${value ? "open" : "collapsed"}; path=/; max-age=31536000; samesite=lax`;
+      setProfileMenuOpen(false);
+      return !value;
+    });
   const realtime = useRealtimeConnection();
   const profileRef = useRef(null);
   const updateDetailSubtitle = useCallback((value) => setDetailSubtitle(value || ""), []);
@@ -144,14 +155,24 @@ export default function Shell({ user, children }) {
       <RealtimeContext.Provider value={realtime}>
       <UserContext.Provider value={user}>
         <UnreadSync setUnread={setUnread} loadUnread={loadUnread} />
-        <div className={`app-shell${user.role === "admin" ? " admin-shell" : ""}${postDetail ? " post-detail-shell" : ""}`}>
+        <div className={`app-shell${user.role === "admin" ? " admin-shell" : ""}${postDetail ? " post-detail-shell" : ""}${collapsed ? " sidebar-collapsed" : ""}`}>
           {open && <button className="sidebar-overlay" aria-label="Close navigation" onClick={() => setOpen(false)} />}
           <aside className={`sidebar ${open ? "open" : ""}`}>
+            <button
+              type="button"
+              className="sidebar-toggle"
+              onClick={toggleCollapsed}
+              aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+              aria-expanded={!collapsed}
+              title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+            >
+              {collapsed ? <ChevronRight size={15} /> : <ChevronLeft size={15} />}
+            </button>
             <div className="brand-container">
               <div>
-                <Link href="/dashboard" className="brand">
+                <Link href="/dashboard" className="brand" aria-label="Uddeepto home">
                   <span className="brand-symbol">u<span>✦</span></span>
-                  uddeepto<span className="brand-dot">.</span>
+                  <span className="brand-text">uddeepto<span className="brand-dot">.</span></span>
                 </Link>
                 {user.role === "admin" && <span className="admin-brand-label">ADMIN CONSOLE</span>}
               </div>
@@ -166,9 +187,9 @@ export default function Shell({ user, children }) {
                       const Icon = icons[key];
                       const active = adminPostDetail ? key === "moderation" : path === key || (user.role === "hirer" && key === "job-management" && path === "jobs");
                       return (
-                        <Link onClick={() => setOpen(false)} className={active ? "active" : ""} href={`/${key}`} key={key}>
+                        <Link onClick={() => setOpen(false)} className={active ? "active" : ""} href={`/${key}`} key={key} title={sections[key]}>
                           <Icon size={20} />
-                          {sections[key]}
+                          <span className="nav-label">{sections[key]}</span>
                           {key === "notifications" && unread > 0 && (
                             <span className="nav-badge" aria-label={`${unread} unread`}>{unread > 99 ? "99+" : unread}</span>
                           )}
@@ -181,7 +202,10 @@ export default function Shell({ user, children }) {
               ))}
             </div>
             <div className="profile" ref={profileRef}>
-              <div className="user">
+              <div
+                className="user"
+                {...(collapsed ? { role: "button", tabIndex: 0, "aria-label": "Open profile menu", "aria-expanded": profileMenuOpen, title: user.name, onClick: () => setProfileMenuOpen((value) => !value), onKeyDown: (event) => (event.key === "Enter" || event.key === " ") && (event.preventDefault(), setProfileMenuOpen((value) => !value)) } : {})}
+              >
                 <UserAvatar id={user.id} name={user.name} hasPicture={user.has_picture} />
                 <div className="details"><div className="name">{user.name}</div><div className="role-label">{user.role}</div></div>
                 <button onClick={() => setProfileMenuOpen((value) => !value)} aria-label="Open profile menu" aria-expanded={profileMenuOpen}><EllipsisVertical size={20} /></button>

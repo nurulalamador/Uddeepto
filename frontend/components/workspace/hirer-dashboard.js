@@ -83,7 +83,7 @@ function Body({ user, data }) {
             {stats.jobs === 0
               ? "Post your first job and start meeting talented people."
               : stats.new_applicants > 0
-                ? `You have ${stats.new_applicants} applicant${stats.new_applicants === 1 ? "" : "s"} waiting for review${week ? ` — ${week} new in the last 7 days` : ""}.`
+                ? `You have ${stats.new_applicants} applicant${stats.new_applicants === 1 ? "" : "s"} waiting for review${week ? ` - ${week} new in the last 7 days` : ""}.`
                 : "You’re all caught up. New applications will appear here as they arrive."}
           </p>
           <div className="ld-hero-actions">

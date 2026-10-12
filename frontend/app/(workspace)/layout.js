@@ -9,5 +9,5 @@ export default async function Layout({ children }) {
   if (!jar.has("ud_access") && !jar.has("ud_refresh")) redirect("/login");
   const user = await currentUser();
   if (!user) return <SessionRecovery />;
-  return <Shell user={user}>{children}</Shell>;
+  return <Shell user={user} defaultCollapsed={jar.get("ud_sidebar")?.value === "collapsed"}>{children}</Shell>;
 }

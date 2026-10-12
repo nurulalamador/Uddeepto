@@ -5019,7 +5019,6 @@ details[open] > summary .disclosure-chevron { transform: rotate(180deg); color: 
 .sidebar nav a .nav-badge { display: inline-grid; min-width: 20px; height: 20px; margin-left: auto; padding: 0 6px; place-items: center; border-radius: 999px; background: var(--orange); color: #fff; font-size: 0.68rem; font-weight: 800; line-height: 1; }
 .mobile-menu { position: relative; }
 .menu-dot { position: absolute; top: 7px; right: 7px; width: 9px; height: 9px; border: 2px solid var(--surface); border-radius: 50%; background: var(--orange); }
-.notifications-page { max-width: 860px; }
 .nt-head-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 10px; }
 .nt-chips { display: flex; flex-wrap: wrap; gap: 8px; }
 .nt-chip { display: inline-flex; min-height: 34px; align-items: center; gap: 7px; padding: 0 14px; border: 1px solid var(--border); border-radius: 999px; background: var(--surface); color: var(--muted); font-size: 0.82rem; font-weight: 700; transition: border-color 150ms ease, color 150ms ease, background-color 150ms ease; }
@@ -5092,3 +5091,42 @@ details[open] > summary .disclosure-chevron { transform: rotate(180deg); color: 
 .room-typing { padding-left: 22px; }
 @keyframes typing-pulse { 0%, 100% { opacity: 0.25; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1.15); } }
 @media (prefers-reduced-motion: reduce) { .typing-indicator:not(:empty)::before { animation: none; } }
+
+/* ---- Collapsible sidebar (desktop) ---- */
+.sidebar-toggle { position: absolute; z-index: 5; top: 30px; right: -13px; display: grid; width: 26px; height: 26px; place-items: center; padding: 0; border: 1px solid var(--border); border-radius: 50%; background: var(--surface); color: var(--muted); box-shadow: var(--shadow-sm); cursor: pointer; transition: color 150ms ease, border-color 150ms ease, transform 150ms ease; }
+.sidebar-toggle:hover { border-color: var(--green); color: var(--green); transform: scale(1.08); }
+.sidebar-toggle:focus-visible { outline: 3px solid color-mix(in srgb, var(--orange) 68%, white); outline-offset: 2px; }
+@media (max-width: 900px) { .sidebar-toggle { display: none; } }
+@media (min-width: 901px) {
+  .sidebar, .main-content { transition: width 200ms ease, margin-left 200ms ease, padding 200ms ease; }
+  .sidebar-collapsed .sidebar { width: 76px; padding-inline: 10px; }
+  .sidebar-collapsed .main-content { width: calc(100% - 76px); margin-left: 76px; }
+  .sidebar-collapsed .sidebar .brand-container { justify-content: center; padding: 0 0 10px; }
+  .sidebar-collapsed .sidebar .brand-text, .sidebar-collapsed .admin-brand-label { display: none; }
+  .sidebar-collapsed .sidebar .brand-symbol { margin-right: 0; }
+  .sidebar-collapsed .sidebar .scroll-container { gap: 8px; padding-inline: 0; }
+  .sidebar-collapsed .sidebar .nav-caption { height: 1px; margin: 4px 10px; padding: 0; overflow: hidden; background: var(--border); font-size: 0; }
+  .sidebar-collapsed .sidebar .nav-container { gap: 0; }
+  .sidebar-collapsed .sidebar nav a { justify-content: center; gap: 0; padding: 9px 0; }
+  .sidebar-collapsed .sidebar nav a .nav-label { display: none; }
+  .sidebar-collapsed .sidebar nav a .nav-badge { position: absolute; top: 3px; right: 6px; min-width: 17px; height: 17px; padding: 0 4px; border: 2px solid var(--surface); font-size: 0.6rem; box-sizing: content-box; }
+  .sidebar-collapsed.admin-shell .sidebar nav a .nav-badge { border-color: #123626; }
+  .sidebar-collapsed .sidebar .profile .user { justify-content: center; padding: 6px; border-color: transparent; background: transparent; cursor: pointer; }
+  .sidebar-collapsed .sidebar .profile .user .details, .sidebar-collapsed .sidebar .profile .user > button { display: none; }
+  .sidebar-collapsed .sidebar .profile .floating-menu { right: auto; bottom: 0; left: calc(100% + 12px); }
+}
+@media (prefers-reduced-motion: reduce) { .sidebar, .main-content { transition: none; } }
+.admin-shell .sidebar-toggle { border-color: rgb(255 255 255 / 20%); background: #1b4a37; color: #d5e7db; }
+.admin-shell .sidebar-toggle:hover { border-color: #f0a56f; color: #f0a56f; }
+
+/* ---- Showcase sticky filters ---- */
+/* Sit flush under the top bar (it is 74px tall) and stay above post menus scrolling underneath. */
+.toolbar.sticky { top: 74px; z-index: 20; }
+@media (max-width: 640px) { .toolbar.sticky { top: 66px; } }
+
+/* ---- Job salary ---- */
+.job-salary, .job-end .job-salary, .job-hero-facts li.job-salary { color: var(--orange); font-weight: 800; }
+.job-hero-facts li.job-salary svg { color: var(--orange); }
+
+.nt-toolbar-actions { justify-content: flex-end; }
+@media (max-width: 640px) { .nt-toolbar-actions { justify-content: flex-start; } }

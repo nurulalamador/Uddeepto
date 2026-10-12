@@ -64,7 +64,7 @@ export default function AdminDashboard() {
           </section>
           <section className="card admin-panel admin-activity-panel">
             <div className="admin-panel-heading"><div><span className="admin-panel-icon orange"><Activity size={18} /></span><h2>Recent activity</h2></div><span className="admin-muted">Latest 12 events</span></div>
-            {resource.data.activity?.length ? <ol className="admin-activity-list">{resource.data.activity.map((item) => <li key={`${item.kind}-${item.id}`}><span className={`activity-dot ${item.kind}`} /><div><strong>{item.title}</strong><small>{item.detail || "—"}</small></div><time dateTime={item.occurred_at}>{date(item.occurred_at)}</time></li>)}</ol> : <div className="admin-empty-inline"><Activity size={20} /><span>Activity will appear here as the platform grows.</span></div>}
+            {resource.data.activity?.length ? <ol className="admin-activity-list">{resource.data.activity.map((item) => <li key={`${item.kind}-${item.id}`}><span className={`activity-dot ${item.kind}`} /><div><strong>{item.title}</strong><small>{item.detail || "-"}</small></div><time dateTime={item.occurred_at}>{date(item.occurred_at)}</time></li>)}</ol> : <div className="admin-empty-inline"><Activity size={20} /><span>Activity will appear here as the platform grows.</span></div>}
           </section>
           <aside className="admin-security-note"><ShieldCheck size={20} /><div><strong>Admin access is isolated</strong><span>Only management, moderation and admin preferences are available in this workspace.</span></div><UserRound size={18} /></aside>
         </div>

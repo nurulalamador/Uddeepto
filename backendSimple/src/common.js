@@ -36,6 +36,9 @@ export const pool = new Pool({
   max: Number(process.env.DB_POOL_MAX) || 10,
   idleTimeoutMillis: 30000,
 });
+// A pooled connection can be dropped by the database or its pooler while idle. Without a listener
+// Node treats that error as fatal and the whole API stops.
+pool.on("error", (error) => console.error("database connection error:", error.message));
 export const query = (text, params = []) => pool.query(text, params);
 export async function tx(fn) {
   const c = await pool.connect();

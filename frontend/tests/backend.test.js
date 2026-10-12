@@ -15,6 +15,7 @@ test('frontend adapter: SQL and authorization integration',async t=>{
   await db.exec(await readFile(new URL('../../backend/database/010_profile_details.sql',import.meta.url),'utf8'));
   await db.exec(await readFile(new URL('../../backend/database/011_job_locations.sql',import.meta.url),'utf8'));
   await db.exec(await readFile(new URL('../../backend/database/012_notifications.sql',import.meta.url),'utf8'));
+  await db.exec(await readFile(new URL('../../backend/database/013_experience_other_category.sql',import.meta.url),'utf8'));
   process.env.UPLOAD_DIR=mkdtempSync(join(tmpdir(),'uddeepto-uploads-'));
   let source=await readFile(new URL('../../backend/services/frontend/src/server.js',import.meta.url),'utf8');
   // The service file may use single or double quotes (it is auto-formatted), so match both.
@@ -126,6 +127,11 @@ test('frontend adapter: SQL and authorization integration',async t=>{
       assert.equal((await request('/profile/education',{method:'POST',body:{institution:'Bad dates',start_date:'2022-05',end_date:'2021-01'}})).status,422);
       const exp=await ok('/profile/experience',{method:'POST',body:{title:'Frontend Developer',workplace:'Acme',category_id:category,start_date:'2022-06',location:'Remote',description:'Built things'}});
       assert.equal((await request('/profile/experience',{method:'POST',body:{title:'No category',workplace:'X',category_id:'00000000-0000-4000-8000-000000000000',start_date:'2022-06'}})).status,422);
+      const otherExp=await ok('/profile/experience',{method:'POST',body:{title:'Family business',workplace:'Home',category_id:null,start_date:'2020-01',end_date:'2021-01'}});
+      assert.ok(otherExp.id,'an experience without an interest category is allowed (Others)');
+      assert.equal((await request('/profile/experience',{method:'POST',body:{title:'Missing',workplace:'X',start_date:'2022-06'}})).status,422,'the category must be chosen or explicitly Others');
+      const withOthers=await ok(`/profile/${me.uddeepto_id}`,{as:'Other'});const listed=withOthers.experience.find(item=>item.id===otherExp.id);assert.equal(listed.category_name,'Others');assert.equal(listed.category_id,null);assert.ok(withOthers.experience.some(item=>item.id===exp.id&&item.category_name!=='Others'));
+      await ok(`/profile/experience/${otherExp.id}`,{method:'DELETE'});
       let view=await ok(`/profile/${me.uddeepto_id}`,{as:'Other'});
       assert.equal(view.education.length,2);assert.equal(view.education[0].institution,'BUET');assert.equal(view.education[0].end_date,null);
       assert.equal(view.experience[0].title,'Frontend Developer');assert.equal(view.experience[0].category_name,'Web Development');assert.equal(view.experience[0].end_date,null);

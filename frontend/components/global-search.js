@@ -122,9 +122,11 @@ export default function GlobalSearch() {
   }, []);
 
   function showAll() {
-    if (trimmed.length < 2) return;
+    // Use what is typed right now: the debounced query can still be empty when Enter is pressed quickly.
+    const text = value.trim();
+    if (text.length < 2) return;
     close();
-    router.push(`/search?q=${encodeURIComponent(trimmed)}`);
+    router.push(`/search?q=${encodeURIComponent(text)}`);
   }
 
   function onKeyDown(event) {
@@ -187,7 +189,7 @@ export default function GlobalSearch() {
       {showPanel && (
         <div className="gs-panel" id="gs-results" role="listbox" aria-label="Search results">
           {trimmed.length < 2 ? (
-            <p className="gs-note">Keep typing — at least 2 characters.</p>
+            <p className="gs-note">Keep typing - at least 2 characters.</p>
           ) : error ? (
             <p className="gs-note error">{error}</p>
           ) : loading && !data ? (

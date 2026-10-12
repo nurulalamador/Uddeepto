@@ -29,6 +29,8 @@ import { LocationPicker } from "./job-map";
 import { Action, Badge, CategoryPicker, Empty, Modal, SearchBox, State, useResource } from "../ui";
 
 const PAGE_SIZE = 20;
+// "Newest first", "Start date" and "Price" read best high-to-low; names, emails, slugs and roles A to Z.
+const descendingSorts = new Set(["created_at", "starting_time", "application_deadline", "price"]);
 const tables = {
   users: { title: "Users", icon: Users, noun: "user", statusField: "account_status", statuses: ["active", "suspended", "deactivated"], sorts: [["created_at", "Newest first"], ["name", "Name A to Z"], ["email", "Email A to Z"], ["role", "Role"]], columns: ["name", "email", "role", "account_status", "created_at", "last_login_at"] },
   courses: { title: "Courses", icon: BookOpen, noun: "course", statusField: "status", statuses: ["draft", "published", "archived"], publishTo: "published", publishLabel: "Publish course", sorts: [["created_at", "Newest first"], ["title", "Title A to Z"], ["price", "Price"]], columns: ["title", "instructor_name", "category_name", "price", "enrollment_count", "status", "created_at"] },
@@ -144,7 +146,7 @@ export default function Admin({ initialTable = "users" }) {
           {current.statuses && <label className="admin-filter-select"><span>Status</span><select value={status} onChange={(event) => { setStatus(event.target.value); setPage(0); }}><option value="">All statuses</option>{current.statuses.map((item) => <option value={item} key={item}>{statusLabel(item)}</option>)}</select></label>}
           <label className="admin-date-filter"><span>From</span><input type="date" value={from} onChange={(event) => { setFrom(event.target.value); setPage(0); }} /></label>
           <label className="admin-date-filter"><span>To</span><input type="date" value={to} onChange={(event) => { setTo(event.target.value); setPage(0); }} /></label>
-          <label className="admin-filter-select admin-sort-select"><span>Sort</span><select value={sort} onChange={(event) => setSort(event.target.value)}>{current.sorts.map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select></label>
+          <label className="admin-filter-select admin-sort-select"><span>Sort</span><select value={sort} onChange={(event) => { setSort(event.target.value); setDirection(descendingSorts.has(event.target.value) ? "desc" : "asc"); setPage(0); }}>{current.sorts.map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select></label>
           <button type="button" className="icon-button admin-sort-direction" aria-label={direction === "desc" ? "Newest first" : "Oldest first"} title={direction === "desc" ? "Newest first" : "Oldest first"} onClick={() => setDirection((value) => value === "desc" ? "asc" : "desc")}><ArrowDownUp size={17} /></button>
         </div>
 
@@ -159,7 +161,7 @@ export default function Admin({ initialTable = "users" }) {
             <div className="table-wrap admin-table-wrap"><table className="admin-table"><thead><tr><th className="admin-check-cell"><input type="checkbox" aria-label="Select all records on this page" checked={allSelected} onChange={() => setSelected(allSelected ? [] : rows.map((item) => item.id))} /></th>{current.columns.map((column) => <th key={column}>{labels[column]}</th>)}<th className="admin-action-cell">Actions</th></tr></thead>
               <tbody>{rows.map((item) => <tr key={item.id}><td className="admin-check-cell"><input type="checkbox" aria-label={`Select ${item.name || item.title || item.email || current.noun}`} checked={selected.includes(item.id)} onChange={() => setSelected((value) => value.includes(item.id) ? value.filter((id) => id !== item.id) : value.length < 100 ? [...value, item.id] : value)} /></td>{current.columns.map((column) => <td key={column}>{renderCell(column, item)}</td>)}<td className="admin-action-cell"><div className="admin-row-actions">{item.status === "draft" && current.publishTo && <Action className="admin-approve-button" aria-label={current.publishLabel} title={current.publishLabel} onClick={() => publishRecord(item)}><Check size={16} /><span>{current.publishLabel}</span></Action>}<button type="button" className="icon-button" aria-label={`Edit ${current.noun}`} title="Edit record" onClick={() => setEditing(item)}><Edit3 size={16} /></button>{table !== "users" && <Action className="icon-button danger" aria-label={`Delete ${current.noun}`} title="Delete record" onClick={() => removeRecord(item)}><Trash2 size={16} /></Action>}</div></td></tr>)}</tbody>
             </table></div>
-            <div className="admin-pagination"><span>Showing {page * PAGE_SIZE + 1}–{page * PAGE_SIZE + rows.length}</span><div><button className="button secondary" disabled={page === 0} onClick={() => setPage((value) => value - 1)}>Previous</button><span>Page {page + 1}</span><button className="button secondary" disabled={rows.length < PAGE_SIZE} onClick={() => setPage((value) => value + 1)}>Next</button></div></div>
+            <div className="admin-pagination"><span>Showing {page * PAGE_SIZE + 1}-{page * PAGE_SIZE + rows.length}</span><div><button className="button secondary" disabled={page === 0} onClick={() => setPage((value) => value - 1)}>Previous</button><span>Page {page + 1}</span><button className="button secondary" disabled={rows.length < PAGE_SIZE} onClick={() => setPage((value) => value + 1)}>Next</button></div></div>
           </> : <Empty title="No matching records" text="Change your filters or create the first record in this section." />}
         </State>
       </section>
@@ -175,27 +177,27 @@ export default function Admin({ initialTable = "users" }) {
 }
 
 function renderCell(column, item) {
-  if (["created_at", "last_login_at", "starting_time", "ending_time", "application_deadline"].includes(column)) return <span className="admin-date-cell">{item[column] ? new Intl.DateTimeFormat("en", { dateStyle: "medium", ...(column !== "created_at" && column !== "last_login_at" ? { timeStyle: "short" } : {}) }).format(new Date(item[column])) : "—"}</span>;
+  if (["created_at", "last_login_at", "starting_time", "ending_time", "application_deadline"].includes(column)) return <span className="admin-date-cell">{item[column] ? new Intl.DateTimeFormat("en", { dateStyle: "medium", ...(column !== "created_at" && column !== "last_login_at" ? { timeStyle: "short" } : {}) }).format(new Date(item[column])) : "-"}</span>;
   if (["status", "role", "account_status"].includes(column)) return <Badge>{statusLabel(item[column])}</Badge>;
   if (["is_active", "is_private", "requires_approval"].includes(column)) { const active = Boolean(item[column]); return <Badge>{column === "is_active" ? active ? "active" : "inactive" : active ? "yes" : "no"}</Badge>; }
   if (["price", "entry_fee"].includes(column)) return <span>{item.currency || "BDT"} {Number(item[column] || 0).toLocaleString()}</span>;
-  if (column === "salary") { const low = item.salary_min == null ? "—" : Number(item.salary_min).toLocaleString(); const high = item.salary_max == null ? "—" : Number(item.salary_max).toLocaleString(); return <span>{item.currency || "BDT"} {low}–{high}{item.salary_period ? ` / ${item.salary_period}` : ""}</span>; }
+  if (column === "salary") { const low = item.salary_min == null ? "-" : Number(item.salary_min).toLocaleString(); const high = item.salary_max == null ? "-" : Number(item.salary_max).toLocaleString(); return <span>{item.currency || "BDT"} {low}-{high}{item.salary_period ? ` / ${item.salary_period}` : ""}</span>; }
   if (["participant_count", "enrollment_count", "member_count", "application_count", "course_count"].includes(column)) return <span className="admin-number-cell">{item[column] == null ? "0" : Number(item[column]).toLocaleString()}</span>;
   if (column === "capacity") return <span className="admin-number-cell">{item[column] == null ? "Unlimited" : Number(item[column]).toLocaleString()}</span>;
-  if (column === "description" || column === "details") return <span className="admin-clipped" title={item[column] || ""}>{item[column] || "—"}</span>;
-  if (column === "designation") return <span className="admin-cell-text">{item.designation || "—"}</span>;
+  if (column === "description" || column === "details") return <span className="admin-clipped" title={item[column] || ""}>{item[column] || "-"}</span>;
+  if (column === "designation") return <span className="admin-cell-text">{item.designation || "-"}</span>;
   if (column === "social_links") {
     const links = item.social_links || {};
     const entries = [["linkedin", Linkedin], ["github", Github], ["website", Globe]].filter(([key]) => links[key]);
-    return entries.length ? <div className="admin-social-links">{entries.map(([key, Icon]) => <a key={key} href={links[key]} target="_blank" rel="noreferrer" aria-label={`${item.name} ${key}`} title={key}><Icon size={15} /></a>)}</div> : <span className="admin-cell-text">—</span>;
+    return entries.length ? <div className="admin-social-links">{entries.map(([key, Icon]) => <a key={key} href={links[key]} target="_blank" rel="noreferrer" aria-label={`${item.name} ${key}`} title={key}><Icon size={15} /></a>)}</div> : <span className="admin-cell-text">-</span>;
   }
   if (column === "title" && item.has_cover_image) return <div className="admin-course-title-cell"><img src={`/api/backend/frontend/course-covers/${item.id}`} alt="" /><div className="admin-primary-cell"><strong title={item.title}>{item.title}</strong><small>{item.slug || ""}</small></div></div>;
   if (column === "name" && item.has_image) return <div className="admin-instructor-cell"><img className="admin-instructor-avatar" src={`/api/backend/frontend/instructors/${item.id}/image`} alt="" /><div className="admin-primary-cell"><strong title={item.name}>{item.name}</strong><small>Instructor profile</small></div></div>;
-  if (["name", "title"].includes(column)) return <div className="admin-primary-cell"><strong title={item[column]}>{item[column] || "—"}</strong><small>{item.slug || item.username || item.type?.replaceAll("_", " ") || ""}</small></div>;
+  if (["name", "title"].includes(column)) return <div className="admin-primary-cell"><strong title={item[column]}>{item[column] || "-"}</strong><small>{item.slug || item.username || item.type?.replaceAll("_", " ") || ""}</small></div>;
   if (column === "email") return <span className="admin-email-cell">{item.email}</span>;
-  if (column === "creator_name") return <span>{item.creator_name || "—"}</span>;
+  if (column === "creator_name") return <span>{item.creator_name || "-"}</span>;
   if (column === "instructor_name") return item.instructor_name ? <div className="admin-instructor-cell">{item.instructor_has_image && <img className="admin-instructor-avatar" src={`/api/backend/frontend/instructors/${item.instructor_id}/image`} alt="" />}<span className="admin-cell-text">{item.instructor_name}</span></div> : <span className="admin-cell-text">Unassigned</span>;
-  return <span className="admin-cell-text" title={String(item[column] ?? "")}>{item[column] ?? "—"}</span>;
+  return <span className="admin-cell-text" title={String(item[column] ?? "")}>{item[column] ?? "-"}</span>;
 }
 
 function UserForm({ item, onDone }) {
@@ -216,7 +218,7 @@ function UserForm({ item, onDone }) {
   return <form className="form admin-record-form" onSubmit={submit}><div className="admin-form-grid">
     <label>Full name<input name="name" required minLength={2} maxLength={150} defaultValue={item.name || ""} /></label>
     <label>Email<input name="email" type="email" required defaultValue={item.email || ""} /></label>
-    <label>Username<input name="username" required minLength={3} maxLength={40} pattern="[A-Za-z0-9_.-]+" defaultValue={item.username || ""} /></label>
+    <label>Username<input name="username" required minLength={3} maxLength={40} pattern="[A-Za-z0-9_.\-]+" defaultValue={item.username || ""} /></label>
     {!item.id && <label>Temporary password<input name="password" type="password" required minLength={8} autoComplete="new-password" /><small>At least 8 characters. Share it securely with the new user.</small></label>}
     <label>Role<select name="role" defaultValue={item.role || "learner"}>{roleOptions.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
     {item.id && <label>Account status<select name="account_status" defaultValue={item.account_status || "active"}><option value="active">Active</option><option value="suspended">Suspended</option><option value="deactivated">Deactivated</option></select></label>}
@@ -446,5 +448,5 @@ function defaultFieldValue(field) {
   return "";
 }
 function humanize(value) { return String(value).replaceAll("_", " ").replace(/^\w/, (letter) => letter.toUpperCase()); }
-function statusLabel(value) { if (value === "true") return "Active"; if (value === "false") return "Inactive"; return String(value || "—").replaceAll("_", " ").replace(/^\w/, (letter) => letter.toUpperCase()); }
+function statusLabel(value) { if (value === "true") return "Active"; if (value === "false") return "Inactive"; return String(value || "-").replaceAll("_", " ").replace(/^\w/, (letter) => letter.toUpperCase()); }
 function capitalize(value) { return value ? value[0].toUpperCase() + value.slice(1) : value; }

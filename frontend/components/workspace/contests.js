@@ -47,7 +47,7 @@ export const shortDate = (value) =>
   }).format(new Date(value));
 
 export function dateRange(start, end) {
-  return `${shortDate(start)} – ${shortDate(end)}`;
+  return `${shortDate(start)} - ${shortDate(end)}`;
 }
 
 export function splitDuration(ms) {

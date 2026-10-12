@@ -72,4 +72,4 @@ function ReportReview({ item, onSave }) {
   </form>;
 }
 
-function formatDate(value) { return value ? new Intl.DateTimeFormat("en", { dateStyle: "medium" }).format(new Date(value)) : "—"; }
+function formatDate(value) { return value ? new Intl.DateTimeFormat("en", { dateStyle: "medium" }).format(new Date(value)) : "-"; }

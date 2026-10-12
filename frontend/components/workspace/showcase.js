@@ -587,7 +587,7 @@ export function ShowcasePost({ post, detail = false, onDeleted }) {
             postId={post.id}
             onDone={() => {
               setReportOpen(false);
-              setReportStatus("Thanks — your report was sent to the moderation team.");
+              setReportStatus("Thanks - your report was sent to the moderation team.");
             }}
           />
         </Modal>

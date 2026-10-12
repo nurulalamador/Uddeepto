@@ -1,0 +1,25 @@
+{
+  "name": "uddeepto-e2e",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Selenium end-to-end tests for every Uddeepto role, run against an isolated in-memory database.",
+  "scripts": {
+    "test": "node run.mjs",
+    "test:learner": "node run.mjs learner",
+    "test:hirer": "node run.mjs hirer",
+    "test:admin": "node run.mjs admin",
+    "test:public": "node run.mjs public"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@electric-sql/pglite": "^0.5.8",
+    "@electric-sql/pglite-socket": "^0.2.12",
+    "bcryptjs": "^3.0.2",
+    "pg": "^8.16.0",
+    "selenium-webdriver": "^4.25.0",
+    "socket.io-client": "^4.8.4"
+  }
+}

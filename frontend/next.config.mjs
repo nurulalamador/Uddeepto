@@ -1,2 +1,18 @@
 // NEXT_DIST_DIR lets a verification build (`NEXT_DIST_DIR=.next-verify next build`) run without touching the dev server's .next folder.
-export default { poweredByHeader: false, experimental: { cpus: 2 }, distDir: process.env.NEXT_DIST_DIR || ".next" };
+//
+// allowedDevOrigins: when the dev server is opened from another address (a phone or a second computer
+// on the same network, or http://192.168.x.x:3000 on this one) Next.js blocks that origin's hot-reload
+// connection, and the page then never finishes loading its JavaScript: forms submit like plain HTML and
+// the page just reloads. Private-network addresses are allowed in development; add more with
+// NEXT_ALLOWED_DEV_ORIGINS="my-laptop.local,192.0.2.7". This has no effect on production builds.
+const extraDevOrigins = (process.env.NEXT_ALLOWED_DEV_ORIGINS || "")
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
+export default {
+  poweredByHeader: false,
+  experimental: { cpus: 2 },
+  distDir: process.env.NEXT_DIST_DIR || ".next",
+  allowedDevOrigins: ["192.168.*.*", "10.*.*.*", "172.*.*.*", "*.local", ...extraDevOrigins],
+};

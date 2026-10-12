@@ -42,7 +42,7 @@ export default async function Landing() {
           <div className="hero-board">
             <div className="board-heading">
               <span>YOUR GROWTH, CONNECTED</span>
-              <span>01 — 04</span>
+              <span>01 - 04</span>
             </div>
             {[
               [

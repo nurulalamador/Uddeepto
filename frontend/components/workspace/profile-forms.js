@@ -103,7 +103,8 @@ export function EducationForm({ entry, onDone }) {
 
 export function ExperienceForm({ entry, onDone }) {
   const categories = useResource("users/interests");
-  const [category, setCategory] = useState(entry?.category_id ? String(entry.category_id) : "");
+  // "others" stands for an experience that fits none of the interest categories (stored without one).
+  const [category, setCategory] = useState(entry ? (entry.category_id ? String(entry.category_id) : "others") : "");
   const [current, setCurrent] = useState(entry ? !entry.end_date : false);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
@@ -112,7 +113,7 @@ export function ExperienceForm({ entry, onDone }) {
     event.preventDefault();
     setError("");
     if (!category) {
-      setError("Choose the interest this experience belongs to.");
+      setError("Choose the interest this experience belongs to, or Others.");
       return;
     }
     setBusy(true);
@@ -120,7 +121,7 @@ export function ExperienceForm({ entry, onDone }) {
     const body = {
       title: form.title,
       workplace: form.workplace,
-      category_id: category,
+      category_id: category === "others" ? null : category,
       location: form.location || undefined,
       start_date: form.start_date,
       end_date: current ? "" : form.end_date || "",
@@ -152,9 +153,9 @@ export function ExperienceForm({ entry, onDone }) {
           value={category}
           onChange={setCategory}
           placeholder="Which interest does this belong to?"
-          options={(categories.data || []).map((item) => ({ value: String(item.id), label: item.name, iconName: item.icon }))}
+          options={[...(categories.data || []).map((item) => ({ value: String(item.id), label: item.name, iconName: item.icon })), { value: "others", label: "Others", iconName: "star" }]}
           hasIcon
-          disabled={!categories.data?.length}
+          disabled={!categories.data}
         />
       </div>
       <label>
@@ -247,7 +248,7 @@ export function EditProfileForm({ profile, onDone }) {
         </label>
         <label>
           Username
-          <input name="username" required pattern="[A-Za-z0-9_.-]{3,40}" defaultValue={profile.username} />
+          <input name="username" required pattern="[A-Za-z0-9_.\-]{3,40}" defaultValue={profile.username} />
         </label>
       </div>
       <label>

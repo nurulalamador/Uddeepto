@@ -297,7 +297,7 @@ export default function Courses() {
                 title={tab === "enrolled" ? "You haven’t enrolled in a course yet" : "No courses yet"}
                 text={
                   tab === "enrolled"
-                    ? "Explore courses and start learning — your progress will show up here."
+                    ? "Explore courses and start learning - your progress will show up here."
                     : "Try another interest, or come back soon."
                 }
               />

@@ -1,0 +1,192 @@
+{
+  "version": 3,
+  "pages404": true,
+  "appType": "app",
+  "caseSensitive": false,
+  "basePath": "",
+  "redirects": [
+    {
+      "source": "/:path+/",
+      "destination": "/:path+",
+      "internal": true,
+      "priority": true,
+      "statusCode": 308,
+      "regex": "^(?:/((?:[^/]+?)(?:/(?:[^/]+?))*))/$"
+    }
+  ],
+  "headers": [],
+  "onMatchHeaders": [],
+  "rewrites": {
+    "beforeFiles": [],
+    "afterFiles": [],
+    "fallback": []
+  },
+  "dynamicRoutes": [
+    {
+      "page": "/api/auth/[action]",
+      "regex": "^/api/auth/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPaction": "nxtPaction"
+      },
+      "namedRegex": "^/api/auth/(?<nxtPaction>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/api/backend/[...path]",
+      "regex": "^/api/backend/(.+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPpath": "nxtPpath"
+      },
+      "namedRegex": "^/api/backend/(?<nxtPpath>.+?)(?:/)?$"
+    },
+    {
+      "page": "/communities/[communityId]",
+      "regex": "^/communities/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPcommunityId": "nxtPcommunityId"
+      },
+      "namedRegex": "^/communities/(?<nxtPcommunityId>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/contests/[contestId]",
+      "regex": "^/contests/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPcontestId": "nxtPcontestId"
+      },
+      "namedRegex": "^/contests/(?<nxtPcontestId>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/courses/[courseId]",
+      "regex": "^/courses/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPcourseId": "nxtPcourseId"
+      },
+      "namedRegex": "^/courses/(?<nxtPcourseId>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/courses/[courseId]/materials/[materialId]",
+      "regex": "^/courses/([^/]+?)/materials/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPcourseId": "nxtPcourseId",
+        "nxtPmaterialId": "nxtPmaterialId"
+      },
+      "namedRegex": "^/courses/(?<nxtPcourseId>[^/]+?)/materials/(?<nxtPmaterialId>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/instructors/[instructorId]",
+      "regex": "^/instructors/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPinstructorId": "nxtPinstructorId"
+      },
+      "namedRegex": "^/instructors/(?<nxtPinstructorId>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/jobs/[jobId]",
+      "regex": "^/jobs/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPjobId": "nxtPjobId"
+      },
+      "namedRegex": "^/jobs/(?<nxtPjobId>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/profile/[ref]",
+      "regex": "^/profile/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPref": "nxtPref"
+      },
+      "namedRegex": "^/profile/(?<nxtPref>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/webinars/[webinarId]",
+      "regex": "^/webinars/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPwebinarId": "nxtPwebinarId"
+      },
+      "namedRegex": "^/webinars/(?<nxtPwebinarId>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/[section]",
+      "regex": "^/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPsection": "nxtPsection"
+      },
+      "namedRegex": "^/(?<nxtPsection>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/[section]/[postId]",
+      "regex": "^/([^/]+?)/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPsection": "nxtPsection",
+        "nxtPpostId": "nxtPpostId"
+      },
+      "namedRegex": "^/(?<nxtPsection>[^/]+?)/(?<nxtPpostId>[^/]+?)(?:/)?$"
+    }
+  ],
+  "staticRoutes": [
+    {
+      "page": "/",
+      "regex": "^/(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/(?:/)?$"
+    },
+    {
+      "page": "/_global-error",
+      "regex": "^/_global\\-error(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/_global\\-error(?:/)?$"
+    },
+    {
+      "page": "/_not-found",
+      "regex": "^/_not\\-found(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/_not\\-found(?:/)?$"
+    },
+    {
+      "page": "/about",
+      "regex": "^/about(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/about(?:/)?$"
+    },
+    {
+      "page": "/contests/previous",
+      "regex": "^/contests/previous(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/contests/previous(?:/)?$"
+    },
+    {
+      "page": "/login",
+      "regex": "^/login(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/login(?:/)?$"
+    },
+    {
+      "page": "/signup",
+      "regex": "^/signup(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/signup(?:/)?$"
+    },
+    {
+      "page": "/webinars/previous",
+      "regex": "^/webinars/previous(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/webinars/previous(?:/)?$"
+    }
+  ],
+  "dataRoutes": [],
+  "rsc": {
+    "header": "rsc",
+    "varyHeader": "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch",
+    "prefetchHeader": "next-router-prefetch",
+    "didPostponeHeader": "x-nextjs-postponed",
+    "contentTypeHeader": "text/x-component",
+    "suffix": ".rsc",
+    "prefetchSegmentHeader": "next-router-segment-prefetch",
+    "prefetchSegmentSuffix": ".segment.rsc",
+    "prefetchSegmentDirSuffix": ".segments",
+    "clientParamParsing": false,
+    "dynamicRSCPrerender": false
+  },
+  "rewriteHeaders": {
+    "pathHeader": "x-nextjs-rewritten-path",
+    "queryHeader": "x-nextjs-rewritten-query"
+  }
+}

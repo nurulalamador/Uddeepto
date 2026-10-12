@@ -23,7 +23,7 @@ import {
 import { api } from "@/lib/api";
 import { useShellActions, useUser } from "../shell";
 import { useRealtime, useSocketEvent } from "../realtime";
-import { Heading, UserAvatar } from "../ui";
+import { UserAvatar } from "../ui";
 
 const PAGE_SIZE = 20;
 
@@ -205,10 +205,14 @@ export default function Notifications() {
     return () => clearInterval(timer);
   }, [reload, connected]);
   const refreshTimer = useRef(null);
+  // The timer must call the *latest* reload: one captured earlier would still use the old tab or
+  // category filter and overwrite the list the person is now looking at.
+  const reloadRef = useRef(reload);
+  reloadRef.current = reload;
   const refreshSoon = useCallback(() => {
     clearTimeout(refreshTimer.current);
-    refreshTimer.current = setTimeout(() => reload({ silent: true }), 250);
-  }, [reload]);
+    refreshTimer.current = setTimeout(() => reloadRef.current({ silent: true }), 250);
+  }, []);
   useEffect(() => () => clearTimeout(refreshTimer.current), []);
   useSocketEvent("notification", refreshSoon);
   useSocketEvent("notification:removed", refreshSoon);
@@ -289,18 +293,16 @@ export default function Notifications() {
 
   return (
     <div className="courses-page notifications-page">
-      <Heading eyebrow="STAY IN THE LOOP" title="Notifications" description={unread ? `You have ${unread} unread notification${unread === 1 ? "" : "s"}.` : "You’re all caught up."}>
-        <div className="nt-head-actions">
-          <button type="button" className="button secondary" onClick={markAll} disabled={!(category ? byCategory[category] : unread)}>
-            <CheckCheck size={17} /> Mark all as read
+      <div className="nt-head-actions nt-toolbar-actions">
+        <button type="button" className="button secondary" onClick={markAll} disabled={!(category ? byCategory[category] : unread)}>
+          <CheckCheck size={17} /> Mark all as read
+        </button>
+        {hasRead && (
+          <button type="button" className="button secondary" onClick={clearRead}>
+            <Trash2 size={17} /> Clear read
           </button>
-          {hasRead && (
-            <button type="button" className="button secondary" onClick={clearRead}>
-              <Trash2 size={17} /> Clear read
-            </button>
-          )}
-        </div>
-      </Heading>
+        )}
+      </div>
 
       <div className="tabs">
         {[

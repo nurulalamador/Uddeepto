@@ -1,6 +1,21 @@
 import { Server } from "socket.io";
 import { setLocalRealtime, userRoom } from "./realtime.js";
 
+// While developing, a page opened through localhost or a private network address (192.168.x.x,
+// 10.x.x.x, 172.16-31.x.x) may connect even if CORS_ORIGINS does not list it. Never in production.
+function isDevOrigin(origin) {
+  if (process.env.NODE_ENV === "production") return false;
+  try {
+    const { hostname } = new URL(origin);
+    return (
+      hostname === "localhost" ||
+      /^(127\.|10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.)/.test(hostname)
+    );
+  } catch {
+    return false;
+  }
+}
+
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /**
@@ -23,7 +38,7 @@ export function createRealtime(
     cors: { origin: origins.length ? origins : false, credentials: true },
     allowRequest: (req, done) => {
       const origin = req.headers.origin;
-      done(null, !origin || !origins.length || origins.includes(origin));
+      done(null, !origin || !origins.length || origins.includes(origin) || isDevOrigin(origin));
     },
     // Messages are sent over the REST API; sockets only carry small signals.
     maxHttpBufferSize: 16 * 1024,

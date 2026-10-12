@@ -76,8 +76,11 @@ describe("Learner · Showcase feed", () => {
   it("the feed ends with a friendly 'all caught up' note", async () => {
     await signIn(b.driver, "learner");
     await go(b.driver, "/showcase");
-    await b.driver.executeScript("window.scrollTo(0, document.body.scrollHeight)");
-    await waitText(b.driver, "You’re all caught up.");
+    // The feed loads more posts as it is scrolled, so keep scrolling until the end note appears.
+    await b.driver.wait(async () => {
+      await b.driver.executeScript("window.scrollTo(0, document.body.scrollHeight); document.querySelectorAll('*').forEach((el) => { if (el.scrollHeight > el.clientHeight + 50) el.scrollTop = el.scrollHeight; })");
+      return hasText(b.driver, "You’re all caught up.");
+    }, 40000, "the end-of-feed note never appeared");
   });
 
   it("'Open full post' shows the single post page and the top bar names the author", async () => {

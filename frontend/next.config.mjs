@@ -12,7 +12,8 @@ const extraDevOrigins = (process.env.NEXT_ALLOWED_DEV_ORIGINS || "")
 
 export default {
   poweredByHeader: false,
-  experimental: { cpus: 2 },
+  // Shared hosting caps the number of processes (spawn EAGAIN), so build with one worker thread instead of child processes.
+  experimental: { cpus: 1, workerThreads: true },
   distDir: process.env.NEXT_DIST_DIR || ".next",
   allowedDevOrigins: ["192.168.*.*", "10.*.*.*", "172.*.*.*", "*.local", ...extraDevOrigins],
 };

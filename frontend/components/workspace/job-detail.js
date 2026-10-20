@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Briefcase, CalendarClock, Clock, Download, ExternalLink, MapPin, Wallet } from "lucide-react";
+import { Briefcase, CalendarClock, Clock, Download, ExternalLink, FileText, MapPin, Upload, Wallet } from "lucide-react";
 import { api } from "@/lib/api";
 import { Action, Badge, Empty, FileDropzone, State, UserAvatar, date, useResource } from "../ui";
 import { useShellActions } from "../shell";
@@ -146,6 +146,11 @@ function OwnerPanel({ job, reload }) {
 }
 
 function ApplyPanel({ job, reload, disabled }) {
+  const cv = useResource("frontend/cv");
+  const current = cv.data?.has_cv ? cv.data : null;
+  // "Your current CV" is the default whenever one is saved; otherwise only the upload is offered.
+  const [choice, setChoice] = useState("current");
+  const useCurrent = Boolean(current) && choice === "current";
   const [file, setFile] = useState(null);
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
@@ -168,7 +173,8 @@ function ApplyPanel({ job, reload, disabled }) {
     setError("");
     try {
       const body = new FormData(event.currentTarget);
-      if (file) body.set("resume", file);
+      if (useCurrent) body.set("use_current_cv", "true");
+      else if (file) body.set("resume", file);
       await api(`jobs/${job.id}/apply`, { method: "POST", body });
       setMessage("Application sent. Good luck!");
       reload();
@@ -187,8 +193,31 @@ function ApplyPanel({ job, reload, disabled }) {
         <textarea name="cover_letter" required rows={5} placeholder="Why are you a good fit?" />
       </label>
       <div className="field-block">
-        <span className="field-label">Resume (PDF)</span>
-        <FileDropzone accept="application/pdf,.pdf" file={file} onFile={setFile} label="Drag and drop your resume" hint="PDF · up to 10 MB" />
+        <span className="field-label">CV (PDF)</span>
+        {current && (
+          <div className="cv-choice" role="radiogroup" aria-label="Which CV to send">
+            <label className={`cv-choice-option${choice === "current" ? " selected" : ""}`}>
+              <input type="radio" name="cv_choice" value="current" checked={choice === "current"} onChange={() => setChoice("current")} />
+              <FileText size={18} />
+              <span>
+                <strong>Your Current CV</strong>
+                <small>{current.file_name}</small>
+              </span>
+              <a href="/api/backend/frontend/cv/file" target="_blank" rel="noreferrer" className="text-link" onClick={(event) => event.stopPropagation()}>
+                View
+              </a>
+            </label>
+            <label className={`cv-choice-option${choice === "upload" ? " selected" : ""}`}>
+              <input type="radio" name="cv_choice" value="upload" checked={choice === "upload"} onChange={() => setChoice("upload")} />
+              <Upload size={18} />
+              <span>
+                <strong>Upload CV</strong>
+                <small>Send a different PDF for this job only</small>
+              </span>
+            </label>
+          </div>
+        )}
+        {!useCurrent && <FileDropzone accept="application/pdf,.pdf" file={file} onFile={setFile} label="Drag and drop your CV" hint="PDF · up to 10 MB" />}
       </div>
       {message && <p className="notice success">{message}</p>}
       {error && (
@@ -196,7 +225,7 @@ function ApplyPanel({ job, reload, disabled }) {
           {error}
         </p>
       )}
-      <button className="button" disabled={busy || !file || !!message}>
+      <button className="button" disabled={busy || (!useCurrent && !file) || !!message || cv.loading}>
         {busy ? "Sending…" : "Send application"}
       </button>
     </form>

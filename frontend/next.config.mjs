@@ -11,9 +11,11 @@ const extraDevOrigins = (process.env.NEXT_ALLOWED_DEV_ORIGINS || "")
   .filter(Boolean);
 
 export default {
+  output: 'standalone',
   poweredByHeader: false,
   // Shared hosting caps the number of processes (spawn EAGAIN), so build with one worker thread instead of child processes.
-  experimental: { cpus: 1, workerThreads: false, webpackBuildWorker: false },
+  // On Windows that mode sometimes fails to write files, so local builds keep the normal settings.
+  experimental: process.platform === "win32" ? { cpus: 2 } : { cpus: 1, workerThreads: true, webpackBuildWorker: false },
   distDir: process.env.NEXT_DIST_DIR || ".next",
   allowedDevOrigins: ["192.168.*.*", "10.*.*.*", "172.*.*.*", "*.local", ...extraDevOrigins],
 };

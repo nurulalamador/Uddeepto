@@ -1,10 +1,11 @@
 import { spawn, spawnSync } from "node:child_process";
-import { createWriteStream, existsSync, mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
+import { createWriteStream, existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { paths, ports, urls } from "./config.mjs";
 import { startDatabase } from "./database.mjs";
 import { seed } from "./seed.mjs";
+import { fakeGeminiPort, startFakeGemini } from "./fake-gemini.mjs";
 
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -72,10 +73,13 @@ export async function startStack({ build = true } = {}) {
     UPLOAD_DIR: uploads,
     RATE_LIMIT_PER_MINUTE: "1000000",
     MAX_UPLOAD_MB: "10",
-    GEMINI_API_KEY: "",
+    // E2E_AI_MOCK=1 points the assistant at a local fake Gemini so AI features (video check-points) can be tested.
+    GEMINI_API_KEY: process.env.E2E_AI_MOCK ? "e2e-fake-key" : "",
+    GEMINI_API_BASE: process.env.E2E_AI_MOCK ? `http://127.0.0.1:${fakeGeminiPort}` : "",
     GEMINI_MODEL: "",
     AI_REQUESTS_PER_MINUTE: "100",
   };
+  const fakeGemini = process.env.E2E_AI_MOCK ? await startFakeGemini() : null;
   const api = run("backend", process.execPath, ["src/server.js"], { cwd: paths.backendSimple, env: apiEnv });
   await waitFor(`http://127.0.0.1:${ports.api}/health`, "backendSimple", 60000, api);
 
@@ -83,14 +87,22 @@ export async function startStack({ build = true } = {}) {
   const webEnv = {
     ...process.env,
     BACKEND_URL: urls.api,
-    NEXT_DIST_DIR: ".next-e2e",
+    NEXT_DIST_DIR: ".next-e2e-build",
     NEXT_TELEMETRY_DISABLED: "1",
   };
   delete webEnv.APP_ORIGIN;
-  if (build || !existsSync(path.join(paths.frontend, ".next-e2e", "BUILD_ID"))) {
+  if (build || !existsSync(path.join(paths.frontend, ".next-e2e-build", "BUILD_ID"))) {
     console.log("e2e: building the frontend (set E2E_SKIP_BUILD=1 to reuse the last build)...");
-    const built = spawnSync(process.execPath, [next, "build", "--webpack"], { cwd: paths.frontend, env: webEnv, encoding: "utf8" });
-    writeFileSync(path.join(paths.artifacts, "web-build.log"), `${built.stdout}\n${built.stderr}`);
+    // On Windows an antivirus scan can make Next.js fail to write a file now and then ("UNKNOWN: unknown error, open ..."),
+    // so a failed build is retried from a clean folder before giving up.
+    let built;
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      built = spawnSync(process.execPath, [next, "build", "--webpack"], { cwd: paths.frontend, env: webEnv, encoding: "utf8" });
+      writeFileSync(path.join(paths.artifacts, "web-build.log"), `${built.stdout}\n${built.stderr}`);
+      if (built.status === 0) break;
+      console.log(`e2e: the frontend build failed (attempt ${attempt} of 3)${attempt < 3 ? ", trying again..." : ""}`);
+      try { rmSync(path.join(paths.frontend, ".next-e2e-build"), { recursive: true, force: true, maxRetries: 6, retryDelay: 700 }); } catch {}
+    }
     if (built.status !== 0) throw new Error("next build failed; see e2e/artifacts/web-build.log");
   }
   const web = run("web", process.execPath, [next, "start", "-p", String(ports.web)], { cwd: paths.frontend, env: webEnv });
@@ -101,6 +113,7 @@ export async function startStack({ build = true } = {}) {
     db: database.db,
     async stop() {
       for (const child of children) kill(child);
+      fakeGemini?.stop();
       await wait(500);
       await database.stop().catch(() => {});
     },

@@ -171,7 +171,8 @@ export function page(req) {
 }
 export const publicUser = `id,uddeepto_id,name,email,username,role,bio,account_status,email_verified_at,last_login_at,created_at,updated_at,(picture IS NOT NULL) AS has_picture`;
 export function errors(err, _req, res, _next) {
-  console.error(err);
+  // Expected client errors (an expired token, a missing record, bad input) are answered, not logged.
+  if (!(err?.status && err.status < 500) && !(err instanceof ZodError)) console.error(err);
   if (err instanceof ZodError)
     return res
       .status(422)

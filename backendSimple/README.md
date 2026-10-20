@@ -72,3 +72,11 @@ npm test
 ```
 
 Database ছাড়াই routing, auth, validation, CORS, `showcase` rewrite আর 404 বার্তা যাচাই করে।
+
+## Video check-point questions
+
+Same as the microservice backend: see "Video check-point questions" in `backend/README.md`. Run `backend/database/014_video_quizzes.sql` on the database first.
+
+## My CV and the CV Generator
+
+Same as the microservice backend: see "My CV and the CV Generator" in `backend/README.md`. Run `backend/database/015_user_cvs.sql` on the database first.

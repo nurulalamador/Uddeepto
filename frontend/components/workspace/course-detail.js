@@ -19,6 +19,8 @@ import { safeLink } from "@/lib/roles";
 import { Action, Empty, State, money, useResource } from "../ui";
 import { useShellActions } from "../shell";
 import { CategoryChips, InstructorAvatar, ProgressBar } from "./courses";
+import QuizVideo from "./video-quiz";
+import VideoPlayer from "./video-player";
 
 const typeMeta = {
   video: { label: "Video lecture", verb: "Watch", Icon: CirclePlay },
@@ -286,9 +288,11 @@ export function Viewer({ courseId, material, onClose, onViewed }) {
       ) : (
         <div className="viewer-body">
           {material.type === "video" && file ? (
-            <video controls controlsList="nodownload" preload="metadata" src={file.url} onPlay={markViewed}>
-              Your browser can’t play this video.
-            </video>
+            content.quiz && !content.quiz.completed ? (
+              <QuizVideo courseId={courseId} material={material} file={file} quiz={content.quiz} onViewed={onViewed} />
+            ) : (
+              <VideoPlayer src={file.url} label={material.name} onPlay={markViewed} />
+            )
           ) : isPdf ? (
             <iframe title={material.name} src={file.url} onLoad={markViewed} />
           ) : file ? (

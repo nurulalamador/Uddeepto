@@ -14,6 +14,7 @@ export const sections = {
   settings: "Settings",
   ai: "AI Assistant",
   "job-management": "Job Management",
+  cv: "CV Generator",
   search: "Search",
 };
 export function allowedSections(role) {
@@ -32,6 +33,7 @@ export function allowedSections(role) {
     "messages",
     "notifications",
     "profile",
+    "cv",
   ];
 }
 export function allowedCategorizedSections(role) {

@@ -6,3 +6,6 @@ node_modules/
 
 .next-verify
 .next-probe
+
+# End-to-end test builds
+.next-e2e*

@@ -116,3 +116,16 @@ export async function applyTo(job, learner, letter = "I would like to join your 
 export async function makeHirer(tag = "hirer") {
   return makeUser({ role: "hirer", tag });
 }
+
+/** Adds a 9-second video lesson (assets/lecture.webm) to a course through the real upload API. */
+export async function addVideo(course, name = unique("Video lesson")) {
+  const { readFile } = await import("node:fs/promises");
+  const { paths } = await import("./config.mjs");
+  const form = new FormData();
+  form.set("type", "video");
+  form.set("name", name);
+  form.set("is_preview", "false");
+  form.set("file", new Blob([await readFile(`${paths.e2e}/assets/lecture.webm`)], { type: "video/webm" }), "lecture.webm");
+  const row = await apiOk("admin", `frontend/manage/courses/${course.id}/materials`, { method: "POST", form });
+  return { id: row.id, name };
+}

@@ -133,3 +133,18 @@ Files use `multipart/form-data`. The schema stores files as `BYTEA`; production-
 ## Production notes
 
 The services intentionally share one database because the supplied schema has cross-feature foreign keys and payment transactions. Deploy each service separately and set its internal URL in the gateway. Put internal services on a private network. Payment `confirm` is an admin-only development adapter—replace it with a verified provider webhook before accepting real money. Add Redis/event broker only when async notifications or independently scaled consumers are needed.
+
+## Video check-point questions
+
+A video lesson stops at 1/3 and 2/3 of its length and again at the end to ask three multiple-choice questions; at least two must be right to go on, and passing the last set completes the material (opening or downloading the video no longer does). Gemini writes the questions from the **course title and lesson title only** (the video is never sent) the first time they are needed; they are stored in `material_quiz_questions` and reused for everyone, and renaming the course or lesson writes new ones. Passed check-points are kept in `material_quiz_passes`. If Gemini is not configured or unreachable the check-points are skipped and the video completes when it ends.
+
+Run `backend/database/014_video_quizzes.sql` on the database. `GEMINI_API_BASE` (optional) overrides the Gemini endpoint, which the end-to-end tests use for a fake Gemini.
+
+## My CV and the CV Generator
+
+A learner has one current CV (`user_cvs`): a PDF they upload, or one made in the CV Generator (`/cv` in the website, reached from "Generate CV" on the profile). The generator fills a form from the profile, offers five templates (Classic, Modern, Minimal, Executive, Creative) and six accent colours, shows a live preview and saves the result as the current CV; the editable details are stored with it so it can be reopened. The PDF is drawn in the browser with `@react-pdf/renderer`.
+
+- `GET /frontend/cv` details (and the generator data), `GET /frontend/cv/file[?download=1]` the PDF, `PUT /frontend/cv` (multipart: `file`, `source` = `uploaded|generated`, and for generated ones `template` + `data`), `DELETE /frontend/cv`. Only learners; the file must really be a PDF of at most 10 MB.
+- Applying for a job: send `use_current_cv=true` instead of a `resume` file and the saved CV is copied into the application (so changing the CV later does not change what the hirer already received).
+
+Run `backend/database/015_user_cvs.sql` on the database.

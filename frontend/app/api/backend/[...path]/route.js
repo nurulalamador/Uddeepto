@@ -28,6 +28,8 @@ async function proxy(request,{params}) {
     if(r.status===401 && !streamUpload){const refreshed=await refreshSession(jar);if(refreshed){token=refreshed;headers.Authorization=`Bearer ${token}`;r=await fetch(target,init());}}
     const out = new Headers({'Cache-Control':'no-store','X-Content-Type-Options':'nosniff'});
     for(const name of ['content-type','content-disposition','content-range','accept-ranges','content-length']) if(r.headers.get(name))out.set(name,r.headers.get(name));
+    // fetch() has already decompressed a gzip/br body, so the backend's content-length (the compressed size) would cut the JSON short.
+    if(r.headers.get('content-encoding'))out.delete('content-length');
     const contentType=r.headers.get('content-type')||'';
     const inlineMedia=/^(image|audio|video)\//i.test(contentType);
     if(!contentType.includes('application/json')&&!inlineMedia&&!out.has('Content-Disposition'))out.set('Content-Disposition','attachment; filename="download"');

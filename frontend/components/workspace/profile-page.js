@@ -9,6 +9,7 @@ import {
   Check,
   Copy,
   Edit3,
+  FileText,
   GraduationCap,
   Lock,
   MapPin,
@@ -16,12 +17,14 @@ import {
   Phone,
   Plus,
   Trash2,
+  Trophy,
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { copyText } from "@/lib/clipboard";
 import { Empty, Heading, InterestIcon, Modal, State, useResource } from "../ui";
 import { useUser } from "../shell";
 import { EditProfileForm, EducationForm, ExperienceForm } from "./profile-forms";
+import MyCv from "./cv-section";
 
 const monthFormat = new Intl.DateTimeFormat("en", { month: "short", year: "numeric" });
 const dayFormat = new Intl.DateTimeFormat("en", { day: "numeric", month: "long", year: "numeric" });
@@ -56,6 +59,15 @@ function CopyButton({ value, label }) {
       <span>{copied ? "Copied" : "Copy"}</span>
     </button>
   );
+}
+
+/** Where a contest stands for the person who joined it, until its final rank is known. */
+function contestState(contest) {
+  if (contest.status === "completed") return "Completed";
+  const now = Date.now();
+  if (new Date(contest.starting_time) > now) return "Upcoming";
+  if (new Date(contest.ending_time) < now) return "Results pending";
+  return "In progress";
 }
 
 function Section({ title, icon: Icon, action, children }) {
@@ -256,14 +268,55 @@ export default function ProfilePage({ refId }) {
             )}
           </Section>
 
+          {isSelf && profile.role === "learner" && (
+            <Section title="My CV" icon={FileText}>
+              <MyCv />
+            </Section>
+          )}
+
+          {profile.role === "learner" && (
+            <Section title="Contests" icon={Trophy}>
+              {profile.contests?.length ? (
+                <ul className="pf-contests">
+                  {profile.contests.map((contest) => (
+                    <li key={contest.id}>
+                      <Link className="pf-contest" href={`/contests/${contest.id}`}>
+                        <span className={`pf-rank${contest.rank && contest.rank <= 3 ? ` podium p${contest.rank}` : ""}`} aria-label={contest.rank ? `Rank ${contest.rank}` : contestState(contest)}>
+                          {contest.rank ? <><small>Position</small><b>#{contest.rank}</b></> : <Trophy size={18} />}
+                        </span>
+                        <span className="pf-contest-text">
+                          <strong>{contest.name}</strong>
+                          <small>
+                            {contest.rank
+                              ? `Rank ${contest.rank} of ${contest.participant_count} · ${Number(contest.points)} pts`
+                              : `${contestState(contest)} · ${contest.participant_count} participant${contest.participant_count === 1 ? "" : "s"}`}
+                          </small>
+                          <small>{dayFormat.format(new Date(contest.starting_time))}</small>
+                        </span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="pf-empty">{isSelf ? "Contests you join will be listed here with your final position." : "No contests joined yet."}</p>
+              )}
+            </Section>
+          )}
+
           <Section title="Recent showcase">
             {profile.posts.length ? (
               <div className="pf-posts">
-                {profile.posts.map((post) => (
-                  <Link key={post.id} className="pf-post" href={`/showcase/${post.id}`}>
-                    <p className="clamp-3 preserve">{post.content}</p>
-                  </Link>
-                ))}
+                {profile.posts.map((post) => {
+                  const picture = post.media?.find((item) => item.mime_type.startsWith("image/"));
+                  const other = post.media?.find((item) => !item.mime_type.startsWith("image/"));
+                  return (
+                    <Link key={post.id} className={`pf-post${picture ? " has-media" : ""}`} href={`/showcase/${post.id}`}>
+                      {picture && <img className="pf-post-image" src={`/api/backend/frontend/showcase/${post.id}/media/${picture.id}`} alt={picture.file_name || "Post picture"} loading="lazy" />}
+                      {!picture && other && <span className="pf-post-kind">{other.mime_type.startsWith("video/") ? "Video" : "Audio"}</span>}
+                      <p className="clamp-3 preserve">{post.content}</p>
+                    </Link>
+                  );
+                })}
               </div>
             ) : (
               <Empty title="Nothing shared yet" text="Showcase posts will appear here." />

@@ -123,14 +123,29 @@ r.post(
       )
     ).rows[0];
     if (!j) throw new ApiError(409, "Job is not accepting applications");
+    // "Your current CV" sends no file: the CV saved on the profile is copied into this application.
+    let resume = q.file;
+    if (!resume && ["true", "1"].includes(String(q.body.use_current_cv))) {
+      const cv = (
+        await query("SELECT file_data,mime_type FROM user_cvs WHERE user_id=$1", [
+          q.user.sub,
+        ])
+      ).rows[0];
+      if (!cv)
+        throw new ApiError(
+          409,
+          "You have no saved CV yet. Upload one or generate it from your profile.",
+        );
+      resume = { buffer: Buffer.from(cv.file_data), mimetype: cv.mime_type };
+    }
     await query(
       `INSERT INTO job_applications(job_id,applicant_id,cover_letter,resume_blob,resume_mime_type) VALUES($1,$2,$3,$4,$5)`,
       [
         q.params.id,
         q.user.sub,
         q.body.cover_letter,
-        q.file?.buffer,
-        q.file?.mimetype,
+        resume?.buffer,
+        resume?.mimetype,
       ],
     );
     const applicant =

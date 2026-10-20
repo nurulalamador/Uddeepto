@@ -13,6 +13,7 @@ import Jobs from "./workspace/jobs";
 import Messages from "./workspace/messages";
 import Notifications from "./workspace/notifications";
 import Profile from "./workspace/profile-page";
+import CvGenerator from "./workspace/cv-generator";
 import Admin from "./workspace/admin";
 import AdminDashboard from "./workspace/admin-dashboard";
 import AdminModeration from "./workspace/admin-moderation";
@@ -39,5 +40,6 @@ export default function WorkspacePage({ section }) {
   if (section === "messages") return <Messages />;
   if (section === "notifications") return <Notifications />;
   if (section === "profile") return <Profile />;
+  if (section === "cv") return <CvGenerator />;
   return <Admin />;
 }

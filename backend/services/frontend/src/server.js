@@ -1,3 +1,4 @@
+import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -510,7 +511,19 @@ app.get(
     ).rows;
     p.posts = (
       await query(
-        `SELECT id,content FROM showcase_posts WHERE creator_id=$1 AND deleted_at IS NULL AND visibility='public' ORDER BY created_at DESC LIMIT 12`,
+        `SELECT id,content,COALESCE((SELECT json_agg(json_build_object('id',m.id,'mime_type',m.mime_type,'file_name',m.file_name) ORDER BY m.sort_order) FROM showcase_post_media m WHERE m.post_id=showcase_posts.id),'[]'::json) media FROM showcase_posts WHERE creator_id=$1 AND deleted_at IS NULL AND visibility='public' ORDER BY created_at DESC LIMIT 12`,
+        [p.id],
+      )
+    ).rows;
+    // Contests this person took part in, newest first. The final rank exists once the contest is completed.
+    p.contests = (
+      await query(
+        `SELECT c.id,c.name,c.type::text type,c.status::text status,c.starting_time,c.ending_time,cp.points,
+           CASE WHEN c.status='completed' THEN cp.rank END rank,
+           (SELECT count(*) FROM contest_participants x WHERE x.contest_id=c.id AND x.payment_status='paid')::int participant_count
+         FROM contest_participants cp JOIN contests c ON c.id=cp.contest_id
+         WHERE cp.participant_id=$1 AND cp.payment_status='paid' AND c.status IN('published','completed')
+         ORDER BY c.starting_time DESC LIMIT 30`,
         [p.id],
       )
     ).rows;
@@ -3239,7 +3252,20 @@ app.get(
     const m = await materialAccess(req);
     if (m.enrolled && !m.file_url && !m.content_blob)
       await tx((db) => completeMaterial(db, m.course_id, req.user.sub, m.id));
+    // A video the learner has not finished yet is played with check-point questions.
+    let quiz = null;
+    if (m.enrolled && m.type === "video" && m.file_url) {
+      const done = await query(
+        "SELECT 1 FROM completed_course_materials WHERE user_id=$1 AND material_id=$2",
+        [req.user.sub, m.id],
+      );
+      quiz = {
+        completed: done.rowCount > 0,
+        passed: await quizPasses(req.user.sub, m.id),
+      };
+    }
     return {
+      quiz,
       id: m.id,
       type: m.type,
       name: m.name,
@@ -3258,6 +3284,7 @@ app.get(
     // Count a view/download once, not on every ranged chunk the video player requests.
     if (
       m.enrolled &&
+      m.type !== "video" &&
       (!req.headers.range || /^bytes=0-/.test(req.headers.range))
     )
       await tx((db) => completeMaterial(db, m.course_id, req.user.sub, m.id));
@@ -3819,7 +3846,7 @@ async function askGemini(userId, { system, messages, attachment }) {
       if (remaining < 4000) break attempts;
       try {
         response = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`,
+          `${process.env.GEMINI_API_BASE || "https://generativelanguage.googleapis.com/v1beta"}/models/${encodeURIComponent(model)}:generateContent`,
           {
             method: "POST",
             headers: {
@@ -3925,6 +3952,116 @@ app.put('/profile/interests',run(async req=>{
   return{interest_ids:ids};
 }));
 
+// ---- My CV: one current CV per learner, uploaded or made in the CV Generator ----
+const cvOnly = (req) => {
+  if (req.user.role !== "learner")
+    throw new ApiError(403, "CVs are available to learners");
+};
+const CV_MAX_BYTES = 10 * 1024 * 1024;
+const cvTemplates = ["classic", "modern", "minimal", "executive", "creative"];
+const cvSummary = (row) => ({
+  has_cv: true,
+  file_name: row.file_name,
+  file_size: row.file_size,
+  source: row.source,
+  template: row.template,
+  updated_at: row.updated_at,
+});
+app.get(
+  "/cv",
+  run(async (req) => {
+    cvOnly(req);
+    const result = await query(
+      "SELECT file_name,file_size,source,template,updated_at,cv_data FROM user_cvs WHERE user_id=$1",
+      [req.user.sub],
+    );
+    if (!result.rowCount) return { has_cv: false };
+    return { ...cvSummary(result.rows[0]), data: result.rows[0].cv_data };
+  }),
+);
+app.get(
+  "/cv/file",
+  run(async (req, res) => {
+    cvOnly(req);
+    const cv = await one(
+      "SELECT file_name,mime_type,file_data FROM user_cvs WHERE user_id=$1",
+      [req.user.sub],
+    );
+    res
+      .set({
+        "Content-Type": cv.mime_type,
+        "Content-Disposition": `${req.query.download === "1" ? "attachment" : "inline"}; filename*=UTF-8''${encodeURIComponent(cv.file_name)}`,
+        "Cache-Control": "private, no-store",
+        "X-Content-Type-Options": "nosniff",
+      })
+      .send(Buffer.from(cv.file_data));
+  }),
+);
+app.put(
+  "/cv",
+  upload.single("file"),
+  run(async (req) => {
+    cvOnly(req);
+    const file = req.file;
+    if (!file) throw new ApiError(422, "Choose a PDF file");
+    if (file.size > CV_MAX_BYTES)
+      throw new ApiError(413, "The CV must be 10 MB or smaller");
+    // Judge the content, not the label: every PDF starts with %PDF.
+    if (file.buffer.subarray(0, 5).toString("latin1") !== "%PDF-")
+      throw new ApiError(422, "The CV must be a PDF file");
+    const body = z
+      .object({
+        source: z.enum(["uploaded", "generated"]),
+        template: z.string().max(40).optional(),
+        data: z.string().max(200000).optional(),
+      })
+      .parse(req.body);
+    let data = null;
+    if (body.source === "generated") {
+      try {
+        data = JSON.parse(body.data || "null");
+      } catch {
+        throw new ApiError(422, "The CV details could not be read");
+      }
+      if (!data || typeof data !== "object" || Array.isArray(data))
+        throw new ApiError(422, "The CV details are missing");
+      if (!cvTemplates.includes(body.template))
+        throw new ApiError(422, "Choose one of the CV templates");
+    }
+    const name =
+      String(file.originalname || "cv.pdf")
+        .replace(/[\\/:*?"<>|\u0000-\u001f]/g, "_")
+        .slice(0, 150) || "cv.pdf";
+    const fileName = /\.pdf$/i.test(name) ? name : `${name}.pdf`;
+    const saved = (
+      await query(
+        `INSERT INTO user_cvs(user_id,file_name,file_size,mime_type,file_data,source,template,cv_data,updated_at)
+         VALUES($1,$2,$3,'application/pdf',$4,$5,$6,$7::jsonb,now())
+         ON CONFLICT (user_id) DO UPDATE SET file_name=EXCLUDED.file_name,file_size=EXCLUDED.file_size,mime_type=EXCLUDED.mime_type,
+           file_data=EXCLUDED.file_data,source=EXCLUDED.source,template=EXCLUDED.template,cv_data=EXCLUDED.cv_data,updated_at=now()
+         RETURNING file_name,file_size,source,template,updated_at`,
+        [
+          req.user.sub,
+          fileName,
+          file.size,
+          file.buffer,
+          body.source,
+          body.source === "generated" ? body.template : null,
+          data ? JSON.stringify(data) : null,
+        ],
+      )
+    ).rows[0];
+    return cvSummary(saved);
+  }),
+);
+app.delete(
+  "/cv",
+  run(async (req) => {
+    cvOnly(req);
+    await query("DELETE FROM user_cvs WHERE user_id=$1", [req.user.sub]);
+    return { has_cv: false };
+  }),
+);
 // Ask about the course material the learner is looking at. Text lessons, small PDFs and small videos are given to the model in full;
 // other files are described by their title and description only, and the answer says which level of context was used.
 const AI_INLINE_LIMIT = 15 * 1024 * 1024;
@@ -3984,6 +4121,239 @@ app.post(
       attachment,
     });
     return { ...result, context };
+  }),
+);
+// ---- Video check-points: questions at 1/3, 2/3 and the end of a video lesson ----
+// The player stops the video at each check-point and asks a few questions. At least two thirds of them must be
+// answered correctly to go on, and passing the last check-point is what completes the material. Gemini writes the
+// questions from the course title and the lesson title only (the video itself is never sent) the first time they are
+// needed, and they are then stored and reused for every learner. If Gemini cannot be reached the check-points are
+// skipped (the video completes when the learner reaches its end) so a missing API key never blocks anyone.
+const QUIZ_QUESTIONS_PER_CHECKPOINT = 3;
+const QUIZ_PASS_RATIO = 2 / 3;
+const quizJobs = new Map();
+const quizFailedAt = new Map();
+const quizSourceKey = (courseTitle, lessonName) =>
+  crypto
+    .createHash("sha256")
+    .update(`${courseTitle}\n${lessonName}`)
+    .digest("hex")
+    .slice(0, 32);
+const quizCheckpoint = (req) =>
+  z.coerce.number().int().min(1).max(3).parse(req.params.checkpoint);
+const quizSystemPrompt = `You write short multiple-choice check-point questions for a video course platform.
+You know only the course title and the lecture title. You cannot see the video, so ask about the core ideas of that topic that any good lecture with this title would teach. Never ask about timestamps, the instructor, the examples shown or anything that depends on having watched the video.
+Reply with JSON only, no commentary and no code fence.`;
+const quizPrompt = (courseTitle, lesson) =>
+  `Course: "${courseTitle}"
+Lecture: "${lesson.name}"${lesson.description ? `\nLecture description: "${String(lesson.description).slice(0, 500)}"` : ""}
+
+Write ${QUIZ_QUESTIONS_PER_CHECKPOINT} questions for each of three check-points of this lecture:
+- checkpoint 1: foundations and key terms
+- checkpoint 2: how the ideas work and how to apply them
+- checkpoint 3: a review that checks overall understanding
+
+Every question has exactly 4 options and exactly one correct option. Use the same language as the titles above. Keep each question and option short and clear.
+JSON shape:
+{"checkpoints":[{"checkpoint":1,"questions":[{"question":"...","options":["...","...","...","..."],"correct_index":0,"explanation":"one short sentence"}]},{"checkpoint":2,"questions":[...]},{"checkpoint":3,"questions":[...]}]}`;
+const quizSchema = z.object({
+  checkpoints: z
+    .array(
+      z.object({
+        checkpoint: z.coerce.number().int().min(1).max(3),
+        questions: z
+          .array(
+            z.object({
+              question: z.string().trim().min(3).max(500),
+              options: z.array(z.string().trim().min(1).max(300)).length(4),
+              correct_index: z.coerce.number().int().min(0).max(3),
+              explanation: z.string().trim().max(500).optional().nullable(),
+            }),
+          )
+          .min(1),
+      }),
+    )
+    .min(3),
+});
+
+async function quizMaterial(req) {
+  const m = await materialAccess(req);
+  if (m.type !== "video")
+    throw new ApiError(404, "Only video lessons have check-point questions");
+  if (!m.enrolled)
+    throw new ApiError(
+      403,
+      "Enroll in this course to answer check-point questions",
+    );
+  const course = await one("SELECT title FROM courses WHERE id=$1", [
+    m.course_id,
+  ]);
+  return { m, course, key: quizSourceKey(course.title, m.name) };
+}
+const quizPasses = async (userId, materialId) =>
+  (
+    await query(
+      "SELECT checkpoint FROM material_quiz_passes WHERE user_id=$1 AND material_id=$2 ORDER BY checkpoint",
+      [userId, materialId],
+    )
+  ).rows.map((row) => row.checkpoint);
+const quizReady = async (materialId, key) =>
+  (
+    await query(
+      "SELECT count(*)::int n FROM material_quiz_questions WHERE material_id=$1 AND source_key=$2",
+      [materialId, key],
+    )
+  ).rows[0].n >= 3;
+/** Makes sure the questions for this lesson exist. Returns false when they cannot be written (Gemini off or busy). */
+async function ensureQuiz(userId, { m, course, key }) {
+  if (await quizReady(m.id, key)) return true;
+  const slot = `${m.id}:${key}`;
+  if (Date.now() - (quizFailedAt.get(slot) || 0) < 30000) return false;
+  let job = quizJobs.get(slot);
+  if (!job) {
+    job = (async () => {
+      try {
+        const { reply } = await askGemini(userId, {
+          system: quizSystemPrompt,
+          messages: [{ role: "user", content: quizPrompt(course.title, m) }],
+        });
+        const start = reply.indexOf("{"),
+          end = reply.lastIndexOf("}");
+        if (start < 0 || end < start) throw new Error("no JSON in the reply");
+        const parsed = quizSchema.parse(JSON.parse(reply.slice(start, end + 1)));
+        const rows = [];
+        for (const checkpoint of [1, 2, 3]) {
+          const group = parsed.checkpoints.find(
+            (item) => item.checkpoint === checkpoint,
+          );
+          if (!group) throw new Error(`checkpoint ${checkpoint} is missing`);
+          group.questions
+            .slice(0, QUIZ_QUESTIONS_PER_CHECKPOINT)
+            .forEach((item, position) =>
+              rows.push([checkpoint, position, item]),
+            );
+        }
+        await tx(async (db) => {
+          await db.query("SELECT pg_advisory_xact_lock(hashtext($1))", [
+            `quiz:${m.id}`,
+          ]);
+          const done = await db.query(
+            "SELECT count(*)::int n FROM material_quiz_questions WHERE material_id=$1 AND source_key=$2",
+            [m.id, key],
+          );
+          if (done.rows[0].n >= 3) return;
+          await db.query(
+            "DELETE FROM material_quiz_questions WHERE material_id=$1",
+            [m.id],
+          );
+          for (const [checkpoint, position, item] of rows)
+            await db.query(
+              `INSERT INTO material_quiz_questions(material_id,checkpoint,position,question,options,correct_index,explanation,source_key)
+               VALUES($1,$2,$3,$4,$5::jsonb,$6,$7,$8)`,
+              [
+                m.id,
+                checkpoint,
+                position,
+                item.question,
+                JSON.stringify(item.options),
+                item.correct_index,
+                item.explanation || null,
+                key,
+              ],
+            );
+        });
+        return true;
+      } catch (error) {
+        console.error(
+          "[quiz] could not write check-point questions:",
+          error.message,
+        );
+        quizFailedAt.set(slot, Date.now());
+        return false;
+      } finally {
+        quizJobs.delete(slot);
+      }
+    })();
+    quizJobs.set(slot, job);
+  }
+  return job;
+}
+app.get(
+  "/courses/:id/materials/:materialId/quiz/:checkpoint",
+  run(async (req) => {
+    const checkpoint = quizCheckpoint(req);
+    const context = await quizMaterial(req);
+    const { m, key } = context;
+    const passed = await quizPasses(req.user.sub, m.id);
+    if (!(await ensureQuiz(req.user.sub, context))) {
+      // No questions could be written: do not block the learner. Reaching the end of the video completes it.
+      if (checkpoint === 3)
+        await tx((db) => completeMaterial(db, m.course_id, req.user.sub, m.id));
+      return { available: false, checkpoint, passed };
+    }
+    const questions = (
+      await query(
+        `SELECT id,question,options FROM material_quiz_questions WHERE material_id=$1 AND checkpoint=$2 AND source_key=$3 ORDER BY position`,
+        [m.id, checkpoint, key],
+      )
+    ).rows;
+    return { available: true, checkpoint, passed, questions };
+  }),
+);
+app.post(
+  "/courses/:id/materials/:materialId/quiz/:checkpoint",
+  run(async (req) => {
+    const checkpoint = quizCheckpoint(req);
+    const { m, key } = await quizMaterial(req);
+    const { answers } = z
+      .object({ answers: z.array(z.coerce.number().int().min(0).max(3)).min(1).max(20) })
+      .strict()
+      .parse(req.body);
+    const questions = (
+      await query(
+        `SELECT id,question,options,correct_index,explanation FROM material_quiz_questions WHERE material_id=$1 AND checkpoint=$2 AND source_key=$3 ORDER BY position`,
+        [m.id, checkpoint, key],
+      )
+    ).rows;
+    if (!questions.length)
+      throw new ApiError(404, "There are no questions for this check-point");
+    if (answers.length !== questions.length)
+      throw new ApiError(422, "Answer every question");
+    const earlier = await quizPasses(req.user.sub, m.id);
+    for (let step = 1; step < checkpoint; step++)
+      if (!earlier.includes(step))
+        throw new ApiError(409, "Answer the earlier check-point questions first");
+    const results = questions.map(
+      (item, index) => answers[index] === item.correct_index,
+    );
+    const correct = results.filter(Boolean).length;
+    const needed = Math.ceil(questions.length * QUIZ_PASS_RATIO);
+    const passed = correct >= needed;
+    if (passed) {
+      await tx(async (db) => {
+        await db.query(
+          "INSERT INTO material_quiz_passes(user_id,material_id,checkpoint) VALUES($1,$2,$3) ON CONFLICT DO NOTHING",
+          [req.user.sub, m.id, checkpoint],
+        );
+        if (checkpoint === 3)
+          await completeMaterial(db, m.course_id, req.user.sub, m.id);
+      });
+    }
+    return {
+      passed,
+      correct,
+      total: questions.length,
+      needed,
+      results,
+      completed: passed && checkpoint === 3,
+      // The right answers are only shown once the learner has passed.
+      review: passed
+        ? questions.map((item) => ({
+            correct_index: item.correct_index,
+            explanation: item.explanation,
+          }))
+        : undefined,
+    };
   }),
 );
 // ---- Global search: people, courses, contests, webinars, jobs and communities in one place ----

@@ -31,8 +31,10 @@ E2E_BASE_URL=http://127.0.0.1:3200 E2E_API_URL=http://127.0.0.1:4400/api/v1 node
 | `E2E_HEADED=1` | show the browser window |
 | `E2E_BROWSER=chrome\|edge\|firefox` | pick the browser (default chrome) |
 | `E2E_TIMEOUT=ms` | per-wait timeout (default 12000) |
+| `E2E_AI_MOCK=1` | answer AI requests with a local fake Gemini (needed by `learner-video-quiz`, which is skipped otherwise): `E2E_AI_MOCK=1 node run.mjs learner-video-quiz` |
 
 Ports: database 54329, backend 4400, website 3200. A failing test saves a screenshot to `artifacts/`.
+`node inspect-cv.mjs` (with `--stack-only` running) saves one sample PDF per CV template to `artifacts/cv/` so the layouts can be looked at.
 `node inspect.mjs <learner|hirer|admin> <route>` prints what a page looks like (text, links, fields) for writing selectors.
 
 ## Layout
@@ -47,7 +49,7 @@ Ports: database 54329, backend 4400, website 3200. A failing test saves a screen
 | Role | Files |
 | --- | --- |
 | public | `public-auth` |
-| learner | `learner-shell`, `-showcase`, `-courses`, `-contests`, `-webinars`, `-communities`, `-jobs`, `-messages`, `-notifications`, `-profile`, `-onboarding-ai` |
+| learner | `learner-shell`, `-showcase`, `-courses`, `-contests`, `-webinars`, `-communities`, `-jobs`, `-messages`, `-notifications`, `-profile`, `-onboarding-ai`, `-cv` (My CV, CV Generator, applying with a CV), `-video-quiz` (needs `E2E_AI_MOCK=1`), `-video-fallback` (no AI key) |
 | hirer | `hirer-shell`, `-jobs`, `-social` |
 | admin | `admin-shell` (navigation, dashboard, notifications, settings), `-users`, `-catalog` (interests, instructors, courses, materials), `-events` (contests, judging, webinars, jobs, communities), `-moderation` |
 

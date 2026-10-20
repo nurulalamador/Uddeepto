@@ -80,3 +80,7 @@ Same as the microservice backend: see "Video check-point questions" in `backend/
 ## My CV and the CV Generator
 
 Same as the microservice backend: see "My CV and the CV Generator" in `backend/README.md`. Run `backend/database/015_user_cvs.sql` on the database first.
+
+## Account settings
+
+Same as the microservice backend: see "Account settings" in `backend/README.md`.

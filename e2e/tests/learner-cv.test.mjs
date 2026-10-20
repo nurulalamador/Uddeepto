@@ -398,9 +398,15 @@ describe("Learner · CV Generator", () => {
     await b.driver.wait(async () => (await (await find(b.driver, label("Professional title"))).getAttribute("value")) !== "Draft title", 5000);
   });
 
+  it("the top bar names the page and the page has no big heading of its own", async () => {
+    await openGenerator(await makeLearner("cvheader"));
+    assert.equal(await (await find(b.driver, By.css(".post-detail-topbar-title strong"))).getText(), "CV Generator");
+    assert.equal(await exists(b.driver, By.css(".cvg h1, .cvg .eyebrow")), false);
+  });
+
   it("'Back to profile' returns to the profile", async () => {
     await openGenerator(await makeLearner("backlink"));
-    await click(b.driver, xText("Back to profile", { tag: "a" }));
+    await click(b.driver, By.css("a[aria-label='Back to profile']"));
     await waitUrl(b.driver, /^\/profile/);
   });
 

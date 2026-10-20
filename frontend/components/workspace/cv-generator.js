@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, ArrowDown, ArrowUp, Check, CircleAlert, Download, FileText, Plus, RotateCcw, Save, Trash2, X } from "lucide-react";
+import { ArrowDown, ArrowUp, Check, CircleAlert, Download, FileText, Plus, RotateCcw, Save, Trash2, X } from "lucide-react";
 import { api } from "@/lib/api";
 import { ACCENTS, TEMPLATES, blankCertification, blankEducation, blankExperience, blankProject, cvFromProfile, fileNameFor, isBlank, normalizeCv } from "@/lib/cv-data";
 import { State, useResource } from "../ui";
@@ -39,9 +39,6 @@ export default function CvGenerator() {
   const ready = Boolean(profile.data && saved.data);
   return (
     <div className="cvg">
-      <Link className="cvg-back" href="/profile">
-        <ArrowLeft size={16} /> Back to profile
-      </Link>
       {!ready ? <State resource={profile.error ? profile : saved}>{null}</State> : <Generator user={user} profile={profile.data} saved={saved.data} />}
     </div>
   );
@@ -144,11 +141,7 @@ function Generator({ user, profile, saved }) {
   return (
     <>
       <header className="cvg-head">
-        <div>
-          <p className="eyebrow">MY CV</p>
-          <h1>CV Generator</h1>
-          <p className="cvg-lead">Pick a template, check the details we took from your profile and edit anything you like. The preview on the right updates as you type.</p>
-        </div>
+        <p className="cvg-lead">Pick a template, check the details we took from your profile and edit anything you like. The preview on the right updates as you type.</p>
         <div className="cvg-actions">
           <button type="button" className="button secondary" onClick={download} disabled={empty || Boolean(busy)}>
             <Download size={17} /> {busy === "download" ? "Preparing…" : "Download PDF"}

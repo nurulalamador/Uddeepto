@@ -5227,10 +5227,8 @@ details[open] > summary .disclosure-chevron { transform: rotate(180deg); color: 
 
 /* CV Generator */
 .cvg { display: grid; gap: 16px; }
-.cvg-back { display: inline-flex; align-items: center; gap: 6px; justify-self: start; color: var(--muted); font-weight: 700; text-decoration: none; }
-.cvg-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px; }
-.cvg-head h1 { margin: 0; }
-.cvg-lead { max-width: 560px; margin: 6px 0 0; color: var(--muted); }
+.cvg-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; }
+.cvg-lead { max-width: 560px; margin: 0; color: var(--muted); }
 .cvg-actions { display: flex; flex-wrap: wrap; gap: 10px; }
 .cvg-notice a { margin-left: 6px; font-weight: 700; }
 .cvg-layout { display: grid; grid-template-columns: minmax(340px, 480px) minmax(0, 1fr); gap: 18px; align-items: start; }
@@ -5285,3 +5283,19 @@ details[open] > summary .disclosure-chevron { transform: rotate(180deg); color: 
 .cvg-placeholder { padding: 24px; text-align: center; color: var(--muted); }
 @media (max-width: 1000px) { .cvg-layout { grid-template-columns: 1fr; } .cvg-preview { position: static; } .cvg-panel { max-height: none; } .cvg-frame { height: 70vh; } }
 @media (max-width: 520px) { .cvg-grid { grid-template-columns: 1fr; } }
+
+/* Account settings */
+.acct { display: grid; gap: 18px; }
+.acct-lead { margin: 0; color: var(--muted); }
+.acct-card { display: grid; gap: 14px; }
+.acct-card-head { display: flex; align-items: flex-start; gap: 14px; }
+.acct-card-head h2 { margin: 0; font-size: 1.1rem; }
+.acct-card-head p { margin: 4px 0 0; color: var(--muted); }
+.acct-icon { display: grid; place-items: center; flex: none; width: 42px; height: 42px; border-radius: 12px; background: var(--green-soft); color: var(--green); }
+.acct-icon.red { background: var(--red-soft); color: var(--red); }
+.acct-form { display: grid; gap: 12px; max-width: 420px; }
+.acct-bad { color: var(--red); }
+.acct-danger { border-color: var(--red); }
+.acct-list { margin: 0; padding-left: 20px; color: var(--muted); display: grid; gap: 6px; }
+.acct-delete-button { justify-self: start; background: var(--red); border-color: var(--red); color: #fff; }
+.acct-delete-button:disabled { opacity: 0.5; }

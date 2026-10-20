@@ -74,7 +74,11 @@ export default function Shell({ user, children, defaultCollapsed = false }) {
   const path = segments[0] === "instructors" ? "courses" : segments[0];
   const isMaterial = segments[0] === "courses" && segments[2] === "materials";
   const detail =
-    segments.length > 1 && path === "showcase"
+    segments[0] === "cv"
+      ? { back: "/profile", label: "Back to profile", title: "CV Generator", subtitle: "Build your CV" }
+      : segments[0] === "account"
+        ? { back: "/profile", label: "Back to profile", title: "Settings", subtitle: "Password and account" }
+        : segments.length > 1 && path === "showcase"
       ? { back: user.role === "admin" ? "/moderation" : "/showcase", label: user.role === "admin" ? "Back to moderation" : "Back to community", title: "Community", subtitle: "Post" }
       : isMaterial
         ? { back: `/courses/${segments[1]}`, label: "Back to course", title: "Course material", subtitle: "Material" }
@@ -212,6 +216,7 @@ export default function Shell({ user, children, defaultCollapsed = false }) {
               </div>
               {profileMenuOpen && <div className="floating-menu">
                 <Link className="item" href="/profile" onClick={() => setProfileMenuOpen(false)}><UserRound size={16} /> Profile</Link>
+                <Link className="item" href="/account" onClick={() => setProfileMenuOpen(false)}><Settings size={16} /> {user.role === "admin" ? "Account settings" : "Settings"}</Link>
                 <button type="button" className="item red" onClick={logout}><LogOut size={16} /> Sign out</button>
               </div>}
             </div>

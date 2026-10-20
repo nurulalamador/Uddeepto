@@ -14,6 +14,7 @@ import Messages from "./workspace/messages";
 import Notifications from "./workspace/notifications";
 import Profile from "./workspace/profile-page";
 import CvGenerator from "./workspace/cv-generator";
+import AccountSettings from "./workspace/account-settings";
 import Admin from "./workspace/admin";
 import AdminDashboard from "./workspace/admin-dashboard";
 import AdminModeration from "./workspace/admin-moderation";
@@ -23,6 +24,7 @@ export default function WorkspacePage({ section }) {
   const user = useUser();
   if (section === "dashboard")
     return user.role === "admin" ? <AdminDashboard /> : user.role === "learner" ? <LearnerDashboard /> : <HirerDashboard />;
+  if (section === "account") return <AccountSettings />;
   if (section === "moderation") return <AdminModeration />;
   if (section === "settings") return <AdminSettings />;
   if (section === "admin") return <Admin />;

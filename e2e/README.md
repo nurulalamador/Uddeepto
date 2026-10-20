@@ -49,6 +49,7 @@ Ports: database 54329, backend 4400, website 3200. A failing test saves a screen
 | Role | Files |
 | --- | --- |
 | public | `public-auth` |
+| every role | `account-settings` (Settings page: change password, delete account) |
 | learner | `learner-shell`, `-showcase`, `-courses`, `-contests`, `-webinars`, `-communities`, `-jobs`, `-messages`, `-notifications`, `-profile`, `-onboarding-ai`, `-cv` (My CV, CV Generator, applying with a CV), `-video-quiz` (needs `E2E_AI_MOCK=1`), `-video-fallback` (no AI key) |
 | hirer | `hirer-shell`, `-jobs`, `-social` |
 | admin | `admin-shell` (navigation, dashboard, notifications, settings), `-users`, `-catalog` (interests, instructors, courses, materials), `-events` (contests, judging, webinars, jobs, communities), `-moderation` |

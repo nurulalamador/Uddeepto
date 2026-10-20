@@ -148,3 +148,10 @@ A learner has one current CV (`user_cvs`): a PDF they upload, or one made in the
 - Applying for a job: send `use_current_cv=true` instead of a `resume` file and the saved CV is copied into the application (so changing the CV later does not change what the hirer already received).
 
 Run `backend/database/015_user_cvs.sql` on the database.
+
+## Account settings
+
+Every role has a Settings page (profile menu, three dots, then "Settings"; `/account`).
+
+- `POST /frontend/account/password` `{currentPassword, newPassword}` changes the password (8-128 characters, different from the current one) and revokes every refresh token, so the person signs in again everywhere. A wrong current password answers 403 (not 401, which the website would read as an expired session).
+- `DELETE /frontend/account` `{password}` deletes the account. Someone with no history is removed completely. Everyone else is referenced by records that must stay, so the account is emptied instead: name, email, username, profile details, picture, CV, education, experience, interests and notifications are erased, the account is deactivated and can never sign in, their posts and comments are hidden, an owner's open jobs are closed, and what remains shows as "Deleted user". The last active administrator cannot delete their account.

@@ -129,3 +129,11 @@ export async function addVideo(course, name = unique("Video lesson")) {
   const row = await apiOk("admin", `frontend/manage/courses/${course.id}/materials`, { method: "POST", form });
   return { id: row.id, name };
 }
+
+/** A brand-new administrator account, created by the seeded admin. */
+export async function makeAdmin(tag = "admin") {
+  const key = unique(tag).replace(/[^a-z0-9]/gi, "").toLowerCase().slice(0, 20);
+  const account = { username: key, email: `${key}@e2e.test`, name: `Admin ${key.slice(-6)}`, role: "admin" };
+  const made = await apiOk("admin", "frontend/admin/users", { method: "POST", body: { ...account, password: PASSWORD } });
+  return { ...account, id: made.id };
+}

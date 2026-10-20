@@ -15,6 +15,7 @@ export const sections = {
   ai: "AI Assistant",
   "job-management": "Job Management",
   cv: "CV Generator",
+  account: "Settings",
   search: "Search",
 };
 export function allowedSections(role) {
@@ -79,6 +80,7 @@ export function allowedCategorizedSections(role) {
   ];
 }
 export function canAccess(role, section) {
+  if (section === "account") return true;
   // Hirers reach individual job pages (/jobs/[id]) from Job Management.
   return section === "profile" || section === "search" || allowedSections(role).includes(section) || (role === "hirer" && section === "jobs");
 }

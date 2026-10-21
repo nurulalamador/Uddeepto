@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Check, CircleAlert, RotateCcw, Rewind, X } from "lucide-react";
+import { Check, CircleAlert, Info, ListChecks, RotateCcw, Rewind, Trophy, X } from "lucide-react";
 import { api } from "@/lib/api";
 import VideoPlayer from "./video-player";
 
@@ -131,6 +131,8 @@ export default function QuizVideo({ courseId, material, file, quiz, onViewed }) 
   }, []);
 
   const current = panel;
+  const result = current?.result;
+  const answered = current?.answers?.filter((answer) => answer !== null).length || 0;
   const markers = skip ? [] : [1, 2].map((checkpoint) => ({ at: checkpoint / STEPS, done: passed.includes(checkpoint) }));
   return (
     <div className="quiz-video">
@@ -146,105 +148,139 @@ export default function QuizVideo({ courseId, material, file, quiz, onViewed }) 
         onEnded={ended}
       >
         {current && (
+          // The paused video stays visible, dimmed, behind a card with the questions.
           <div className="quiz-panel" role="dialog" aria-label={titles[current.checkpoint]}>
-            <header>
-              <strong>{titles[current.checkpoint]}</strong>
-              <small>
-                {current.checkpoint === STEPS
-                  ? "Answer at least 2 of 3 correctly to complete this lesson."
-                  : "Answer at least 2 of 3 correctly to keep watching."}
-              </small>
-            </header>
-
-            {current.state === "loading" && (
-              <div className="loading" role="status">
-                <span className="spinner" /> Preparing your questions…
-              </div>
-            )}
-
-            {current.state === "error" && (
-              <div className="quiz-body">
-                <p className="notice error" role="alert">
-                  <CircleAlert size={16} /> {current.message}
-                </p>
-                <div className="quiz-actions">
-                  <button type="button" className="button" onClick={() => { setPanel(null); open(current.checkpoint); }}>
-                    <RotateCcw size={16} /> Try again
-                  </button>
+            <div className="quiz-card">
+              <header>
+                <span className="quiz-icon" aria-hidden="true">
+                  <ListChecks size={20} />
+                </span>
+                <div className="quiz-heading">
+                  <strong>{titles[current.checkpoint]}</strong>
+                  <small>
+                    {current.checkpoint === STEPS
+                      ? "Answer at least 2 of 3 correctly to complete this lesson."
+                      : "Answer at least 2 of 3 correctly to keep watching."}
+                  </small>
                 </div>
-              </div>
-            )}
+                <ol className="quiz-steps" aria-hidden="true">
+                  {[1, 2, 3].map((step) => (
+                    <li key={step} className={passed.includes(step) ? "done" : step === current.checkpoint ? "current" : ""} />
+                  ))}
+                </ol>
+              </header>
 
-            {["ready", "submitting", "result"].includes(current.state) && (
-              <div className="quiz-body">
-                {current.questions.map((item, index) => {
-                  const graded = current.result?.results?.[index];
-                  const review = current.result?.review?.[index];
-                  return (
-                    <fieldset key={item.id} className={`quiz-question${graded === true ? " right" : graded === false ? " wrong" : ""}`} disabled={current.state !== "ready"}>
-                      <legend>
-                        {index + 1}. {item.question}
-                      </legend>
-                      {item.options.map((option, choice) => (
-                        <label key={choice} className={`quiz-option${current.answers[index] === choice ? " chosen" : ""}${review && review.correct_index === choice ? " correct" : ""}`}>
-                          <input
-                            type="radio"
-                            name={`q-${item.id}`}
-                            checked={current.answers[index] === choice}
-                            onChange={() => setPanel((value) => ({ ...value, answers: value.answers.map((answer, position) => (position === index ? choice : answer)) }))}
-                          />
-                          <span>{option}</span>
-                        </label>
-                      ))}
-                      {graded === true && <small className="quiz-feedback right"><Check size={14} /> Correct{review?.explanation ? ` - ${review.explanation}` : ""}</small>}
-                      {graded === false && <small className="quiz-feedback wrong"><X size={14} /> Not quite</small>}
-                    </fieldset>
-                  );
-                })}
+              {current.state === "loading" && (
+                <div className="quiz-loading" role="status">
+                  <span className="spinner" /> Preparing your questions…
+                </div>
+              )}
 
-                {current.message && (
-                  <p className="notice error" role="alert">
-                    <CircleAlert size={16} /> {current.message}
-                  </p>
-                )}
-
-                {current.state !== "result" && (
-                  <div className="quiz-actions">
-                    <button type="button" className="button" disabled={current.state === "submitting" || current.answers.some((answer) => answer === null)} onClick={submit}>
-                      {current.state === "submitting" ? "Checking…" : "Submit answers"}
-                    </button>
-                  </div>
-                )}
-
-                {current.state === "result" && (
-                  <div className="quiz-actions">
-                    <p className={`quiz-score ${current.result.passed ? "right" : "wrong"}`} role="status">
-                      {current.result.correct} of {current.result.total} correct.{" "}
-                      {current.result.passed
-                        ? current.result.completed
-                          ? "Lesson completed - well done!"
-                          : "You can keep watching."
-                        : `You need at least ${current.result.needed} to continue. ${rewindNote[current.checkpoint]} and try again.`}
+              {current.state === "error" && (
+                <>
+                  <div className="quiz-body">
+                    <p className="notice error" role="alert">
+                      <CircleAlert size={16} /> {current.message}
                     </p>
-                    {current.result.passed ? (
-                      <button type="button" className="button" onClick={carryOn}>
-                        {current.result.completed ? "Done" : "Continue watching"}
-                      </button>
-                    ) : (
-                      <button type="button" className="button" onClick={watchAgain}>
-                        <Rewind size={16} /> Watch again
-                      </button>
+                  </div>
+                  <footer className="quiz-foot">
+                    <button type="button" className="button" onClick={() => { setPanel(null); open(current.checkpoint); }}>
+                      <RotateCcw size={16} /> Try again
+                    </button>
+                  </footer>
+                </>
+              )}
+
+              {["ready", "submitting", "result"].includes(current.state) && (
+                <>
+                  <div className="quiz-body">
+                    {current.questions.map((item, index) => {
+                      const graded = result?.results?.[index];
+                      const review = result?.review?.[index];
+                      return (
+                        <fieldset key={item.id} className={`quiz-question${graded === true ? " right" : graded === false ? " wrong" : ""}`} disabled={current.state !== "ready"}>
+                          <legend>
+                            <span className="quiz-num">{index + 1}</span>
+                            <span>{item.question}</span>
+                          </legend>
+                          {item.options.map((option, choice) => {
+                            const chosen = current.answers[index] === choice;
+                            // A tick on the right answer (shown after a pass), a cross on a wrong choice.
+                            const mark = review?.correct_index === choice || (chosen && graded === true) ? "right" : chosen && graded === false ? "wrong" : "";
+                            return (
+                              <label key={choice} className={`quiz-option${chosen ? " chosen" : ""}${review && review.correct_index === choice ? " correct" : ""}`}>
+                                <input
+                                  type="radio"
+                                  name={`q-${item.id}`}
+                                  checked={chosen}
+                                  onChange={() => setPanel((value) => ({ ...value, answers: value.answers.map((answer, position) => (position === index ? choice : answer)) }))}
+                                />
+                                <span className="quiz-key" aria-hidden="true">{String.fromCharCode(65 + choice)}</span>
+                                <span className="quiz-text">{option}</span>
+                                {mark && <span className={`quiz-mark ${mark}`}>{mark === "right" ? <Check size={15} /> : <X size={15} />}</span>}
+                              </label>
+                            );
+                          })}
+                          {graded === true && <small className="quiz-feedback right"><Check size={14} /> <span>Correct{review?.explanation ? ` - ${review.explanation}` : ""}</span></small>}
+                          {graded === false && <small className="quiz-feedback wrong"><X size={14} /> <span>Not quite</span></small>}
+                        </fieldset>
+                      );
+                    })}
+
+                    {current.message && (
+                      <p className="notice error" role="alert">
+                        <CircleAlert size={16} /> {current.message}
+                      </p>
                     )}
                   </div>
-                )}
-              </div>
-            )}
+
+                  <footer className="quiz-foot">
+                    {current.state === "result" ? (
+                      <>
+                        <div className={`quiz-result ${result.passed ? "right" : "wrong"}`} role="status">
+                          <span className="quiz-result-icon" aria-hidden="true">
+                            {result.passed ? result.completed ? <Trophy size={18} /> : <Check size={18} /> : <Rewind size={18} />}
+                          </span>
+                          <p>
+                            <strong>{result.correct} of {result.total} correct.</strong>{" "}
+                            {result.passed
+                              ? result.completed
+                                ? "Lesson completed - well done!"
+                                : "You can keep watching."
+                              : `You need at least ${result.needed} to continue. ${rewindNote[current.checkpoint]} and try again.`}
+                          </p>
+                        </div>
+                        {result.passed ? (
+                          <button type="button" className="button" onClick={carryOn}>
+                            {result.completed ? "Done" : "Continue watching"}
+                          </button>
+                        ) : (
+                          <button type="button" className="button" onClick={watchAgain}>
+                            <Rewind size={16} /> Watch again
+                          </button>
+                        )}
+                      </>
+                    ) : (
+                      <>
+                        <span className="quiz-count">
+                          <strong>{answered}</strong> of {current.questions.length} answered
+                        </span>
+                        <button type="button" className="button" disabled={current.state === "submitting" || current.answers.some((answer) => answer === null)} onClick={submit}>
+                          {current.state === "submitting" ? "Checking…" : "Submit answers"}
+                        </button>
+                      </>
+                    )}
+                  </footer>
+                </>
+              )}
+            </div>
           </div>
         )}
       </VideoPlayer>
       {!current && !passed.includes(STEPS) && !skip && (
         <p className="quiz-hint">
-          Questions will appear a third of the way through, two thirds of the way through and at the end. Passing the final check completes this lesson.
+          <Info size={16} />
+          <span>Questions will appear a third of the way through, two thirds of the way through and at the end. Passing the final check completes this lesson.</span>
         </p>
       )}
     </div>

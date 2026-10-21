@@ -1,4 +1,5 @@
 import { fileURLToPath } from "node:url";
+import os from "node:os";
 import path from "node:path";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -9,6 +10,8 @@ export const paths = {
   backendSimple: path.join(root, "backendSimple"),
   frontend: path.join(root, "frontend"),
   artifacts: path.resolve(here, "..", "artifacts"),
+  // Each test browser's profile lives here (not in Chrome's own temp folders), so run.mjs can clear them all.
+  browserProfiles: path.join(os.tmpdir(), "uddeepto-e2e-browsers"),
 };
 
 // Odd, fixed ports so the suite never collides with the normal dev servers (3000 / 4000).

@@ -79,7 +79,7 @@ export default function Shell({ user, children, defaultCollapsed = false }) {
       : segments[0] === "account"
         ? { back: "/profile", label: "Back to profile", title: "Settings", subtitle: "Password and account" }
         : segments.length > 1 && path === "showcase"
-      ? { back: user.role === "admin" ? "/moderation" : "/showcase", label: user.role === "admin" ? "Back to moderation" : "Back to community", title: "Community", subtitle: "Post" }
+      ? { back: user.role === "admin" ? "/moderation" : "/showcase", label: user.role === "admin" ? "Back to moderation" : "Back to showcase", title: "Showcase", subtitle: "Post" }
       : isMaterial
         ? { back: `/courses/${segments[1]}`, label: "Back to course", title: "Course material", subtitle: "Material" }
         : segments[0] === "jobs" && segments.length > 1
@@ -191,7 +191,7 @@ export default function Shell({ user, children, defaultCollapsed = false }) {
                       const Icon = icons[key];
                       const active = adminPostDetail ? key === "moderation" : path === key || (user.role === "hirer" && key === "job-management" && path === "jobs");
                       return (
-                        <Link onClick={() => setOpen(false)} className={active ? "active" : ""} href={`/${key}`} key={key} title={sections[key]}>
+                        <Link onClick={() => setOpen(false)} className={active ? "active" : ""} href={key === "profile" && user.uddeepto_id ? `/profile/${user.uddeepto_id}` : `/${key}`} key={key} title={sections[key]}>
                           <Icon size={20} />
                           <span className="nav-label">{sections[key]}</span>
                           {key === "notifications" && unread > 0 && (
@@ -215,7 +215,7 @@ export default function Shell({ user, children, defaultCollapsed = false }) {
                 <button onClick={() => setProfileMenuOpen((value) => !value)} aria-label="Open profile menu" aria-expanded={profileMenuOpen}><EllipsisVertical size={20} /></button>
               </div>
               {profileMenuOpen && <div className="floating-menu">
-                <Link className="item" href="/profile" onClick={() => setProfileMenuOpen(false)}><UserRound size={16} /> Profile</Link>
+                <Link className="item" href={user.uddeepto_id ? `/profile/${user.uddeepto_id}` : "/profile"} onClick={() => setProfileMenuOpen(false)}><UserRound size={16} /> Profile</Link>
                 <Link className="item" href="/account" onClick={() => setProfileMenuOpen(false)}><Settings size={16} /> {user.role === "admin" ? "Account settings" : "Settings"}</Link>
                 <button type="button" className="item red" onClick={logout}><LogOut size={16} /> Sign out</button>
               </div>}

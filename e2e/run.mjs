@@ -8,7 +8,7 @@
 // Environment: E2E_SKIP_BUILD=1 reuses the last frontend build, E2E_HEADED=1 shows the browser,
 // E2E_BROWSER=chrome|edge|firefox picks the browser (default chrome).
 import { spawn } from "node:child_process";
-import { readdirSync } from "node:fs";
+import { readdirSync, rmSync } from "node:fs";
 import path from "node:path";
 import { paths, urls } from "./lib/config.mjs";
 import { startStack } from "./lib/stack.mjs";
@@ -29,8 +29,18 @@ if (!stackOnly && !files.length) {
   process.exit(2);
 }
 
+/** Deletes the test browsers' profiles, including any an interrupted run left behind. */
+function clearBrowserProfiles() {
+  try {
+    rmSync(paths.browserProfiles, { recursive: true, force: true, maxRetries: 5, retryDelay: 300 });
+  } catch {
+    /* a browser still holds a file: the next run tries again */
+  }
+}
+
 const stack = await startStack({ build: process.env.E2E_SKIP_BUILD !== "1" });
 console.log(`e2e: stack is up (web ${urls.web}, api ${urls.api})`);
+clearBrowserProfiles();
 
 let code = 0;
 if (stackOnly) {
@@ -48,4 +58,5 @@ if (stackOnly) {
   });
 }
 await stack.stop();
+clearBrowserProfiles();
 process.exit(code);

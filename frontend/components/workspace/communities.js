@@ -89,22 +89,27 @@ export default function Communities() {
       )}
 
       <div className="courses-sticky">
-        <div className="tabs">
-          {[
-            ["mine", "My communities"],
-            ["explore", "Explore communities"],
-          ].map(([value, label]) => (
-            <button
-              key={value}
-              className={tab === value ? "active" : ""}
-              onClick={() => {
-                setTab(value);
-                setPage(0);
-              }}
-            >
-              {label}
-            </button>
-          ))}
+        <div className="page-bar">
+          <div className="tabs">
+            {[
+              ["mine", "My communities"],
+              ["explore", "Explore communities"],
+            ].map(([value, label]) => (
+              <button
+                key={value}
+                className={tab === value ? "active" : ""}
+                onClick={() => {
+                  setTab(value);
+                  setPage(0);
+                }}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+          <button className="button" onClick={() => setCreate(true)}>
+            <Plus size={18} /> Create community
+          </button>
         </div>
         <div className="toolbar community-page-toolbar">
           <div className="community-page-search">
@@ -117,9 +122,6 @@ export default function Communities() {
               placeholder={mine ? "Search your communities…" : "Find a community…"}
             />
           </div>
-          <button className="button" onClick={() => setCreate(true)}>
-            <Plus size={18} /> Create community
-          </button>
         </div>
       </div>
 

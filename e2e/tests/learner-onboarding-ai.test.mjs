@@ -91,6 +91,24 @@ describe("Learner · First-run interest question", () => {
     assert.ok(await isShown(b.driver, xText("Try again", { tag: "button" })));
   });
 
+  it("on a phone the interests get the screen and the AI guide opens as a sheet", async () => {
+    await signIn(b.driver, await newcomer());
+    await b.driver.manage().window().setRect({ width: 390, height: 800 });
+    await go(b.driver, "/dashboard");
+    await visible(b.driver, option("Web Development"));
+    assert.equal(await isShown(b.driver, By.css(".ig-ai")), false, "the AI guide is hidden until asked for");
+    const rect = await b.driver.executeScript("const g=document.querySelector('.ig-grid').getBoundingClientRect(); return {h:g.height, w:g.width, top:g.top}");
+    assert.ok(rect.h > 250, `the interest list is only ${rect.h}px tall`);
+    assert.equal(await b.driver.executeScript("return document.documentElement.scrollWidth <= window.innerWidth"), true, "no sideways scrolling");
+    await click(b.driver, xText("Not sure? Ask the AI guide", { tag: "button" }));
+    await visible(b.driver, By.css(".ig-ai.open"));
+    await waitText(b.driver, "Confused about which interest to choose?");
+    await click(b.driver, By.css("button[aria-label='Back to the interests']"));
+    await waitGone(b.driver, By.css(".ig-ai.open"));
+    await click(b.driver, option("Music"));
+    await waitText(b.driver, "1 selected");
+  });
+
   it("a hirer is never asked to choose interests", async () => {
     await signIn(b.driver, "hirer");
     await go(b.driver, "/dashboard");

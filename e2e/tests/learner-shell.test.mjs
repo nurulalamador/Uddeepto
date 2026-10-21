@@ -82,7 +82,7 @@ describe("Learner · Dashboard", () => {
   it("greets the learner by first name", async () => {
     await signIn(b.driver, "learner");
     await go(b.driver, "/dashboard");
-    await b.driver.wait(async () => /^Good (morning|afternoon|evening|night), Lena!/.test(await (await find(b.driver, By.css(".ld-hero h1"))).getText()), 10000);
+    await b.driver.wait(async () => /^(Good (morning|afternoon|evening|night)|Working late), Lena!/.test(await (await find(b.driver, By.css(".ld-hero h1"))).getText()), 10000);
   });
 
   it("shows the six activity tiles", async () => {

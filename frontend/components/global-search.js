@@ -42,7 +42,7 @@ export function ResultRow({ item, active = false, onNavigate, id }) {
         <strong>{item.title}</strong>
         {item.subtitle && <small>{item.subtitle}</small>}
       </span>
-      {item.meta && <span className="gs-item-meta">{item.meta}</span>}
+      {item.meta && <span className={`gs-item-meta ${item.type}`}>{item.meta}</span>}
     </Link>
   );
 }

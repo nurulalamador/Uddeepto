@@ -100,7 +100,7 @@ describe("Hirer · Dashboard", () => {
     const hirer = await makeHirer("fresh");
     await signIn(b.driver, hirer);
     await go(b.driver, "/dashboard");
-    await b.driver.wait(async () => /^Good (morning|afternoon|evening|night), Person!/.test(await (await find(b.driver, By.css(".ld-hero h1"))).getText()), 10000);
+    await b.driver.wait(async () => /^(Good (morning|afternoon|evening|night)|Working late), Person!/.test(await (await find(b.driver, By.css(".ld-hero h1"))).getText()), 10000);
     await waitText(b.driver, "Post your first job and start meeting talented people.");
   });
 

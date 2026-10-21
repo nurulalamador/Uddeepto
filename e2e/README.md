@@ -34,6 +34,7 @@ E2E_BASE_URL=http://127.0.0.1:3200 E2E_API_URL=http://127.0.0.1:4400/api/v1 node
 | `E2E_AI_MOCK=1` | answer AI requests with a local fake Gemini (needed by `learner-video-quiz`, which is skipped otherwise): `E2E_AI_MOCK=1 node run.mjs learner-video-quiz` |
 
 Ports: database 54329, backend 4400, website 3200. A failing test saves a screenshot to `artifacts/`.
+Test browsers keep their profiles in `uddeepto-e2e-browsers` in the system temp folder; each browser deletes its own on close, and `run.mjs` empties the folder before and after every run.
 `node inspect-cv.mjs` (with `--stack-only` running) saves one sample PDF per CV template to `artifacts/cv/` so the layouts can be looked at.
 `node inspect.mjs <learner|hirer|admin> <route>` prints what a page looks like (text, links, fields) for writing selectors.
 

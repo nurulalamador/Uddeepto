@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Bot, Check, LogOut, Plus, RotateCcw, Search, Send, Sparkles } from "lucide-react";
+import { Bot, Check, LogOut, Plus, RotateCcw, Search, Send, Sparkles, X } from "lucide-react";
 import { api } from "@/lib/api";
 import { InterestIcon, useResource } from "./ui";
 import Markdown from "./markdown";
@@ -15,7 +15,7 @@ function mentioned(text, categories, selected) {
   return categories.filter((item) => !selected.includes(String(item.id)) && lower.includes(item.name.toLowerCase()));
 }
 
-function AiGuide({ categories, selected, onAdd }) {
+function AiGuide({ categories, selected, onAdd, open, onClose }) {
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState("");
   const [pending, setPending] = useState(false);
@@ -52,7 +52,7 @@ function AiGuide({ categories, selected, onAdd }) {
   }
 
   return (
-    <section className="ig-ai" aria-label="AI Assistant">
+    <section className={`ig-ai${open ? " open" : ""}`} aria-label="AI Assistant">
       <header>
         <span className="ai-ask-icon">
           <Sparkles size={17} />
@@ -61,6 +61,9 @@ function AiGuide({ categories, selected, onAdd }) {
           <h2>Confused about which interest to choose?</h2>
           <p>Discuss with our AI Assistant, it will suggest interests that fit you.</p>
         </div>
+        <button type="button" className="ig-ai-close" onClick={onClose} aria-label="Back to the interests">
+          <X size={18} />
+        </button>
       </header>
 
       <div className="ig-ai-messages" ref={list} aria-live="polite">
@@ -168,6 +171,7 @@ export default function InterestGate({ role }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [done, setDone] = useState(false);
+  const [aiOpen, setAiOpen] = useState(false); // on a phone the AI guide is a full-screen sheet opened on request
 
   useEffect(() => {
     const element = dialog.current;
@@ -217,6 +221,10 @@ export default function InterestGate({ role }) {
             <Search size={18} />
             <input aria-label="Search interests" placeholder="Search interests…" value={term} onChange={(event) => setTerm(event.target.value)} />
           </div>
+
+          <button type="button" className="ig-ask" onClick={() => setAiOpen(true)}>
+            <Sparkles size={16} /> Not sure? Ask the AI guide
+          </button>
 
           <div className="ig-grid" role="group" aria-label="Interests">
             {categories.loading && !items.length ? (
@@ -272,7 +280,7 @@ export default function InterestGate({ role }) {
           </footer>
         </section>
 
-        <AiGuide categories={items} selected={selected} onAdd={add} />
+        <AiGuide categories={items} selected={selected} onAdd={add} open={aiOpen} onClose={() => setAiOpen(false)} />
       </div>
     </dialog>
   );

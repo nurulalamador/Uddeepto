@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState, useRef } from "react";
+import dynamicIconImports from "lucide-react/dynamicIconImports";
 import {
   X,
   Plus,
@@ -11,8 +12,6 @@ import {
   ChevronLeft,
   ChevronRight,
   Upload,
-  Palette,
-  Spline,
   Star,
 } from "lucide-react";
 import { api } from "@/lib/api";
@@ -105,6 +104,8 @@ export function SearchBox({ value, onChange, placeholder = "Search…" }) {
   );
 }
 export function Pager({ page, setPage, hasMore }) {
+  // Everything fits on one page: no pager to look at.
+  if (!page && !hasMore) return null;
   return (
     <div className="pager">
       <button disabled={!page} onClick={() => setPage(page - 1)}>
@@ -197,10 +198,51 @@ export function Badge({ children }) {
   );
 }
 
+// An interest's icon is the name of a Lucide icon stored with the interest ("code", "palette", "music-4" ...).
+// Any icon from https://lucide.dev/icons works: it is loaded the first time it is needed and remembered, and a star
+// is shown while it loads or when the name is not an icon. Names written as "BookOpen" or "book_open" are understood.
+const loadedIcons = new Map(); // name -> component, or null when there is no such icon
+const loadingIcons = new Map();
+const iconAliases = { "spline-pointer": "spline" }; // names used by older data
+export const iconKey = (value) => {
+  const name = String(value || "")
+    .trim()
+    .replace(/([a-z0-9])([A-Z])/g, "$1-$2")
+    .replace(/[_\s]+/g, "-")
+    .toLowerCase();
+  return iconAliases[name] || name;
+};
+export const isLucideIcon = (value) => Boolean(dynamicIconImports[iconKey(value)]);
+function loadIcon(name) {
+  if (loadedIcons.has(name)) return Promise.resolve(loadedIcons.get(name));
+  if (!loadingIcons.has(name)) {
+    const load = dynamicIconImports[name];
+    loadingIcons.set(
+      name,
+      (load ? load().then((module) => module.default) : Promise.resolve(null))
+        .catch(() => null)
+        .then((component) => {
+          loadedIcons.set(name, component);
+          loadingIcons.delete(name);
+          return component;
+        }),
+    );
+  }
+  return loadingIcons.get(name);
+}
 export function InterestIcon({ iconName, size = 18 }) {
-  if (iconName === "palette") return <Palette size={size} aria-hidden="true" />;
-  if (iconName === "spline-pointer") return <Spline size={size} aria-hidden="true" />;
-  return <Star size={size} aria-hidden="true" />;
+  const name = iconKey(iconName);
+  const [, refresh] = useState(0);
+  useEffect(() => {
+    if (!name || loadedIcons.has(name)) return undefined;
+    let live = true;
+    loadIcon(name).then(() => live && refresh((value) => value + 1));
+    return () => {
+      live = false;
+    };
+  }, [name]);
+  const Icon = loadedIcons.get(name) || Star;
+  return <Icon size={size} aria-hidden="true" />;
 }
 
 export function Dropdown({

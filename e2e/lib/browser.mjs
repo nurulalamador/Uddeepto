@@ -1,4 +1,4 @@
-import { mkdirSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { after, afterEach, before } from "node:test";
 import { Browser, Builder, By, Key, until } from "selenium-webdriver";
@@ -18,18 +18,36 @@ export async function openBrowser() {
   const headed = process.env.E2E_HEADED === "1";
   const name = (process.env.E2E_BROWSER || "chrome").toLowerCase();
   const builder = new Builder();
+  let profile = null;
   if (name === "firefox") {
     const options = new firefox.Options().addArguments("-width=1440", "-height=900");
     if (!headed) options.addArguments("-headless");
     builder.forBrowser(Browser.FIREFOX).setFirefoxOptions(options);
   } else {
-    const args = ["--window-size=1440,900", "--lang=en-US", "--disable-gpu", "--no-sandbox", "--disable-dev-shm-usage", "--force-device-scale-factor=1"];
+    // Left to itself Chrome puts each profile in a temp folder of its own and often leaves it behind.
+    mkdirSync(paths.browserProfiles, { recursive: true });
+    profile = mkdtempSync(path.join(paths.browserProfiles, `${name}-`));
+    const args = ["--window-size=1440,900", "--lang=en-US", "--disable-gpu", "--no-sandbox", "--disable-dev-shm-usage", "--force-device-scale-factor=1", `--user-data-dir=${profile}`];
     if (!headed) args.push("--headless=new");
     if (name === "edge") builder.forBrowser(Browser.EDGE).setEdgeOptions(new edge.Options().addArguments(...args));
     else builder.forBrowser(Browser.CHROME).setChromeOptions(new chrome.Options().addArguments(...args));
   }
   const driver = await builder.build();
   await driver.manage().setTimeouts({ implicit: 0, pageLoad: 60000, script: 30000 });
+  if (profile) {
+    const quit = driver.quit.bind(driver);
+    driver.quit = async () => {
+      try {
+        await quit();
+      } finally {
+        try {
+          rmSync(profile, { recursive: true, force: true, maxRetries: 5, retryDelay: 300 });
+        } catch {
+          /* still locked: run.mjs clears the folder after the run */
+        }
+      }
+    };
+  }
   return driver;
 }
 

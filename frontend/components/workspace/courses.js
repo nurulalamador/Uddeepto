@@ -131,7 +131,7 @@ function RecommendedRail() {
             <CategoryChips categories={item.category_details} limit={2} />
             <h3>{item.title}</h3>
             <span className="recommended-meta">
-              <strong>{money(item.price, item.currency)}</strong>
+              <strong className="price">{money(item.price, item.currency)}</strong>
               {item.instructor_name && <small>{item.instructor_name}</small>}
             </span>
           </div>
@@ -283,7 +283,7 @@ export default function Courses() {
                         <ProgressBar done={item.progress_done} total={item.progress_total} />
                       )}
                       <footer>
-                        <strong>{money(item.price, item.currency)}</strong>
+                        <strong className="price">{money(item.price, item.currency)}</strong>
                         <Link className="text-link" href={`/courses/${item.id}`}>
                           View details <ArrowUpRight size={17} />
                         </Link>

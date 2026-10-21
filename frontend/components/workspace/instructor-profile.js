@@ -72,7 +72,7 @@ export default function InstructorProfile({ instructorId }) {
                         <CategoryChips categories={course.category_details} limit={2} />
                         <h3>{course.title}</h3>
                         <span className="recommended-meta">
-                          <strong>{money(course.price, course.currency)}</strong>
+                          <strong className="price">{money(course.price, course.currency)}</strong>
                         </span>
                       </div>
                     </Link>

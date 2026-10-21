@@ -8,7 +8,7 @@ const search = By.css("input[aria-label='Search your job posts…']");
 async function openManagement(driver, who) {
   await signIn(driver, who);
   await go(driver, "/job-management");
-  await waitText(driver, "Post roles, follow their progress and get to know the people who apply.");
+  await waitText(driver, "My Job Posts");
 }
 async function findPost(driver, who, title) {
   await openManagement(driver, who);

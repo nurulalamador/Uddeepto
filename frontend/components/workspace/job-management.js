@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { ArrowUpRight, Briefcase, Download, MapPin, MessageCircle, Plus, UserRound, Users } from "lucide-react";
 import { api } from "@/lib/api";
-import { Action, Badge, Dropdown, Empty, Heading, Modal, Pager, SearchBox, State, UserAvatar, date, useResource } from "../ui";
+import { Action, Badge, Dropdown, Empty, Modal, Pager, SearchBox, State, UserAvatar, date, useResource } from "../ui";
 import { useUser } from "../shell";
 import JobForm, { typeLabel } from "./job-form";
 import { salaryLabel } from "./jobs";
@@ -21,22 +21,21 @@ export default function JobManagement() {
 
   return (
     <div className="courses-page">
-      <Heading eyebrow="HIRING" title="Job Management" description="Post roles, follow their progress and get to know the people who apply.">
-        <button className="button" onClick={() => setCreate(true)}>
-          <Plus size={18} /> Post a job
-        </button>
-      </Heading>
-
       <div className="courses-sticky">
-        <div className="tabs">
-          {[
-            ["posts", "My Job Posts"],
-            ["applicants", "Applicants"],
-          ].map(([value, label]) => (
-            <button key={value} className={tab === value ? "active" : ""} onClick={() => setTab(value)}>
-              {label}
-            </button>
-          ))}
+        <div className="page-bar">
+          <div className="tabs">
+            {[
+              ["posts", "My Job Posts"],
+              ["applicants", "Applicants"],
+            ].map(([value, label]) => (
+              <button key={value} className={tab === value ? "active" : ""} onClick={() => setTab(value)}>
+                {label}
+              </button>
+            ))}
+          </div>
+          <button className="button" onClick={() => setCreate(true)}>
+            <Plus size={18} /> Post a job
+          </button>
         </div>
       </div>
 

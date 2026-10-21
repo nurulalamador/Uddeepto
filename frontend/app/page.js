@@ -42,7 +42,6 @@ export default async function Landing() {
           <div className="hero-board">
             <div className="board-heading">
               <span>YOUR GROWTH, CONNECTED</span>
-              <span>01 - 04</span>
             </div>
             {[
               [
@@ -74,7 +73,6 @@ export default async function Landing() {
                   <h3>{title}</h3>
                   <p>{desc}</p>
                 </div>
-                <span className="path-number">0{i + 1}</span>
               </div>
             ))}
             <div className="board-foot">

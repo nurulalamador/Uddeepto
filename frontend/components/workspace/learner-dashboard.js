@@ -45,7 +45,7 @@ function Ring({ value, size = 92, stroke = 9 }) {
         strokeDashoffset={circumference * (1 - value / 100)}
         transform={`rotate(-90 ${size / 2} ${size / 2})`}
       />
-      <text x="50%" y="50%" dominantBaseline="central" textAnchor="middle" fill="#fff" fontSize={size * 0.24} fontWeight="800">
+      <text x="50%" y="50%" dominantBaseline="central" textAnchor="middle" fill="#fff" fontSize={size * 0.24} fontWeight="700">
         {value}%
       </text>
     </svg>
@@ -227,7 +227,7 @@ function Body({ user, data, recommended }) {
                     {course.has_cover_image ? <img src={`/api/backend/frontend/course-covers/${course.id}`} alt="" /> : <span className="ld-course-placeholder"><BookOpen size={26} /></span>}
                     <CategoryChips categories={course.category_details} limit={1} />
                     <strong>{course.title}</strong>
-                    <small>{money(course.price, course.currency)}</small>
+                    <small className="price">{money(course.price, course.currency)}</small>
                   </Link>
                 ))}
               </div>

@@ -42,9 +42,25 @@ export default function AdminDashboard() {
     ["Active webinars", Number(stats.active_webinars), Number(stats.webinars)],
     ["Open jobs", Number(stats.open_jobs), Number(stats.jobs)],
   ] : [];
+  const reports = Number(stats?.open_reports || 0);
+  const drafts = Number(stats?.draft_courses || 0);
 
   return <div className="admin-dashboard">
-    <header className="admin-page-heading"><div><p className="eyebrow">ADMIN CONSOLE</p><h1>Platform overview</h1></div><span className="admin-live-pill"><ShieldCheck size={16} /> Admin workspace</span></header>
+    <section className="ld-hero admin-hero">
+      <div className="ld-hero-text">
+        <span className="admin-live-pill"><ShieldCheck size={16} /> Admin workspace</span>
+        <h1>Platform overview</h1>
+        <p>{!stats ? "How the platform is doing today." : reports ? `${reports} report${reports === 1 ? " is" : "s are"} waiting for your review.` : "No reports are waiting for review. Everything is in order."}</p>
+        <div className="ld-hero-actions">
+          <Link className="button light" href="/moderation">{reports ? "Review reports" : "Open moderation"} <ArrowUpRight size={17} /></Link>
+          <Link className="button ghost" href="/admin?tab=users"><Users size={17} /> Manage users</Link>
+        </div>
+      </div>
+      {stats && <div className="ld-hero-stats">
+        <div className="ld-streak" title="Community reports waiting for a decision"><Flag size={22} /><strong>{reports}</strong><span>open reports</span></div>
+        <div className="ld-streak" title="Courses saved as drafts"><BookOpen size={22} /><strong>{drafts}</strong><span>draft courses</span></div>
+      </div>}
+    </section>
     <State resource={resource}>
       {stats && <>
         <section className="admin-kpi-grid" aria-label="Platform statistics">

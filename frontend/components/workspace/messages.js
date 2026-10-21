@@ -117,6 +117,13 @@ export default function Messages() {
     <div className="messages-page">
       <div className="messenger">
         <aside>
+          <div className="messenger-aside-head">
+            <strong>Chats</strong>
+            <button type="button" className="fab" onClick={() => setCreate(true)} aria-label="New message">
+              <Plus size={17} />
+              <span>New message</span>
+            </button>
+          </div>
           <State resource={conversations}>
             {conversations.data?.length ? (
               conversations.data.map((conversation) => (
@@ -191,11 +198,6 @@ export default function Messages() {
           )}
         </section>
       </div>
-
-      <button type="button" className="fab" onClick={() => setCreate(true)} aria-label="New message">
-        <Plus size={22} />
-        <span>New message</span>
-      </button>
 
       {create && (
         <Modal title="Start a conversation" onClose={() => setCreate(false)}>

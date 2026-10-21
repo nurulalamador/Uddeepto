@@ -10,7 +10,6 @@ import {
   MessageCircle,
   Plus,
   Send,
-  Sparkles,
   Trash2,
   X,
 } from "lucide-react";
@@ -266,24 +265,6 @@ export default function Showcase() {
             />
           )}
         </section>
-
-        <aside className="card feed-aside">
-          <Sparkles size={28} />
-          <h2>
-            Work in progress
-            <br />
-            is welcome.
-          </h2>
-          <p>
-            You don’t need a finished masterpiece to share something worth
-            seeing.
-          </p>
-          <hr />
-          <h4>A thoughtful community</h4>
-          <p>
-            Give useful feedback. Credit your inspiration. Celebrate the effort.
-          </p>
-        </aside>
       </div>
 
       {create && (

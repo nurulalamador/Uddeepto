@@ -26,7 +26,7 @@ import { api } from "@/lib/api";
 import { adminFields } from "@/lib/admin-fields";
 import AdminContent from "./admin-content";
 import { LocationPicker } from "./job-map";
-import { Action, Badge, CategoryPicker, Empty, Modal, SearchBox, State, useResource } from "../ui";
+import { Action, Badge, CategoryPicker, Empty, InterestIcon, Modal, SearchBox, State, isLucideIcon, useResource } from "../ui";
 
 const PAGE_SIZE = 20;
 // "Newest first", "Start date" and "Price" read best high-to-low; names, emails, slugs and roles A to Z.
@@ -295,9 +295,20 @@ function RecordForm({ table, item, onDone }) {
       if (type === "speakers") return <SpeakerPicker key={field} value={speakers} onChange={setSpeakers} />;
       if (type === "boolean") return <label key={field}>{label}<select name={field} defaultValue={String(Boolean(value))}><option value="true">Yes</option><option value="false">No</option></select></label>;
       if (type === "textarea") return <label className="wide" key={field}>{label}<textarea name={field} defaultValue={value} rows={field === "description" || field === "criteria" ? 4 : 3} maxLength={10000} required={requiredFields[table]?.includes(field)} /></label>;
+      if (field === "icon") return <IconField key={field} label={label} value={value} required={requiredFields[table]?.includes(field)} />;
       return <label key={field}>{label}<input name={field} type={type} defaultValue={value} required={requiredFields[table]?.includes(field)} step={type === "number" ? "any" : undefined} min={type === "number" ? "0" : undefined} /></label>;
     })}
   </div>{error && <p className="notice error" role="alert">{error}</p>}<button className="button admin-save-button" disabled={busy}>{busy ? "Saving…" : item.id ? "Save changes" : "Create record"}</button></form>;
+}
+
+/** The interest's icon: any Lucide icon name, shown as it is typed so a wrong name is noticed straight away. */
+function IconField({ label, value, required }) {
+  const [text, setText] = useState(value || "");
+  const known = isLucideIcon(text);
+  return <label className="admin-icon-field">{label}
+    <span className="admin-icon-input"><span className={`admin-icon-preview${known ? "" : " unknown"}`} aria-hidden="true"><InterestIcon iconName={text} size={20} /></span><input name="icon" value={text} required={required} onChange={(event) => setText(event.target.value)} placeholder="e.g. code, palette, music" /></span>
+    <small>{text.trim() ? (known ? "Icon found." : "No icon has this name - a star is shown instead.") : "Type the name of an icon."} Browse the names at <a href="https://lucide.dev/icons" target="_blank" rel="noreferrer">lucide.dev/icons</a>.</small>
+  </label>;
 }
 
 function InstructorPicker({ item }) {

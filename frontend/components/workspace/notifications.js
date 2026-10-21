@@ -293,26 +293,27 @@ export default function Notifications() {
 
   return (
     <div className="courses-page notifications-page">
-      <div className="nt-head-actions nt-toolbar-actions">
-        <button type="button" className="button secondary" onClick={markAll} disabled={!(category ? byCategory[category] : unread)}>
-          <CheckCheck size={17} /> Mark all as read
-        </button>
-        {hasRead && (
-          <button type="button" className="button secondary" onClick={clearRead}>
-            <Trash2 size={17} /> Clear read
+      <div className="page-bar">
+        <div className="tabs">
+          {[
+            ["all", "All"],
+            ["unread", unread ? `Unread (${unread > 99 ? "99+" : unread})` : "Unread"],
+          ].map(([value, label]) => (
+            <button key={value} className={filter === value ? "active" : ""} onClick={() => setFilter(value)}>
+              {label}
+            </button>
+          ))}
+        </div>
+        <div className="nt-head-actions nt-toolbar-actions">
+          <button type="button" className="button secondary small" onClick={markAll} disabled={!(category ? byCategory[category] : unread)}>
+            <CheckCheck size={16} /> Mark all as read
           </button>
-        )}
-      </div>
-
-      <div className="tabs">
-        {[
-          ["all", "All"],
-          ["unread", unread ? `Unread (${unread > 99 ? "99+" : unread})` : "Unread"],
-        ].map(([value, label]) => (
-          <button key={value} className={filter === value ? "active" : ""} onClick={() => setFilter(value)}>
-            {label}
-          </button>
-        ))}
+          {hasRead && (
+            <button type="button" className="button secondary small" onClick={clearRead}>
+              <Trash2 size={16} /> Clear read
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="nt-chips" role="group" aria-label="Filter by type">

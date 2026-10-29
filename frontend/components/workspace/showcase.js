@@ -200,11 +200,9 @@ export default function Showcase() {
             hasIcon
           />
         </div>
-        {user.role !== "hirer" && (
-          <button className="button" onClick={() => setCreate(true)}>
-            <Plus size={18} /> Create a post
-          </button>
-        )}
+        <button className="button" onClick={() => setCreate(true)}>
+          <Plus size={18} /> Create a post
+        </button>
       </div>
 
       <div className="feed-layout">
@@ -471,6 +469,7 @@ export function ShowcasePost({ post, detail = false, onDeleted }) {
           <Link href={"/profile/" + post.creator_id}>
             <strong>{post.creator_name}</strong>
           </Link>
+          {post.creator_role === "hirer" && <span className="post-role">Hirer</span>}
           <small>
             {date(post.created_at)} · {post.category_name}
           </small>

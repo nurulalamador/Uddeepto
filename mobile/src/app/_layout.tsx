@@ -65,6 +65,9 @@ function Gate() {
         <Stack.Screen name="ai" options={{ title: "Ask AI" }} />
       </Stack.Protected>
       <Stack.Protected guard={learner}>
+        <Stack.Screen name="leaderboard-full" options={{ title: "Leaderboard" }} />
+      </Stack.Protected>
+      <Stack.Protected guard={learner}>
         <Stack.Screen name="interests" options={{ title: "Your interests" }} />
         <Stack.Screen name="contest/[id]" options={{ title: "Contest" }} />
         <Stack.Screen name="webinar/[id]" options={{ title: "Webinar" }} />

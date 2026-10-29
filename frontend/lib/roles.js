@@ -1,6 +1,7 @@
 export const sections = {
   dashboard: "Dashboard",
   showcase: "Showcase",
+  leaderboard: "Leaderboard",
   courses: "Courses",
   contests: "Contests",
   webinars: "Webinars",
@@ -23,10 +24,11 @@ export const sections = {
 export function allowedSections(role) {
   if (role === "admin")
     return ["dashboard", "notifications", "courses", "contests", "webinars", "jobs", "admin", "moderation", "settings"];
-  if (role === "hirer") return ["dashboard", "showcase", "job-posts", "applicants", "messages", "notifications", "profile"];
+  if (role === "hirer") return ["dashboard", "showcase", "leaderboard", "job-posts", "applicants", "messages", "notifications", "profile"];
   return [
     "dashboard",
     "showcase",
+    "leaderboard",
     "courses",
     "contests",
     "webinars",
@@ -55,7 +57,7 @@ export function allowedCategorizedSections(role) {
     return [
       {
         title: "Overview",
-        sections: ["dashboard", "showcase"],
+        sections: ["dashboard", "showcase", "leaderboard"],
       },
       {
         title: "Hiring",
@@ -69,7 +71,7 @@ export function allowedCategorizedSections(role) {
   return [
     {
       title: "Overview",
-      sections: ["dashboard", "showcase"],
+      sections: ["dashboard", "showcase", "leaderboard"],
     },
     {
       title: "Workspace",

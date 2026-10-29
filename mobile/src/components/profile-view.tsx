@@ -1,14 +1,28 @@
 import { useState } from "react";
-import { RefreshControl, ScrollView, StyleSheet, View } from "react-native";
+import { Pressable, RefreshControl, ScrollView, StyleSheet, View } from "react-native";
+import * as Clipboard from "expo-clipboard";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { api } from "@/lib/api";
 import { colors, gradients } from "@/lib/config";
 import { useApi } from "@/lib/hooks";
-import { dateOnly, label } from "@/lib/format";
+import { dateOnly, label, salary } from "@/lib/format";
 import { LinearGradient } from "expo-linear-gradient";
 import { Avatar, Button, Card, Chip, ErrorBox, Loading, Muted, Notice, RemoteImage, SectionTitle, Text } from "./ui";
 import { PostCard, type Post } from "./post-card";
+
+type ProfileJob = {
+  id: string;
+  title: string;
+  type: string;
+  salary_min: string | null;
+  salary_max: string | null;
+  currency: string;
+  salary_period: string | null;
+  location: string | null;
+  is_remote: boolean;
+  application_deadline: string | null;
+};
 
 type Profile = {
   id: string;
@@ -26,7 +40,9 @@ type Profile = {
   education: { id: string; institution: string; degree?: string; field_of_study?: string; start_date: string; end_date: string | null; grade?: string }[];
   experience: { id: string; title: string; workplace: string; location?: string; category_name?: string; start_date: string; end_date: string | null; description?: string }[];
   posts: { id: string; content: string }[];
+  job_posts?: ProfileJob[];
   contests?: { id: string; name: string; status: string; starting_time: string; rank: number | null; points: string; participant_count: number }[];
+  points?: { total: number; courses: number; contests: number };
   personal?: { email?: string; phone?: string; current_address?: string };
 };
 
@@ -38,6 +54,14 @@ export function ProfileView({ reference, children }: { reference: string; childr
   const profile = resource.data;
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [copied, setCopied] = useState(false);
+
+  async function copyId() {
+    if (!profile) return;
+    await Clipboard.setStringAsync(profile.uddeepto_id);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1800);
+  }
 
   async function message() {
     if (!profile) return;
@@ -66,12 +90,38 @@ export function ProfileView({ reference, children }: { reference: string; childr
         <View style={styles.identity}>
           <Text style={styles.name}>{profile.name}</Text>
           {profile.headline ? <Text style={styles.headline}>{profile.headline}</Text> : null}
-          <Muted>
-            @{profile.username} · {label(profile.role)} · Joined {dateOnly(profile.created_at)}
-          </Muted>
-          <Muted>Uddeepto ID {profile.uddeepto_id}</Muted>
+          <View style={styles.roleRow}>
+            <View style={styles.role}>
+              <Text style={styles.roleText}>{label(profile.role)}</Text>
+            </View>
+            <Muted>
+              @{profile.username} · Joined {dateOnly(profile.created_at)}
+            </Muted>
+          </View>
         </View>
       </View>
+
+      <LinearGradient colors={[colors.greenSoft, colors.card]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.idCard}>
+        <Text style={styles.idLabel}>UDDEEPTO ID</Text>
+        <Text style={styles.idValue} selectable>
+          {profile.uddeepto_id}
+        </Text>
+        <Pressable onPress={copyId} style={styles.copy} accessibilityRole="button" accessibilityLabel="Copy Uddeepto ID">
+          <Ionicons name={copied ? "checkmark" : "copy-outline"} size={15} color={colors.green} />
+          <Text style={{ color: colors.green, fontWeight: "700", fontSize: 13 }}>{copied ? "Copied" : "Copy ID"}</Text>
+        </Pressable>
+      </LinearGradient>
+
+      {profile.role === "learner" && profile.points ? (
+        <LinearGradient colors={gradients.hero} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.pointsCard}>
+          <View style={styles.pointsIcon}>
+            <Ionicons name="trophy" size={22} color="#fff" />
+          </View>
+          <Text style={styles.pointsLabel}>POINTS</Text>
+          <Text style={[styles.pointsValue, profile.points.total < 0 && { color: "#ffd0c7" }]}>{profile.points.total}</Text>
+          <Text style={styles.pointsNote}>Point is calculated from contest and course performance.</Text>
+        </LinearGradient>
+      ) : null}
 
       {!profile.is_self && profile.role !== "admin" && <Button label="Send message" icon="chatbubble-ellipses-outline" onPress={message} busy={busy} />}
       {error ? <Notice>{error}</Notice> : null}
@@ -151,6 +201,36 @@ export function ProfileView({ reference, children }: { reference: string; childr
         </Card>
       )}
 
+      {profile.role === "hirer" && (
+        <Card>
+          <View style={styles.jobsHeading}>
+            <Ionicons name="briefcase-outline" size={20} color={colors.green} />
+            <Text style={styles.heading}>Active job posts</Text>
+          </View>
+          {profile.job_posts?.length ? (
+            profile.job_posts.map((job) => (
+              <Pressable
+                key={job.id}
+                onPress={() => router.push({ pathname: "/job/[id]", params: { id: job.id } })}
+                accessibilityRole="button"
+                accessibilityLabel={`View job: ${job.title}`}
+                style={({ pressed }) => [styles.job, pressed && styles.jobPressed]}
+              >
+                <View style={styles.jobTitleRow}>
+                  <Text style={[styles.entryTitle, { flex: 1 }]} numberOfLines={2}>{job.title}</Text>
+                  <Ionicons name="chevron-forward" size={18} color={colors.green} />
+                </View>
+                <Muted>{job.is_remote ? "Remote" : job.location || "Location not specified"} · {label(job.type)}</Muted>
+                <Text style={styles.jobSalary}>{salary(job)}</Text>
+                {job.application_deadline ? <Muted>Apply by {dateOnly(job.application_deadline)}</Muted> : null}
+              </Pressable>
+            ))
+          ) : (
+            <Muted>{profile.is_self ? "Your open job posts will be listed here." : "No active job posts."}</Muted>
+          )}
+        </Card>
+      )}
+
       {profile.posts.length > 0 && (
         <>
           <SectionTitle>Recent showcase</SectionTitle>
@@ -191,7 +271,24 @@ const styles = StyleSheet.create({
   identity: { padding: 16, paddingTop: 8, gap: 3 },
   name: { fontSize: 21, fontWeight: "800", color: colors.text },
   headline: { fontSize: 15, color: colors.text },
+  roleRow: { flexDirection: "row", alignItems: "center", gap: 8, flexWrap: "wrap", marginTop: 2 },
+  role: { paddingHorizontal: 10, paddingVertical: 3, borderRadius: 999, backgroundColor: colors.greenSoft },
+  roleText: { color: colors.green, fontWeight: "700", fontSize: 12 },
+  idCard: { borderRadius: 18, borderWidth: 1, borderColor: colors.border, padding: 16, gap: 8 },
+  idLabel: { color: colors.muted, fontSize: 11, fontWeight: "800", letterSpacing: 1.2 },
+  idValue: { color: colors.green, fontSize: 28, fontWeight: "800", letterSpacing: 2 },
+  copy: { flexDirection: "row", alignItems: "center", gap: 6, alignSelf: "flex-start", paddingHorizontal: 12, paddingVertical: 7, borderRadius: 999, borderWidth: 1, borderColor: colors.border, backgroundColor: "#fff" },
+  pointsCard: { borderRadius: 18, padding: 18, gap: 4, overflow: "hidden" },
+  pointsIcon: { width: 40, height: 40, borderRadius: 12, backgroundColor: "rgba(255,255,255,0.2)", alignItems: "center", justifyContent: "center", marginBottom: 4 },
+  pointsLabel: { color: "rgba(255,255,255,0.8)", fontSize: 11, fontWeight: "800", letterSpacing: 1.2 },
+  pointsValue: { color: "#fff", fontSize: 42, fontWeight: "800", letterSpacing: -1 },
+  pointsNote: { color: "rgba(255,255,255,0.85)", fontSize: 13 },
   heading: { fontSize: 16, fontWeight: "800", color: colors.text },
+  jobsHeading: { flexDirection: "row", alignItems: "center", gap: 8 },
+  job: { borderWidth: 1, borderColor: colors.border, borderRadius: 12, padding: 12, gap: 6 },
+  jobPressed: { backgroundColor: colors.greenSoft },
+  jobTitleRow: { flexDirection: "row", alignItems: "center", gap: 8 },
+  jobSalary: { color: colors.orange, fontWeight: "700", fontSize: 14 },
   text: { color: colors.text, fontSize: 14, lineHeight: 21 },
   chips: { flexDirection: "row", gap: 6, flexWrap: "wrap" },
   entry: { gap: 2, paddingTop: 6 },

@@ -4,7 +4,7 @@ import { By, apiOk, click, clickLink, exists, find, go, hasText, isShown, signIn
 import { applyTo, makeHirer, makeJob, makeLearner } from "../lib/factory.mjs";
 import { goSidebar, logout, openProfileMenu, pageTitle, sidebarCaptions, sidebarItems, waitWorkspace } from "../lib/flows.mjs";
 
-const HIRER_MENU = ["Dashboard", "Showcase", "My Job Posts", "Applicants", "Messages", "Notifications", "Profile"];
+const HIRER_MENU = ["Dashboard", "Showcase", "Leaderboard", "My Job Posts", "Applicants", "Messages", "Notifications", "Profile"];
 
 describe("Hirer · Navigation", () => {
   const b = useBrowser();

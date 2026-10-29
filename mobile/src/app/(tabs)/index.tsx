@@ -10,6 +10,7 @@ import { Card, Chip, ErrorBox, Hero, Loading, Muted, ProgressBar, SectionTitle, 
 import HirerDashboard from "@/components/hirer-dashboard";
 import { JobCard, type JobRow } from "./jobs";
 import { CourseCover } from "./courses";
+import { LeaderboardPreview } from "@/components/leaderboard";
 
 type Dashboard = {
   stats: Record<string, number | string>;
@@ -88,6 +89,8 @@ function LearnerDashboard() {
               </View>
             ))}
           </View>
+
+          <LeaderboardPreview />
 
           {data.continue_learning?.length > 0 && (
             <>

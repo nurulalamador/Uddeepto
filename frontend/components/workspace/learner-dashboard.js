@@ -20,6 +20,7 @@ import {
 import { useUser } from "../shell";
 import { Empty, State, date, money, useResource } from "../ui";
 import { CategoryChips, ProgressBar } from "./courses";
+import { LeaderboardPreview } from "./leaderboard";
 
 const DAY = ["S", "M", "T", "W", "T", "F", "S"];
 const greeting = () => {
@@ -238,6 +239,8 @@ function Body({ user, data, recommended }) {
         </div>
 
         <aside className="ld-col">
+          <LeaderboardPreview />
+
           <Card title="Coming up" icon={CalendarClock}>
             {data.schedule.length ? (
               <ul className="ld-list">{data.schedule.map((item) => <ScheduleRow item={item} key={`${item.kind}-${item.id}`} />)}</ul>

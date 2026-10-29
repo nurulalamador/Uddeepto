@@ -30,15 +30,6 @@ r.get(
 r.post(
   "/showcase",
   auth(),
-  (q, _s, n) =>
-    q.user.role === "hirer"
-      ? n(
-          new ApiError(
-            403,
-            "Hiring accounts can view the showcase but not post to it",
-          ),
-        )
-      : n(),
   asyncHandler(async (q, s) =>
     s
       .status(201)

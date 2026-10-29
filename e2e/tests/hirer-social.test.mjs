@@ -9,17 +9,12 @@ const item = (title) => `//li[contains(@class,'nt-item')][.//strong[normalize-sp
 describe("Hirer · Showcase", () => {
   const b = useBrowser();
 
-  it("a hirer can read the community's posts but has no 'Create a post' button", async () => {
+  it("a hirer can read the community's posts and has a 'Create a post' button", async () => {
     const post = await makePost({ author: "learner2" });
     await signIn(b.driver, "hirer");
     await go(b.driver, "/showcase");
     await waitText(b.driver, post.content);
-    assert.equal(await exists(b.driver, xText("Create a post", { tag: "button" })), false);
-  });
-
-  it("the server also refuses a hirer's post", async () => {
-    const refused = await api("hirer", "frontend/showcase", { method: "POST", body: { category_id: "00000000-0000-4000-8000-000000000000", content: "I am a hirer" } });
-    assert.equal(refused.status, 403);
+    assert.equal(await exists(b.driver, xText("Create a post", { tag: "button" })), true);
   });
 
   it("a hirer can appreciate and comment on a post", async () => {

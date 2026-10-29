@@ -16,6 +16,7 @@ export type Post = {
   created_at: string;
   creator_name: string;
   creator_has_picture: boolean;
+  creator_role?: string;
   category_name?: string;
   reactions: string | number;
   comments: string | number;
@@ -107,7 +108,14 @@ export function PostCard({ post, detail = false, onDeleted }: { post: Post; deta
       <Pressable style={styles.head} onPress={() => router.push(`/user/${post.creator_id}`)}>
         <Avatar id={post.creator_id} name={post.creator_name} hasPicture={post.creator_has_picture} size={42} />
         <View style={{ flex: 1 }}>
-          <Text style={styles.name}>{post.creator_name}</Text>
+          <View style={styles.nameRow}>
+            <Text style={styles.name}>{post.creator_name}</Text>
+            {post.creator_role === "hirer" ? (
+              <View style={styles.role}>
+                <Text style={styles.roleText}>Hirer</Text>
+              </View>
+            ) : null}
+          </View>
           <Text style={styles.sub}>
             {ago(post.created_at)}
             {post.category_name ? ` · ${post.category_name}` : ""}
@@ -170,7 +178,10 @@ export function PostCard({ post, detail = false, onDeleted }: { post: Post; deta
 const styles = StyleSheet.create({
   dots: { padding: 4 },
   head: { flexDirection: "row", alignItems: "center", gap: 10 },
-  name: { fontWeight: "800", color: colors.text, fontSize: 15 },
+  name: { fontWeight: "800", color: colors.text, fontSize: 15, flexShrink: 1 },
+  nameRow: { flexDirection: "row", alignItems: "center", gap: 6 },
+  role: { paddingHorizontal: 8, paddingVertical: 1, borderRadius: 999, backgroundColor: colors.greenSoft },
+  roleText: { color: colors.green, fontWeight: "700", fontSize: 11 },
   sub: { color: colors.muted, fontSize: 12 },
   content: { color: colors.text, fontSize: 15, lineHeight: 22 },
   pictures: { flexDirection: "row", flexWrap: "wrap", gap: 6 },

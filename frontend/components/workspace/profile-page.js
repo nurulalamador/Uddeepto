@@ -25,6 +25,8 @@ import { Empty, InterestIcon, Modal, State, useResource } from "../ui";
 import { useUser } from "../shell";
 import { EditProfileForm, EducationForm, ExperienceForm } from "./profile-forms";
 import MyCv from "./cv-section";
+import { salaryLabel } from "./jobs";
+import { typeLabel } from "./job-form";
 
 const monthFormat = new Intl.DateTimeFormat("en", { month: "short", year: "numeric" });
 const dayFormat = new Intl.DateTimeFormat("en", { day: "numeric", month: "long", year: "numeric" });
@@ -299,6 +301,30 @@ export default function ProfilePage({ refId }) {
             </Section>
           )}
 
+          {profile.role === "hirer" && (
+            <Section title="Active job posts" icon={Briefcase}>
+              {profile.job_posts?.length ? (
+                <ul className="pf-jobs">
+                  {profile.job_posts.map((job) => (
+                    <li key={job.id}>
+                      <Link className="pf-job" href={`/jobs/${job.id}`}>
+                        <span className="pf-job-text">
+                          <strong>{job.title}</strong>
+                          <small>
+                            <MapPin size={13} /> {job.is_remote ? "Remote" : job.location || "Location not specified"} · {typeLabel(job.type)}
+                          </small>
+                        </span>
+                        <span className="pf-job-salary">{salaryLabel(job)}</span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="pf-empty">{isSelf ? "Your open job posts will be listed here." : "No active job posts."}</p>
+              )}
+            </Section>
+          )}
+
           <Section title="Recent showcase">
             {profile.posts.length ? (
               <div className="pf-posts">
@@ -331,6 +357,19 @@ export default function ProfilePage({ refId }) {
             </div>
             <small>Share your profile link: /profile/{profile.uddeepto_id}</small>
           </div>
+
+          {profile.role === "learner" && profile.points && (
+            <div className="pf-card pf-points-card">
+              <span className="pf-points-icon">
+                <Trophy size={22} />
+              </span>
+              <span className="pf-id-label">Points</span>
+              <strong className={`pf-points${profile.points.total < 0 ? " negative" : ""}`} aria-label={`${profile.points.total} points`}>
+                {profile.points.total}
+              </strong>
+              <small>Point is calculated from contest and course performance.</small>
+            </div>
+          )}
 
           <div className="pf-card">
             <h2>Interests</h2>

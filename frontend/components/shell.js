@@ -16,6 +16,7 @@ import {
   EllipsisVertical,
   LayoutDashboard,
   LogOut,
+  Medal,
   Menu,
   MessageCircle,
   Settings,
@@ -44,6 +45,7 @@ export const useShellActions = () => useContext(ShellActionsContext);
 const icons = {
   dashboard: LayoutDashboard,
   showcase: Sparkles,
+  leaderboard: Medal,
   courses: BookOpen,
   contests: Trophy,
   webinars: Video,

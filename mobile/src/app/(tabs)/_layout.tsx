@@ -33,6 +33,7 @@ type Item = { name: string; title: string; icon: IconName; focused: IconName; ro
 const ITEMS: Item[] = [
   { name: "index", title: "Dashboard", icon: "grid-outline", focused: "grid", roles: ["learner", "hirer"] },
   { name: "showcase", title: "Showcase", icon: "sparkles-outline", focused: "sparkles", roles: ["learner", "hirer"] },
+  { name: "leaderboard", title: "Leaderboard", icon: "medal-outline", focused: "medal", roles: ["hirer"] },
   { name: "courses", title: "Courses", icon: "book-outline", focused: "book", roles: ["learner"] },
   { name: "events", title: "Events", icon: "trophy-outline", focused: "trophy", roles: ["learner"] },
   { name: "jobs", title: "Jobs", icon: "briefcase-outline", focused: "briefcase", roles: ["learner"] },

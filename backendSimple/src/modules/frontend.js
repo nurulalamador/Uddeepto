@@ -481,6 +481,35 @@ const optionalText = (max) =>
     .max(max)
     .optional()
     .transform((v) => (v ? v : null));
+// Learner points: +10 per completed course, plus a score per finished contest by final position (1st most, top 10 positive, -10 outside it).
+const CONTEST_SCORE = `CASE cp.rank WHEN 1 THEN 100 WHEN 2 THEN 70 WHEN 3 THEN 50 WHEN 4 THEN 40 WHEN 5 THEN 35 WHEN 6 THEN 30 WHEN 7 THEN 25 WHEN 8 THEN 20 WHEN 9 THEN 15 WHEN 10 THEN 10 ELSE -10 END`;
+// Learners ranked by points; with a category, only learners who chose that interest. Ties share a rank.
+const LEADERBOARD = `WITH s AS (
+    SELECT u.id,u.name,u.username,u.uddeepto_id,(u.picture IS NOT NULL) has_picture,
+      (coalesce(c.n,0)*10+coalesce(k.score,0))::int total,coalesce(c.n,0)::int courses,coalesce(k.score,0)::int contests
+    FROM users u
+    LEFT JOIN (SELECT user_id,count(*) n FROM course_enrollments WHERE status='completed' GROUP BY user_id) c ON c.user_id=u.id
+    LEFT JOIN (SELECT cp.participant_id,sum(${CONTEST_SCORE}) score FROM contest_participants cp JOIN contests ct ON ct.id=cp.contest_id
+               WHERE cp.payment_status='paid' AND ct.status='completed' AND cp.rank IS NOT NULL GROUP BY cp.participant_id) k ON k.participant_id=u.id
+    WHERE u.role='learner' AND u.account_status='active'
+      AND($1::uuid IS NULL OR EXISTS(SELECT 1 FROM user_interests ui WHERE ui.user_id=u.id AND ui.interest_id=$1::uuid))
+  ), r AS (SELECT s.*,rank() OVER (ORDER BY total DESC)::int rank FROM s)`;
+app.get(
+  "/leaderboard",
+  run(async (req) => {
+    const category = req.query.category ? uuid(req.query.category) : null;
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 50));
+    const items = (
+      await query(`${LEADERBOARD} SELECT * FROM r ORDER BY rank,name LIMIT $2`, [category, limit])
+    ).rows;
+    const total = (await one(`${LEADERBOARD} SELECT count(*)::int n FROM r`, [category])).n;
+    const me =
+      req.user.role === "learner"
+        ? (await query(`${LEADERBOARD} SELECT * FROM r WHERE id=$2`, [category, req.user.sub])).rows[0] || null
+        : null;
+    return { items, me, total };
+  }),
+);
 app.get(
   "/profile/:id",
   run(async (req) => {
@@ -528,6 +557,28 @@ app.get(
         [p.id],
       )
     ).rows;
+    // A hirer's active job posts: open and still accepting applications.
+    if (p.role === "hirer")
+      p.job_posts = (
+        await query(
+          `SELECT j.id,j.title,j.status::text status,j.type::text type,j.salary_min,j.salary_max,j.currency,j.salary_period,j.location,j.is_remote,j.application_deadline,j.created_at,
+             u.name creator_name,${catDetailsSql("jobs", "j")} category_details
+           FROM jobs j JOIN users u ON u.id=j.creator_id
+           WHERE j.creator_id=$1 AND j.status='open' AND(j.application_deadline IS NULL OR j.application_deadline>now())
+           ORDER BY j.created_at DESC LIMIT 20`,
+          [p.id],
+        )
+      ).rows;
+    // Learner points: +10 per completed course; a finished contest scores by final position (1st most, top 10 positive), and falls to -10 outside the top 10.
+    if (p.role === "learner")
+      p.points = await one(
+        `SELECT (c.courses*10 + k.score)::int total,c.courses::int courses,k.score::int contests,k.entered::int contests_finished
+         FROM (SELECT count(*) courses FROM course_enrollments WHERE user_id=$1 AND status='completed') c,
+              (SELECT coalesce(sum(${CONTEST_SCORE}),0) score,count(*) entered
+               FROM contest_participants cp JOIN contests ct ON ct.id=cp.contest_id
+               WHERE cp.participant_id=$1 AND cp.payment_status='paid' AND ct.status='completed' AND cp.rank IS NOT NULL) k`,
+        [p.id],
+      );
     if (isSelf || req.user.role === "admin")
       p.personal = await one(
         "SELECT email::text email,phone,birth_date::text birth_date,gender,current_address,permanent_address FROM users WHERE id=$1",
@@ -787,7 +838,7 @@ timelineRoutes(
   ],
   "experience",
 );
-const showcaseProjection = `p.id,p.creator_id,p.content,p.created_at,u.name creator_name,(u.picture IS NOT NULL) creator_has_picture,i.name category_name,(SELECT count(*) FROM showcase_post_reactions WHERE post_id=p.id) reactions,(SELECT count(*) FROM showcase_post_comments WHERE post_id=p.id AND deleted_at IS NULL) comments,EXISTS(SELECT 1 FROM showcase_post_reactions WHERE post_id=p.id AND user_id=$1 AND reaction='love') my_reaction,COALESCE((SELECT json_agg(json_build_object('id',m.id,'mime_type',m.mime_type,'file_name',m.file_name) ORDER BY m.sort_order) FROM showcase_post_media m WHERE m.post_id=p.id),'[]'::json) media`;
+const showcaseProjection = `p.id,p.creator_id,p.content,p.created_at,u.name creator_name,(u.picture IS NOT NULL) creator_has_picture,u.role::text creator_role,i.name category_name,(SELECT count(*) FROM showcase_post_reactions WHERE post_id=p.id) reactions,(SELECT count(*) FROM showcase_post_comments WHERE post_id=p.id AND deleted_at IS NULL) comments,EXISTS(SELECT 1 FROM showcase_post_reactions WHERE post_id=p.id AND user_id=$1 AND reaction='love') my_reaction,COALESCE((SELECT json_agg(json_build_object('id',m.id,'mime_type',m.mime_type,'file_name',m.file_name) ORDER BY m.sort_order) FROM showcase_post_media m WHERE m.post_id=p.id),'[]'::json) media`;
 const showcaseFrom =
   "FROM showcase_posts p JOIN users u ON u.id=p.creator_id JOIN interest_categories i ON i.id=p.category_id";
 app.get(
@@ -865,21 +916,9 @@ app.get(
       .send(course.cover_image);
   }),
 );
-const noHirer = asyncHandler(async (req, _res, next) => {
-  const account = (
-    await query("SELECT role FROM users WHERE id=$1", [req.user.sub])
-  ).rows[0];
-  if (account?.role === "hirer")
-    throw new ApiError(
-      403,
-      "Hiring accounts can view the showcase but not post to it",
-    );
-  next();
-});
 app.post(
   "/showcase",
   auth(),
-  noHirer,
   upload.array("media", 10),
   run(async (req) => {
     const files = req.files || [];

@@ -4,7 +4,7 @@ import { By, Key, acceptConfirm, apiOk, bodyText, chooseOption, click, clickLink
 import { goSidebar, logout, openProfileMenu, pageTitle, sidebarCaptions, sidebarItems, waitWorkspace } from "../lib/flows.mjs";
 import { makeLearner, makePost, notificationsOf } from "../lib/factory.mjs";
 
-const LEARNER_MENU = ["Dashboard", "Showcase", "Courses", "Contests", "Webinars", "Jobs", "AI Assistant", "Communities", "Messages", "Notifications", "Profile"];
+const LEARNER_MENU = ["Dashboard", "Showcase", "Leaderboard", "Courses", "Contests", "Webinars", "Jobs", "AI Assistant", "Communities", "Messages", "Notifications", "Profile"];
 
 describe("Learner · Navigation", () => {
   const b = useBrowser();

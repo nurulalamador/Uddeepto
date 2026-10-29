@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { ArrowUpRight, Briefcase, Download, MapPin, MessageCircle, Plus, UserRound, Users } from "lucide-react";
 import { api } from "@/lib/api";
 import { Action, Badge, Dropdown, Empty, Modal, Pager, SearchBox, State, UserAvatar, date, useResource } from "../ui";
@@ -13,45 +14,13 @@ const PAGE_SIZE = 12;
 const STATUSES = ["applied", "shortlisted", "accepted", "rejected"];
 const statusTone = (status) => (status === "accepted" ? "accepted" : status === "rejected" ? "rejected" : status === "shortlisted" ? "upcoming" : "judging");
 
-export default function JobManagement() {
-  const [tab, setTab] = useState("posts");
+/** My Job Posts: the hirer's own posts, with a button to post a new one. */
+export default function JobPosts() {
   const [create, setCreate] = useState(false);
-  const [jobFilter, setJobFilter] = useState("");
   const posts = useResource("frontend/jobs?tab=mine&limit=100");
-
   return (
-    <div className="courses-page">
-      <div className="courses-sticky">
-        <div className="page-bar">
-          <div className="tabs">
-            {[
-              ["posts", "My Job Posts"],
-              ["applicants", "Applicants"],
-            ].map(([value, label]) => (
-              <button key={value} className={tab === value ? "active" : ""} onClick={() => setTab(value)}>
-                {label}
-              </button>
-            ))}
-          </div>
-          <button className="button" onClick={() => setCreate(true)}>
-            <Plus size={18} /> Post a job
-          </button>
-        </div>
-      </div>
-
-      {tab === "posts" ? (
-        <MyPosts
-          resource={posts}
-          onCreate={() => setCreate(true)}
-          onApplicants={(jobId) => {
-            setJobFilter(jobId);
-            setTab("applicants");
-          }}
-        />
-      ) : (
-        <Applicants jobs={posts.data || []} jobFilter={jobFilter} setJobFilter={setJobFilter} />
-      )}
-
+    <div className="courses-page jm-page">
+      <MyPosts resource={posts} onCreate={() => setCreate(true)} />
       {create && (
         <Modal title="Post an opportunity" onClose={() => setCreate(false)}>
           <JobForm
@@ -66,7 +35,19 @@ export default function JobManagement() {
   );
 }
 
-function MyPosts({ resource, onCreate, onApplicants }) {
+/** Applicants: everyone who applied to any of the hirer's posts. /applicants?job=<id> shows one post's applicants. */
+export function ApplicantsPage() {
+  const params = useSearchParams();
+  const [jobFilter, setJobFilter] = useState(params.get("job") || "");
+  const posts = useResource("frontend/jobs?tab=mine&limit=100");
+  return (
+    <div className="courses-page jm-page">
+      <Applicants jobs={posts.data || []} jobFilter={jobFilter} setJobFilter={setJobFilter} />
+    </div>
+  );
+}
+
+function MyPosts({ resource, onCreate }) {
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("");
   const [page, setPage] = useState(0);
@@ -78,7 +59,7 @@ function MyPosts({ resource, onCreate, onApplicants }) {
 
   return (
     <>
-      <div className="toolbar jobs-toolbar">
+      <div className="toolbar jobs-toolbar jm-toolbar">
         <SearchBox
           value={query}
           onChange={(value) => {
@@ -101,6 +82,9 @@ function MyPosts({ resource, onCreate, onApplicants }) {
             { value: "draft", label: "Draft" },
           ]}
         />
+        <button type="button" className="button jm-post-button" onClick={onCreate}>
+          <Plus size={18} /> Post a job
+        </button>
       </div>
 
       <State resource={resource}>
@@ -132,11 +116,11 @@ function MyPosts({ resource, onCreate, onApplicants }) {
                   </div>
                 </div>
                 <div className="jm-post-side">
-                  <button type="button" className="jm-count" onClick={() => onApplicants(job.id)} aria-label={`${job.application_count} applicants for ${job.title}`}>
+                  <Link className="jm-count" href={`/applicants?job=${job.id}`} aria-label={`${job.application_count} applicants for ${job.title}`}>
                     <Users size={16} />
                     <strong>{job.application_count}</strong>
                     <span>applicant{job.application_count === 1 ? "" : "s"}</span>
-                  </button>
+                  </Link>
                   <div className="jm-actions">
                     <Link className="button secondary" href={`/jobs/${job.id}`}>
                       View <ArrowUpRight size={15} />
@@ -164,13 +148,6 @@ function MyPosts({ resource, onCreate, onApplicants }) {
           />
         )}
       </State>
-      {!all.length && !resource.loading && (
-        <div className="previous-cta">
-          <button className="button" onClick={onCreate}>
-            <Plus size={17} /> Post a job
-          </button>
-        </div>
-      )}
       <Pager page={page} setPage={setPage} hasMore={filtered.length > (page + 1) * PAGE_SIZE} />
     </>
   );
@@ -193,7 +170,7 @@ function Applicants({ jobs, jobFilter, setJobFilter }) {
 
   return (
     <>
-      <div className="toolbar jobs-toolbar">
+      <div className="toolbar jobs-toolbar jm-toolbar">
         <SearchBox value={query} onChange={reset(setQuery)} placeholder="Search applicants by name…" />
         <Dropdown
           ariaLabel="Filter by job post"

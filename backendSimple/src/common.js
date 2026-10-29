@@ -378,3 +378,6 @@ export function resourceRouter({
   );
   return r;
 }
+
+// Image optimisation for uploads (see media.js).
+export { IMAGE_PRESETS, optimizeImage, optimizeUpload, optimizeStoredUpload } from "./media.js";

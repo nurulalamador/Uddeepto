@@ -56,7 +56,7 @@ describe("Learner · Navigation", () => {
 
   it("workspace pages meant for other roles show 'Access restricted' with a way back", async () => {
     await signIn(b.driver, "learner");
-    for (const route of ["/admin", "/moderation", "/settings", "/job-management"]) {
+    for (const route of ["/admin", "/moderation", "/settings", "/job-posts", "/applicants"]) {
       await go(b.driver, route);
       await waitText(b.driver, "Access restricted");
       await waitText(b.driver, "This page isn’t available for your role.");

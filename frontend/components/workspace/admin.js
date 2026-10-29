@@ -26,6 +26,7 @@ import { api } from "@/lib/api";
 import { adminFields } from "@/lib/admin-fields";
 import AdminContent from "./admin-content";
 import { LocationPicker } from "./job-map";
+import { OptimizedFileInput } from "../optimize";
 import { Action, Badge, CategoryPicker, Empty, InterestIcon, Modal, SearchBox, State, isLucideIcon, useResource } from "../ui";
 
 const PAGE_SIZE = 20;
@@ -231,6 +232,7 @@ function RecordForm({ table, item, onDone }) {
   const [speakers, setSpeakers] = useState(() => item.speakers || []);
   const [position, setPosition] = useState(() => (item.latitude != null && item.longitude != null ? { lat: Number(item.latitude), lng: Number(item.longitude) } : null));
   const [error, setError] = useState(""); const [busy, setBusy] = useState(false);
+  const [optimizing, onOptimizing] = useState(false);
   const [coverPreview, setCoverPreview] = useState(item.has_cover_image ? `/api/backend/frontend/course-covers/${item.id}` : "");
   const [removeCover, setRemoveCover] = useState(false);
   useEffect(() => () => { if (coverPreview.startsWith("blob:")) URL.revokeObjectURL(coverPreview); }, [coverPreview]);
@@ -283,7 +285,7 @@ function RecordForm({ table, item, onDone }) {
         <span className="admin-course-cover-label">Course cover</span>
         {coverPreview && !removeCover ? <img src={coverPreview} alt="Course cover preview" /> : <div className="admin-course-cover-placeholder"><BookOpen size={24} /></div>}
         <div className="admin-course-cover-actions">
-          <label className="admin-photo-upload">Choose cover<input name="cover_image" type="file" accept="image/jpeg,image/png,image/webp,image/avif" onChange={(event) => { const file = event.target.files?.[0]; if (!file) return; setRemoveCover(false); setCoverPreview(URL.createObjectURL(file)); }} /></label>
+          <label className="admin-photo-upload">Choose cover<OptimizedFileInput preset="course" onBusy={onOptimizing} name="cover_image" accept="image/jpeg,image/png,image/webp,image/avif" onChange={(event) => { const file = event.target.files?.[0]; if (!file) return; setRemoveCover(false); setCoverPreview(URL.createObjectURL(file)); }} /></label>
           {item.has_cover_image && <button type="button" className="admin-remove-photo" onClick={() => setRemoveCover((value) => !value)}>{removeCover ? "Keep current cover" : "Remove cover"}</button>}
           <small>JPEG, PNG, WebP or AVIF · up to 10 MB</small>
         </div>
@@ -298,7 +300,7 @@ function RecordForm({ table, item, onDone }) {
       if (field === "icon") return <IconField key={field} label={label} value={value} required={requiredFields[table]?.includes(field)} />;
       return <label key={field}>{label}<input name={field} type={type} defaultValue={value} required={requiredFields[table]?.includes(field)} step={type === "number" ? "any" : undefined} min={type === "number" ? "0" : undefined} /></label>;
     })}
-  </div>{error && <p className="notice error" role="alert">{error}</p>}<button className="button admin-save-button" disabled={busy}>{busy ? "Saving…" : item.id ? "Save changes" : "Create record"}</button></form>;
+  </div>{error && <p className="notice error" role="alert">{error}</p>}<button className="button admin-save-button" disabled={busy || optimizing}>{busy ? "Saving…" : optimizing ? "Optimizing…" : item.id ? "Save changes" : "Create record"}</button></form>;
 }
 
 /** The interest's icon: any Lucide icon name, shown as it is typed so a wrong name is noticed straight away. */
@@ -395,6 +397,7 @@ function SpeakerPicker({ value, onChange }) {
 function InstructorForm({ item, onDone }) {
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [optimizing, setOptimizing] = useState(false);
   const [preview, setPreview] = useState(item.has_image ? `/api/backend/frontend/instructors/${item.id}/image` : "");
   const [removeImage, setRemoveImage] = useState(false);
   useEffect(() => () => { if (preview.startsWith("blob:")) URL.revokeObjectURL(preview); }, [preview]);
@@ -422,7 +425,7 @@ function InstructorForm({ item, onDone }) {
   return <form className="form admin-record-form" onSubmit={submit}>
     <div className="admin-instructor-photo-editor">
       {preview && !removeImage ? <img src={preview} alt="Instructor photo preview" /> : <span><UserRound size={30} /></span>}
-      <div><strong>{item.id ? "Instructor photo" : "Add a profile photo"}</strong><small>JPEG, PNG, WebP or AVIF</small><label className="admin-photo-upload">Choose image<input name="image" type="file" accept="image/jpeg,image/png,image/webp,image/avif" required={!item.id && !item.has_image} onChange={(event) => { const file = event.target.files?.[0]; if (!file) return; setRemoveImage(false); setPreview(URL.createObjectURL(file)); }} /></label>
+      <div><strong>{item.id ? "Instructor photo" : "Add a profile photo"}</strong><small>JPEG, PNG, WebP or AVIF</small><label className="admin-photo-upload">Choose image<OptimizedFileInput preset="instructor" onBusy={setOptimizing} name="image" accept="image/jpeg,image/png,image/webp,image/avif" required={!item.id && !item.has_image} onChange={(event) => { const file = event.target.files?.[0]; if (!file) return; setRemoveImage(false); setPreview(URL.createObjectURL(file)); }} /></label>
         {item.has_image && <label className="admin-remove-photo"><input type="checkbox" checked={removeImage} onChange={(event) => setRemoveImage(event.target.checked)} /> Remove current image</label>}
       </div>
     </div>
@@ -435,7 +438,7 @@ function InstructorForm({ item, onDone }) {
       <label className="wide">Website URL<input name="website_url" type="url" maxLength={500} defaultValue={item.social_links?.website || ""} placeholder="https://example.com" /></label>
     </div>
     {error && <p className="notice error" role="alert">{error}</p>}
-    <button className="button admin-save-button" disabled={busy}>{busy ? "Saving…" : item.id ? "Save instructor" : "Add instructor"}</button>
+    <button className="button admin-save-button" disabled={busy || optimizing}>{busy ? "Saving…" : optimizing ? "Optimizing…" : item.id ? "Save instructor" : "Add instructor"}</button>
   </form>;
 }
 

@@ -321,6 +321,7 @@ function Submission({ contest, reload, onJoined }) {
                 icon={copy.Icon}
                 label={kind === "image" ? "Drag and drop your image" : "Drag and drop your recording"}
                 hint={copy.hint}
+                optimize="submission"
                 onFile={(chosen) => {
                   setFile(chosen);
                   setPreview(chosen ? URL.createObjectURL(chosen) : "");

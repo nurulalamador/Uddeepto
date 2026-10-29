@@ -63,12 +63,12 @@ function Body({ user, data }) {
   ];
   const total = pipeline.reduce((sum, [, , count]) => sum + count, 0) || 1;
   const tiles = [
-    [Briefcase, "Open positions", stats.open_jobs, "/job-management", "green"],
-    [ClipboardList, "Total job posts", stats.jobs, "/job-management", "blue"],
-    [Users, "Total applicants", stats.applicants, "/job-management", "purple"],
-    [Inbox, "Awaiting review", stats.new_applicants, "/job-management", "orange"],
-    [Star, "Shortlisted", stats.shortlisted, "/job-management", "gold"],
-    [UserCheck, "Accepted", stats.accepted, "/job-management", "teal"],
+    [Briefcase, "Open positions", stats.open_jobs, "/job-posts", "green"],
+    [ClipboardList, "Total job posts", stats.jobs, "/job-posts", "blue"],
+    [Users, "Total applicants", stats.applicants, "/applicants", "purple"],
+    [Inbox, "Awaiting review", stats.new_applicants, "/applicants", "orange"],
+    [Star, "Shortlisted", stats.shortlisted, "/applicants", "gold"],
+    [UserCheck, "Accepted", stats.accepted, "/applicants", "teal"],
   ];
 
   return (
@@ -87,7 +87,7 @@ function Body({ user, data }) {
                 : "You’re all caught up. New applications will appear here as they arrive."}
           </p>
           <div className="ld-hero-actions">
-            <Link className="button light" href="/job-management">
+            <Link className="button light" href="/job-posts">
               {stats.new_applicants ? "Review applicants" : "Manage jobs"} <ArrowUpRight size={17} />
             </Link>
             <Link className="button ghost" href="/messages">
@@ -123,7 +123,7 @@ function Body({ user, data }) {
 
       <div className="ld-grid">
         <div className="ld-col">
-          <Card title="Applicant pipeline" icon={Users} href="/job-management" linkLabel="Open applicants">
+          <Card title="Applicant pipeline" icon={Users} href="/applicants" linkLabel="Open applicants">
             <div className="hd-pipeline" role="img" aria-label="Applicants by status">
               {pipeline.map(([key, label, count]) => (
                 <span key={key} className={`hd-seg ${key}`} style={{ flexGrow: count }} title={`${label}: ${count}`} />
@@ -155,7 +155,7 @@ function Body({ user, data }) {
             </p>
           </Card>
 
-          <Card title="Latest applicants" icon={UserCheck} href="/job-management" linkLabel="See all">
+          <Card title="Latest applicants" icon={UserCheck} href="/applicants" linkLabel="See all">
             {data.recent.length ? (
               <ul className="ld-list">
                 {data.recent.map((person) => (
@@ -180,7 +180,7 @@ function Body({ user, data }) {
         </div>
 
         <aside className="ld-col">
-          <Card title="Your job posts" icon={Briefcase} href="/job-management">
+          <Card title="Your job posts" icon={Briefcase} href="/job-posts">
             {data.top_jobs.length ? (
               <ul className="ld-list">
                 {data.top_jobs.map((job) => (
@@ -203,7 +203,7 @@ function Body({ user, data }) {
               </ul>
             ) : (
               <p className="ld-muted">
-                No job posts yet. <Link href="/job-management">Post your first job</Link>.
+                No job posts yet. <Link href="/job-posts">Post your first job</Link>.
               </p>
             )}
           </Card>
@@ -232,10 +232,10 @@ function Body({ user, data }) {
 
           <Card title="Quick actions" icon={CheckCircle2}>
             <div className="hd-actions">
-              <Link href="/job-management">
+              <Link href="/job-posts">
                 <Briefcase size={17} /> Post or manage jobs
               </Link>
-              <Link href="/job-management">
+              <Link href="/applicants">
                 <Users size={17} /> Review applicants
               </Link>
               <Link href="/messages">

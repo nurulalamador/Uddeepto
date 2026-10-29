@@ -107,7 +107,7 @@ describe("Hirer · Messages", () => {
 describe("Hirer · Notifications", () => {
   const b = useBrowser();
 
-  it("a new application shows up as a notification that leads to Job Management", async () => {
+  it("a new application shows up as a notification that leads to the applicants", async () => {
     const hirer = await makeHirer("alerted");
     const job = await makeJob({ owner: hirer, title: unique("Alert role") });
     const learner = await makeLearner("keen");
@@ -118,7 +118,7 @@ describe("Hirer · Notifications", () => {
     await waitText(b.driver, title);
     await waitText(b.driver, "I am very keen on this role.");
     await click(b.driver, By.xpath(item(title) + "//a[contains(@class,'nt-main')]"));
-    await waitUrl(b.driver, /^\/job-management/);
+    await waitUrl(b.driver, /^\/applicants/);
   });
 
   it("the filter chips for a hirer are Social, Jobs and System", async () => {

@@ -31,6 +31,8 @@ import {
   userRoom,
   leaveRoom,
   verifyInternalToken,
+  optimizeUpload,
+  optimizeStoredUpload,
 } from "@uddeepto/common";
 const app = createApp("frontend-api");
 // Other services hand their live updates to this process, which owns the socket connections.
@@ -606,6 +608,8 @@ app.patch(
     for (const file of [picture, cover])
       if (file && !instructorImageTypes.has(file.mimetype))
         throw new ApiError(422, "Use a JPEG, PNG, WebP, or AVIF image");
+    await optimizeUpload(picture, "avatar");
+    await optimizeUpload(cover, "cover");
     await tx(async (db) => {
       const values = [b.name, b.username, b.bio];
       const fields = ["name=$1", "username=$2", "bio=$3"];
@@ -887,6 +891,7 @@ app.post(
       )
     )
       throw new ApiError(422, "Only image, audio, and video files are allowed");
+    for (const file of files) await optimizeUpload(file, "post");
     return tx(async (db) => {
       const post = (
         await db.query(
@@ -2438,6 +2443,7 @@ app.post(
   run(async (req) => {
     admin(req);
     checkInstructorImage(req.file);
+    await optimizeUpload(req.file, "instructor");
     const instructor = z.object(instructorFields).strict().parse(req.body);
     const socialLinks = instructorLinks(instructor);
     return (
@@ -2473,7 +2479,10 @@ app.patch(
       })
       .strict()
       .parse(req.body);
-    if (req.file) checkInstructorImage(req.file);
+    if (req.file) {
+      checkInstructorImage(req.file);
+      await optimizeUpload(req.file, "instructor");
+    }
     const fields = [],
       values = [];
     const add = (field, value) => {
@@ -2784,6 +2793,7 @@ app.post(
         );
       if (req.file) {
         checkInstructorImage(req.file);
+        await optimizeUpload(req.file, "course");
         body.cover_image = req.file.buffer;
         body.cover_image_mime_type = req.file.mimetype;
       }
@@ -2848,6 +2858,7 @@ app.patch(
         throw new ApiError(422, "Invalid remove cover flag");
       if (req.file) {
         checkInstructorImage(req.file);
+        await optimizeUpload(req.file, "course");
         body.cover_image = req.file.buffer;
         body.cover_image_mime_type = req.file.mimetype;
       } else if (removeCover === "true") {
@@ -3446,6 +3457,7 @@ app.post(
               ? "Use a JPEG, PNG, WebP, GIF or AVIF image"
               : "Use an audio file (MP3, WAV, M4A, OGG…)",
           );
+        if (kind === "image") await optimizeStoredUpload(file, "submission");
         if (file.size > submissionLimits[kind])
           throw new ApiError(
             413,

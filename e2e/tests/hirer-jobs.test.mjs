@@ -7,8 +7,13 @@ const jobCard = (title) => `//article[contains(@class,'job-card') or contains(@c
 const search = By.css("input[aria-label='Search your job posts…']");
 async function openManagement(driver, who) {
   await signIn(driver, who);
-  await go(driver, "/job-management");
-  await waitText(driver, "My Job Posts");
+  await go(driver, "/job-posts");
+  await visible(driver, By.css("input[aria-label='Search your job posts…']"));
+}
+async function openApplicants(driver, who, query = "") {
+  await signIn(driver, who);
+  await go(driver, `/applicants${query}`);
+  await visible(driver, By.css("input[aria-label='Search applicants by name…']"));
 }
 async function findPost(driver, who, title) {
   await openManagement(driver, who);
@@ -108,13 +113,14 @@ describe("Hirer · My job posts", () => {
     await waitText(b.driver, "Manage this job");
   });
 
-  it("the applicant count opens the Applicants tab for that post", async () => {
+  it("the applicant count opens the Applicants page for that post", async () => {
     const hirer = await makeHirer("counter2");
     const job = await makeJob({ owner: hirer, title: unique("Counted post") });
     const learner = await makeLearner("counted");
     await applyTo(job, learner);
     await findPost(b.driver, hirer, job.title);
-    await click(b.driver, By.css(`button[aria-label='1 applicants for ${job.title}'], button[aria-label='1 applicant for ${job.title}']`));
+    await click(b.driver, By.css(`a[aria-label='1 applicants for ${job.title}'], a[aria-label='1 applicant for ${job.title}']`));
+    await waitUrl(b.driver, new RegExp(`^/applicants\\?job=${job.id}`));
     await waitText(b.driver, learner.name);
   });
 });
@@ -313,7 +319,7 @@ describe("Hirer · Reviewing applicants", () => {
     await waitText(b.driver, "No applicants yet");
   });
 
-  it("the Applicants tab gathers candidates from every post with the post they applied to", async () => {
+  it("the Applicants page gathers candidates from every post with the post they applied to", async () => {
     const hirer = await makeHirer("allapps");
     const first = await makeJob({ owner: hirer, title: unique("First post") });
     const second = await makeJob({ owner: hirer, title: unique("Second post") });
@@ -321,8 +327,7 @@ describe("Hirer · Reviewing applicants", () => {
     const c = await makeLearner("cat");
     await applyTo(first, a);
     await applyTo(second, c);
-    await openManagement(b.driver, hirer);
-    await click(b.driver, xText("Applicants", { tag: "button" }));
+    await openApplicants(b.driver, hirer);
     await waitText(b.driver, a.name);
     await waitText(b.driver, c.name);
     await waitText(b.driver, first.title);
@@ -338,8 +343,7 @@ describe("Hirer · Reviewing applicants", () => {
     await applyTo(first, a);
     await applyTo(second, c);
     await apiOk(hirer, `frontend/jobs/${second.id}/applications/${c.id}`, { method: "PATCH", body: { status: "shortlisted" } });
-    await openManagement(b.driver, hirer);
-    await click(b.driver, xText("Applicants", { tag: "button" }));
+    await openApplicants(b.driver, hirer);
     await waitText(b.driver, a.name);
     await chooseOption(b.driver, "Filter by job post", `${first.title} (1)`);
     await b.driver.wait(async () => !(await hasText(b.driver, c.name)), 8000);
@@ -353,10 +357,9 @@ describe("Hirer · Reviewing applicants", () => {
     await b.driver.wait(async () => !(await hasText(b.driver, c.name)), 8000);
   });
 
-  it("an applicant's status can be changed from the Applicants tab", async () => {
+  it("an applicant's status can be changed from the Applicants page", async () => {
     const { hirer, job, learners } = await jobWithApplicants("rowchange");
-    await openManagement(b.driver, hirer);
-    await click(b.driver, xText("Applicants", { tag: "button" }));
+    await openApplicants(b.driver, hirer);
     await waitText(b.driver, learners[0].name);
     await click(b.driver, By.xpath(`//button[contains(@class,'text-link')][ancestor::*[contains(normalize-space(.),${q(learners[0].name)})]][1]`));
     await setValue(b.driver, By.css(`select[aria-label='Status of ${learners[0].name}']`), "rejected");
@@ -365,8 +368,7 @@ describe("Hirer · Reviewing applicants", () => {
 
   it("the applicants list is empty for someone who has no applications", async () => {
     const hirer = await makeHirer("noapps");
-    await openManagement(b.driver, hirer);
-    await click(b.driver, xText("Applicants", { tag: "button" }));
+    await openApplicants(b.driver, hirer);
     await waitText(b.driver, "No applicants found");
   });
 

@@ -56,7 +56,8 @@ const icons = {
   moderation: ShieldCheck,
   settings: Settings,
   ai: Bot,
-  "job-management": ClipboardList,
+  "job-posts": ClipboardList,
+  applicants: Users,
 };
 
 // Keeps the unread badge exact: +1 for every pushed notification, a recount after anything else.
@@ -83,7 +84,7 @@ export default function Shell({ user, children, defaultCollapsed = false }) {
       : isMaterial
         ? { back: `/courses/${segments[1]}`, label: "Back to course", title: "Course material", subtitle: "Material" }
         : segments[0] === "jobs" && segments.length > 1
-          ? { back: user.role === "hirer" ? "/job-management" : "/jobs", label: user.role === "hirer" ? "Back to job management" : "Back to jobs", title: "Job", subtitle: "Details" }
+          ? { back: user.role === "hirer" ? "/job-posts" : "/jobs", label: user.role === "hirer" ? "Back to my job posts" : "Back to jobs", title: "Job", subtitle: "Details" }
           : segments[0] === "communities" && segments.length > 1
           ? { back: "/communities", label: "Back to communities", title: "Community", subtitle: "Channels" }
           : segments[0] === "webinars" && segments.length > 1
@@ -189,7 +190,7 @@ export default function Shell({ user, children, defaultCollapsed = false }) {
                   <nav>
                     {group.sections.map((key) => {
                       const Icon = icons[key];
-                      const active = adminPostDetail ? key === "moderation" : path === key || (user.role === "hirer" && key === "job-management" && path === "jobs");
+                      const active = adminPostDetail ? key === "moderation" : path === key || (user.role === "hirer" && key === "job-posts" && path === "jobs");
                       return (
                         <Link onClick={() => setOpen(false)} className={active ? "active" : ""} href={key === "profile" && user.uddeepto_id ? `/profile/${user.uddeepto_id}` : `/${key}`} key={key} title={sections[key]}>
                           <Icon size={20} />

@@ -50,7 +50,7 @@ Test browsers keep their profiles in `uddeepto-e2e-browsers` in the system temp 
 | Role | Files |
 | --- | --- |
 | public | `public-auth` |
-| every role | `account-settings` (Settings page: change password, delete account) |
+| every role | `account-settings` (Settings page: change password, delete account), `upload-optimization` (pictures, video, compression; the video tests need `ffmpeg` to make a clip) |
 | learner | `learner-shell`, `-showcase`, `-courses`, `-contests`, `-webinars`, `-communities`, `-jobs`, `-messages`, `-notifications`, `-profile`, `-onboarding-ai`, `-cv` (My CV, CV Generator, applying with a CV), `-video-quiz` (needs `E2E_AI_MOCK=1`), `-video-fallback` (no AI key) |
 | hirer | `hirer-shell`, `-jobs`, `-social` |
 | admin | `admin-shell` (navigation, dashboard, notifications, settings), `-users`, `-catalog` (interests, instructors, courses, materials), `-events` (contests, judging, webinars, jobs, communities), `-moderation` |

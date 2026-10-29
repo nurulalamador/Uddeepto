@@ -259,7 +259,7 @@ describe("Sign up", () => {
     await waitText(b.driver, "Post your first job");
     assert.equal(await hasText(b.driver, "Choose your interest"), false);
     const items = await sidebarItems(b.driver);
-    assert.ok(items.includes("Job Management") && !items.includes("Courses"), `hirer menu: ${items}`);
+    assert.ok(items.includes("My Job Posts") && items.includes("Applicants") && !items.includes("Courses"), `hirer menu: ${items}`);
   });
 
   it("admins are told when a new hirer registers", async () => {

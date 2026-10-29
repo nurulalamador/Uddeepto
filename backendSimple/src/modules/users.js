@@ -7,6 +7,7 @@ import {
   auth,
   allow,
   upload,
+  optimizeUpload,
   ApiError,
   publicUser,
   page,
@@ -75,6 +76,8 @@ r.put(
   upload.single("picture"),
   asyncHandler(async (q, s) => {
     if (!q.file) throw new ApiError(400, "picture file required");
+    if (!q.file.mimetype.startsWith("image/")) throw new ApiError(422, "Use an image");
+    await optimizeUpload(q.file, "avatar");
     await query(
       "UPDATE users SET picture=$1,picture_mime_type=$2 WHERE id=$3",
       [q.file.buffer, q.file.mimetype, q.user.sub],

@@ -1,3 +1,4 @@
+import compression from "compression";
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
@@ -39,6 +40,8 @@ export function createServerApp() {
   app.disable("x-powered-by");
   app.set("trust proxy", 1);
   app.use(helmet());
+  // JSON and other text is sent gzip/brotli-compressed; pictures, video and audio are already compressed and are not touched.
+  app.use(compression({ threshold: 1024 }));
   const origins = (process.env.CORS_ORIGINS || "http://localhost:5173").split(",");
   app.use(
     cors({

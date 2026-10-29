@@ -3,6 +3,7 @@ import { useState } from "react";
 import { BookOpen, CirclePlay, FileText, Paperclip, Trash2 } from "lucide-react";
 import { api } from "@/lib/api";
 import { useResource, State, Action, Empty } from "../ui";
+import { OptimizedFileInput } from "../optimize";
 import { formatBytes } from "./course-detail";
 
 const materialTypes = {
@@ -24,6 +25,7 @@ export default function AdminContent({ table, id }) {
   const subs = useResource(!course ? `frontend/manage/contests/${id}/submissions` : null);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [optimizing, setOptimizing] = useState(false);
   const [type, setType] = useState("text");
 
   async function submit(event) {
@@ -129,7 +131,7 @@ export default function AdminContent({ table, id }) {
         {course && type !== "text" ? (
           <label>
             File
-            <input key={type} type="file" name="file" required accept={materialTypes[type].accept} />
+            <OptimizedFileInput key={type} preset="post" onBusy={setOptimizing} name="file" required accept={materialTypes[type].accept} />
             <small>{materialTypes[type].hint}</small>
           </label>
         ) : (
@@ -157,8 +159,8 @@ export default function AdminContent({ table, id }) {
             {error}
           </p>
         )}
-        <button className="button secondary" disabled={busy}>
-          {busy ? (type !== "text" && course ? "Uploading…" : "Saving…") : `Add ${course ? "material" : "problem"}`}
+        <button className="button secondary" disabled={busy || optimizing}>
+          {busy ? (type !== "text" && course ? "Uploading…" : "Saving…") : optimizing ? "Optimizing…" : `Add ${course ? "material" : "problem"}`}
         </button>
       </form>
 

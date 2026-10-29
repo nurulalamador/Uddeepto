@@ -160,7 +160,7 @@ r.post(
         .replace(/\s+/g, " ")
         .trim()
         .slice(0, 120) || "Review the application from Job Management.",
-      link: "/job-management",
+      link: "/applicants",
       entity: ["job", q.params.id],
       key: `apply:${q.params.id}:${q.user.sub}`,
     });

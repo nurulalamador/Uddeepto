@@ -84,3 +84,17 @@ Same as the microservice backend: see "My CV and the CV Generator" in `backend/R
 ## Account settings
 
 Same as the microservice backend: see "Account settings" in `backend/README.md`.
+
+## Upload optimisation
+
+Files are shrunk twice: in the browser before they are sent, and on the server before they are stored.
+
+**Browser** (`frontend/lib/optimize-media.js`, used by every upload: profile picture and cover, showcase posts, contest entries, admin course covers, instructor photos and course materials):
+- pictures are decoded with the camera orientation applied, scaled down in halving steps with high-quality smoothing, and saved as WebP (JPEG where WebP is unavailable); the size aimed for depends on where the picture is used (profile 640 px, cover 1920, post 1920, course 1600, instructor 800, contest entry 2048);
+- video of 4 MB or more is re-encoded with the hardware encoder (WebCodecs, through `mediabunny`) to at most 720p at a bitrate suited to its size and frame rate: H.264 + AAC in MP4, or VP9 + Opus in WebM where H.264 cannot be encoded, with the index at the front so playback starts at once;
+- audio above about 110 kbps is re-encoded to AAC (or Opus);
+- a result is used only when it is clearly smaller (video/audio: at least 10%); a conversion that fails, or cannot improve the file, sends the original. Video and audio show their progress with a **Skip** button. PDFs, documents and archives are sent unchanged.
+
+**Server** (`media.js`, with `sharp`/libvips, in both backends): every image is re-encoded whatever the browser sent - turned upright from its EXIF orientation, ALL metadata removed (camera model and the GPS position phone photos carry), scaled down to the size it is shown at (never enlarged, Lanczos3) and saved as WebP, unless that would not make it smaller; images over 50 megapixels and files that are not really images are refused (422). If `sharp` cannot be loaded on a host, uploads are stored as sent and a warning is logged.
+
+**Delivery:** JSON and other text responses are gzip-compressed (`compression`); pictures, video and audio are not compressed again.

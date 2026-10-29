@@ -5,6 +5,7 @@ dotenv.config({
 });
 import pg from "pg";
 import jwt from "jsonwebtoken";
+import compression from "compression";
 import express from "express";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
@@ -65,6 +66,8 @@ export function createApp(name) {
   // Requests arrive through the gateway (behind the load balancer), which sets X-Forwarded-For.
   app.set("trust proxy", 1);
   app.use(helmet());
+  // JSON and other text is sent gzip-compressed; pictures, video and audio are already compressed and are not touched.
+  app.use(compression({ threshold: 1024 }));
   app.use(express.json({ limit: "1mb" }));
   app.use(express.urlencoded({ extended: false }));
   app.use(
@@ -387,3 +390,6 @@ export function resourceRouter({
   );
   return r;
 }
+
+// Image optimisation for uploads (see media.js).
+export { IMAGE_PRESETS, optimizeImage, optimizeUpload, optimizeStoredUpload } from "./media.js";

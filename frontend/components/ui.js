@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState, useRef } from "react";
 import dynamicIconImports from "lucide-react/dynamicIconImports";
+import { OptimizeStatus, useOptimizer } from "./optimize";
 import {
   X,
   Plus,
@@ -419,11 +420,15 @@ function matchesAccept(file, accept) {
     return file.type.toLowerCase() === token;
   });
 }
-export function FileDropzone({ accept, file, onFile, hint, icon: Icon = Upload, label = "Drag and drop a file here", disabled = false }) {
+// optimize: a picture preset ("avatar", "cover", "submission" ...) or true. The chosen file is then shrunk in the browser
+// (pictures, video and audio) before onFile gets it. onBusy(true|false) lets a form wait for that.
+export function FileDropzone({ accept, file, onFile, hint, icon: Icon = Upload, label = "Drag and drop a file here", disabled: locked = false, optimize, onBusy }) {
   const [dragging, setDragging] = useState(false);
   const [error, setError] = useState("");
   const input = useRef(null);
-  function take(list) {
+  const optimizer = useOptimizer({ onBusy });
+  const disabled = locked || optimizer.busy;
+  async function take(list) {
     const chosen = list?.[0];
     if (!chosen) return;
     if (!matchesAccept(chosen, accept)) {
@@ -431,7 +436,7 @@ export function FileDropzone({ accept, file, onFile, hint, icon: Icon = Upload, 
       return;
     }
     setError("");
-    onFile(chosen);
+    onFile(optimize ? await optimizer.run(chosen, optimize === true ? undefined : optimize) : chosen);
   }
   const open = () => !disabled && input.current?.click();
   return (
@@ -494,6 +499,7 @@ export function FileDropzone({ accept, file, onFile, hint, icon: Icon = Upload, 
             onClick={(event) => {
               event.stopPropagation();
               setError("");
+              optimizer.clear();
               onFile(null);
             }}
           >
@@ -501,6 +507,7 @@ export function FileDropzone({ accept, file, onFile, hint, icon: Icon = Upload, 
           </button>
         )}
       </div>
+      {optimize && <OptimizeStatus {...optimizer} />}
       {error && (
         <p className="inline-error" role="alert">
           {error}

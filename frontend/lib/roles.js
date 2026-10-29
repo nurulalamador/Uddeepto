@@ -13,7 +13,9 @@ export const sections = {
   moderation: "Moderation",
   settings: "Settings",
   ai: "AI Assistant",
-  "job-management": "Job Management",
+  "job-management": "Job Management", // the old address: it now leads to My Job Posts
+  "job-posts": "My Job Posts",
+  applicants: "Applicants",
   cv: "CV Generator",
   account: "Settings",
   search: "Search",
@@ -21,7 +23,7 @@ export const sections = {
 export function allowedSections(role) {
   if (role === "admin")
     return ["dashboard", "notifications", "courses", "contests", "webinars", "jobs", "admin", "moderation", "settings"];
-  if (role === "hirer") return ["dashboard", "showcase", "job-management", "messages", "notifications", "profile"];
+  if (role === "hirer") return ["dashboard", "showcase", "job-posts", "applicants", "messages", "notifications", "profile"];
   return [
     "dashboard",
     "showcase",
@@ -57,7 +59,7 @@ export function allowedCategorizedSections(role) {
       },
       {
         title: "Hiring",
-        sections: ["job-management"],
+        sections: ["job-posts", "applicants"],
       },
       {
         title: "Social",
@@ -81,8 +83,8 @@ export function allowedCategorizedSections(role) {
 }
 export function canAccess(role, section) {
   if (section === "account") return true;
-  // Hirers reach individual job pages (/jobs/[id]) from Job Management.
-  return section === "profile" || section === "search" || allowedSections(role).includes(section) || (role === "hirer" && section === "jobs");
+  // Hirers reach individual job pages (/jobs/[id]) from My Job Posts; the old /job-management address redirects there.
+  return section === "profile" || section === "search" || allowedSections(role).includes(section) || (role === "hirer" && (section === "jobs" || section === "job-management"));
 }
 export function timeline(item, now = Date.now()) {
   if (["cancelled", "completed", "archived"].includes(item.status))

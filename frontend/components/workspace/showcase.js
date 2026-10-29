@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { useUser } from "../shell";
+import { OptimizeStatus, useOptimizer } from "../optimize";
 import {
   Action,
   date,
@@ -287,29 +288,27 @@ function PostForm({ categories, onDone }) {
   const [busy, setBusy] = useState(false);
   const [media, setMedia] = useState([]);
   const [category, setCategory] = useState("");
+  const optimizer = useOptimizer();
 
-  function addMedia(event) {
-    const files = Array.from(event.target.files || []);
-    setMedia((current) => {
-      const additions = files
-        .filter(
-          (file) =>
-            /^(image|audio|video)\//.test(file.type) &&
-            !current.some(
-              (item) =>
-                item.file.name === file.name &&
-                item.file.size === file.size &&
-                item.file.lastModified === file.lastModified,
-            ),
-        )
-        .map((file) => ({ file, url: URL.createObjectURL(file) }));
-      return [...current, ...additions];
-    });
-    event.target.value = "";
+  async function addMedia(event) {
+    const input = event.target;
+    const files = Array.from(input.files || []);
+    input.value = "";
+    // Pictures, video and audio are shrunk here, one by one, before they are shown and sent.
+    for (const original of files) {
+      if (!/^(image|audio|video)\//.test(original.type)) continue;
+      const key = `${original.name}|${original.size}|${original.lastModified}`;
+      if (mediaKeys.current.has(key)) continue;
+      mediaKeys.current.add(key);
+      const file = await optimizer.run(original, "post");
+      setMedia((current) => [...current, { file, key, url: URL.createObjectURL(file) }]);
+    }
   }
+  const mediaKeys = useRef(new Set());
 
   function removeMedia(index) {
     setMedia((current) => {
+      mediaKeys.current.delete(current[index].key);
       URL.revokeObjectURL(current[index].url);
       return current.filter((_, position) => position !== index);
     });
@@ -383,6 +382,7 @@ function PostForm({ categories, onDone }) {
               onChange={addMedia}
             />
           </label>
+          <OptimizeStatus {...optimizer} />
           {media.length > 0 && (
             <div className="media-preview-grid" aria-label="Selected media">
               {media.map(({ file, url }, index) => (
@@ -415,9 +415,9 @@ function PostForm({ categories, onDone }) {
         </div>
       </div>
       <input name="visibility" value="public" type="hidden" readOnly />
-      <button className="button" disabled={busy || !categories.length}>
+      <button className="button" disabled={busy || optimizer.busy || !categories.length}>
         <Send size={18} />
-        {busy ? "Posting…" : "Publish post"}
+        {busy ? "Posting…" : optimizer.busy ? "Optimizing…" : "Publish post"}
       </button>
     </form>
   );

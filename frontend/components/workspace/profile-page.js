@@ -21,7 +21,7 @@ import {
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { copyText } from "@/lib/clipboard";
-import { Empty, Heading, InterestIcon, Modal, State, useResource } from "../ui";
+import { Empty, InterestIcon, Modal, State, useResource } from "../ui";
 import { useUser } from "../shell";
 import { EditProfileForm, EducationForm, ExperienceForm } from "./profile-forms";
 import MyCv from "./cv-section";
@@ -151,10 +151,6 @@ export default function ProfilePage({ refId }) {
 
   return (
     <div className="pf">
-      {me.role !== "learner" && (
-        <Heading eyebrow="PEOPLE BEHIND THE POSSIBILITIES" title="Profile" description="Interests, work and story." />
-      )}
-
       <section className="pf-hero">
         <div className="pf-cover">
           {profile.has_cover_image ? <img src={`/api/backend/frontend/profile/${profile.id}/cover`} alt="" /> : <span aria-hidden="true" />}

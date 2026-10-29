@@ -172,7 +172,7 @@ export function ExperienceForm({ entry, onDone }) {
   );
 }
 
-function MediaField({ label, hint, shape, existingUrl, file, onFile, removed, onRemoved, fallback }) {
+function MediaField({ label, hint, shape, existingUrl, file, onFile, removed, onRemoved, fallback, onBusy }) {
   const [preview, setPreview] = useState("");
   useEffect(() => {
     if (!file) {
@@ -195,6 +195,8 @@ function MediaField({ label, hint, shape, existingUrl, file, onFile, removed, on
         file={file}
         hint={hint}
         label={`Drag and drop a ${shape === "round" ? "picture" : "cover image"}`}
+        optimize={shape === "round" ? "avatar" : "cover"}
+        onBusy={onBusy}
         onFile={(chosen) => {
           onFile(chosen);
           if (chosen) onRemoved(false);
@@ -219,6 +221,7 @@ export function EditProfileForm({ profile, onDone }) {
   const [removeCover, setRemoveCover] = useState(false);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [optimizing, setOptimizing] = useState(false);
 
   async function submit(event) {
     event.preventDefault();
@@ -267,6 +270,7 @@ export function EditProfileForm({ profile, onDone }) {
           shape="round"
           existingUrl={profile.has_picture ? `/api/backend/frontend/profile/${profile.id}/picture` : ""}
           file={picture}
+          onBusy={setOptimizing}
           onFile={setPicture}
           removed={removePicture}
           onRemoved={setRemovePicture}
@@ -278,6 +282,7 @@ export function EditProfileForm({ profile, onDone }) {
           shape="wide"
           existingUrl={profile.has_cover_image ? `/api/backend/frontend/profile/${profile.id}/cover` : ""}
           file={cover}
+          onBusy={setOptimizing}
           onFile={setCover}
           removed={removeCover}
           onRemoved={setRemoveCover}
@@ -321,7 +326,7 @@ export function EditProfileForm({ profile, onDone }) {
         </label>
       </fieldset>
 
-      <SubmitRow error={error} busy={busy} label="Save profile" />
+      <SubmitRow error={error} busy={busy || optimizing} label={optimizing ? "Optimizing…" : "Save profile"} />
     </form>
   );
 }

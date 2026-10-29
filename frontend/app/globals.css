@@ -5748,3 +5748,23 @@ details[open] > summary .disclosure-chevron { transform: rotate(180deg); color: 
   font-weight: 700;
   letter-spacing: 0.01em;
 }
+
+/* Upload optimisation status */
+.opt-status { display: flex; align-items: center; gap: 8px; margin: 6px 0 0; font-size: 0.8rem; font-weight: 600; color: var(--muted); }
+.opt-status.busy { color: var(--text); }
+.opt-status.done { color: var(--green); }
+.opt-status strong { overflow-wrap: anywhere; }
+.opt-status button { margin-left: auto; padding: 2px 10px; border: 1px solid var(--border); border-radius: 999px; background: var(--surface); color: var(--muted); font: inherit; font-weight: 700; cursor: pointer; }
+.opt-status .spinner { width: 14px; height: 14px; flex: none; }
+.admin-photo-upload .opt-status { display: flex; margin-top: 8px; text-transform: none; letter-spacing: 0; }
+
+/* My Job Posts and Applicants: the search box keeps its natural height, and on a phone the controls stack tidily */
+.jm-toolbar .search-box { align-self: stretch; }
+.jm-toolbar .jm-post-button { flex: 0 0 auto; margin-left: auto; }
+a.jm-count { text-decoration: none; color: inherit; }
+@media (max-width: 640px) {
+  .jm-toolbar { align-items: stretch; }
+  .jm-toolbar .search-box { flex: 0 0 auto; width: 100%; max-width: none; min-height: 42px; height: 42px; }
+  .jm-toolbar .dropdown { flex: 1 1 140px; }
+  .jm-toolbar .jm-post-button { flex: 1 1 100%; justify-content: center; margin-left: 0; }
+}

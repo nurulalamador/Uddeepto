@@ -4,7 +4,7 @@ import { By, apiOk, click, clickLink, exists, find, go, hasText, isShown, signIn
 import { applyTo, makeHirer, makeJob, makeLearner } from "../lib/factory.mjs";
 import { goSidebar, logout, openProfileMenu, pageTitle, sidebarCaptions, sidebarItems, waitWorkspace } from "../lib/flows.mjs";
 
-const HIRER_MENU = ["Dashboard", "Showcase", "Job Management", "Messages", "Notifications", "Profile"];
+const HIRER_MENU = ["Dashboard", "Showcase", "My Job Posts", "Applicants", "Messages", "Notifications", "Profile"];
 
 describe("Hirer · Navigation", () => {
   const b = useBrowser();
@@ -33,7 +33,8 @@ describe("Hirer · Navigation", () => {
   for (const [label, route, title] of [
     ["Dashboard", "/dashboard", "Dashboard"],
     ["Showcase", "/showcase", "Showcase"],
-    ["Job Management", "/job-management", "Job Management"],
+    ["My Job Posts", "/job-posts", "My Job Posts"],
+    ["Applicants", "/applicants", "Applicants"],
     ["Messages", "/messages", "Messages"],
     ["Notifications", "/notifications", "Notifications"],
     ["Profile", "/profile", "Profile"],
@@ -54,10 +55,16 @@ describe("Hirer · Navigation", () => {
       await waitText(b.driver, "Access restricted");
     });
 
-  it("the old /jobs address leads a hirer to Job Management", async () => {
+  it("the old /job-management address leads to My Job Posts", async () => {
+    await signIn(b.driver, "hirer");
+    await go(b.driver, "/job-management");
+    await waitUrl(b.driver, /^\/job-posts/);
+  });
+
+  it("the old /jobs address leads a hirer to My Job Posts", async () => {
     await signIn(b.driver, "hirer");
     await go(b.driver, "/jobs");
-    await b.driver.wait(async () => (await b.driver.getCurrentUrl()).includes("/job-management") || (await hasText(b.driver, "Job Management")), 10000);
+    await waitUrl(b.driver, /^\/job-posts/);
   });
 
   it("a hirer can still open a single job page", async () => {
@@ -144,15 +151,18 @@ describe("Hirer · Dashboard", () => {
     await waitText(b.driver, "You’re all caught up. New applications will appear here as they arrive.");
   });
 
-  it("the tiles and buttons lead to Job Management", async () => {
+  it("the tiles and buttons lead to My Job Posts and Applicants", async () => {
     const hirer = await makeHirer("linker");
     await signIn(b.driver, hirer);
     await go(b.driver, "/dashboard");
     await click(b.driver, By.xpath("//a[contains(@class,'ld-tile')][contains(normalize-space(.),'Open positions')]"));
-    await waitUrl(b.driver, /^\/job-management/);
+    await waitUrl(b.driver, /^\/job-posts/);
+    await go(b.driver, "/dashboard");
+    await click(b.driver, By.xpath("//a[contains(@class,'ld-tile')][contains(normalize-space(.),'Total applicants')]"));
+    await waitUrl(b.driver, /^\/applicants/);
     await go(b.driver, "/dashboard");
     await clickLink(b.driver, "Manage jobs");
-    await waitUrl(b.driver, /^\/job-management/);
+    await waitUrl(b.driver, /^\/job-posts/);
   });
 
   it("the 'Messages' button opens the inbox", async () => {
@@ -174,3 +184,73 @@ describe("Hirer · Dashboard", () => {
     await waitText(b.driver, "1 applicant");
   });
 });
+
+describe("Hirer · My Job Posts, Applicants and the profile page", () => {
+  const b = useBrowser();
+  const phone = () => b.driver.sendDevToolsCommand("Emulation.setDeviceMetricsOverride", { width: 390, height: 844, deviceScaleFactor: 2, mobile: true });
+  const laptop = () => b.driver.sendDevToolsCommand("Emulation.clearDeviceMetricsOverride", {});
+
+  it("the two are separate pages with their own menu items", async () => {
+    await signIn(b.driver, "hirer");
+    await go(b.driver, "/job-posts");
+    await visible(b.driver, By.css("input[aria-label='Search your job posts…']"));
+    assert.equal(await exists(b.driver, By.css(".tabs")), false, "no tabs inside the page any more");
+    assert.equal(await (await find(b.driver, By.css(".sidebar nav a.active"))).getText(), "My Job Posts");
+    await goSidebar(b.driver, "Applicants");
+    await waitUrl(b.driver, /^\/applicants/);
+    await visible(b.driver, By.css("input[aria-label='Search applicants by name…']"));
+    assert.equal(await (await find(b.driver, By.css(".sidebar nav a.active"))).getText(), "Applicants");
+  });
+
+  it("'Post a job' sits with the search and filter on My Job Posts, and is not on Applicants", async () => {
+    await signIn(b.driver, "hirer");
+    await go(b.driver, "/job-posts");
+    await visible(b.driver, By.css(".jm-toolbar .jm-post-button"));
+    await go(b.driver, "/applicants");
+    await visible(b.driver, By.css("input[aria-label='Search applicants by name…']"));
+    assert.equal(await exists(b.driver, xText("Post a job", { tag: "button" })), false);
+  });
+
+  it("a job's applicants link opens Applicants already filtered to that job", async () => {
+    const hirer = await makeHirer("deeplink");
+    const job = await makeJob({ owner: hirer, title: unique("Deep link post") });
+    const other = await makeJob({ owner: hirer, title: unique("Other post") });
+    const [a, c] = [await makeLearner("dlone"), await makeLearner("dltwo")];
+    await applyTo(job, a);
+    await applyTo(other, c);
+    await signIn(b.driver, hirer);
+    await go(b.driver, `/applicants?job=${job.id}`);
+    await waitText(b.driver, a.name);
+    assert.equal(await hasText(b.driver, c.name), false);
+  });
+
+  it("neither page has an eyebrow, a big title or a subtitle, and neither does the profile", async () => {
+    await signIn(b.driver, "hirer");
+    for (const route of ["/job-posts", "/applicants", "/profile"]) {
+      await go(b.driver, route);
+      await waitWorkspace(b.driver);
+      await sleep(600);
+      assert.equal(await exists(b.driver, By.css(".page-heading, .eyebrow, main h1.heading")), false, route);
+      assert.equal(await hasText(b.driver, "PEOPLE BEHIND THE POSSIBILITIES"), false, route);
+      assert.equal(await hasText(b.driver, "Interests, work and story."), false, route);
+    }
+  });
+
+  it("on a phone the search box is a normal height and every control fits the screen", async () => {
+    await signIn(b.driver, "hirer");
+    await phone();
+    try {
+      for (const [route, field] of [["/job-posts", "Search your job posts…"], ["/applicants", "Search applicants by name…"]]) {
+        await go(b.driver, route);
+        await visible(b.driver, By.css(`input[aria-label='${field}']`));
+        const box = await b.driver.executeScript("const r = document.querySelector('.jm-toolbar .search-box').getBoundingClientRect(); return { h: r.height, w: r.width, right: r.right, vw: innerWidth, scroll: document.documentElement.scrollWidth }");
+        assert.ok(box.h >= 36 && box.h <= 56, `${route}: the search box is ${box.h}px tall`);
+        assert.ok(box.right <= box.vw, `${route}: the search box runs off the screen`);
+        assert.ok(box.scroll <= box.vw, `${route}: the page scrolls sideways`);
+      }
+    } finally {
+      await laptop();
+    }
+  });
+});
+

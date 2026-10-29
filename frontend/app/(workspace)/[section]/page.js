@@ -6,7 +6,7 @@ export default async function Page({ params, searchParams }) {
   const { section } = await params;
   if (!sections[section]) notFound();
   const user = await currentUser();
-  if (user?.role === "hirer" && section === "jobs") redirect("/job-management");
+  if (user?.role === "hirer" && ["jobs", "job-management"].includes(section)) redirect("/job-posts");
   // /profile is the person's own profile at its permanent address: go there directly instead of loading twice.
   if (section === "profile" && user?.uddeepto_id && !(await searchParams).user) redirect(`/profile/${user.uddeepto_id}`);
   if (user && !canAccess(user.role, section)) redirect("/dashboard");

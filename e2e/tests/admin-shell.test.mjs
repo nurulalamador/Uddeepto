@@ -58,7 +58,7 @@ describe("Admin · Navigation", () => {
       await b.driver.wait(async () => (await pageTitle(b.driver)) === title, 8000);
     });
 
-  for (const route of ["/showcase", "/messages", "/communities", "/ai", "/job-management"])
+  for (const route of ["/showcase", "/messages", "/communities", "/ai", "/job-posts", "/applicants"])
     it(`${route} is not available to an admin`, async () => {
       await signIn(b.driver, "admin");
       await go(b.driver, route);

@@ -103,7 +103,7 @@ test("notifications from the auth, community and jobs services", async (t) => {
     assert.equal(rows.length, 1);
     assert.equal(rows[0].title, "Applicant applied for “Backend Engineer”");
     assert.match(rows[0].body, /four years/);
-    assert.equal(rows[0].link, "/job-management");
+    assert.equal(rows[0].link, "/applicants");
     assert.equal(rows[0].actor_id, ids.Applicant);
     assert.equal((await call("jobs", `/${closed}/apply`, "Applicant", { cover_letter: "Hi" })).status, 409);
     assert.equal((await notes("Hirer", "job_application_received")).length, 1, "closed jobs do not notify");

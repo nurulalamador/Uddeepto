@@ -95,7 +95,7 @@ export function CourseCard({ course, onPress }: { course: CourseRow; onPress: ()
   const total = Number(course.progress_total || 0);
   const done = Number(course.progress_done || 0);
   return (
-    <Card onPress={onPress} style={{ padding: 0, overflow: "hidden", gap: 0 }}>
+    <Card testID={`course-card-${course.id}`} onPress={onPress} style={{ padding: 0, overflow: "hidden", gap: 0 }}>
       <CourseCover course={course} />
       <View style={{ padding: 14, gap: 8 }}>
         <View style={styles.chips}>

@@ -1,0 +1,25 @@
+appId: com.kodofact.uddeepto
+name: M007 Admin is told to use the web version
+tags:
+  - android
+  - auth
+---
+- runFlow:
+    file: ../../helpers/reset.yaml
+- runFlow:
+    file: ../../helpers/credentials.yaml
+    env:
+      USERNAME: ${ADMIN_USERNAME}
+      LOGIN_PASSWORD: ${PASSWORD}
+- extendedWaitUntil:
+    visible:
+      text: Admin account
+    timeout: 30000
+- assertVisible:
+    text: Admin should must use web version
+- tapOn:
+    text: OK
+- assertVisible:
+    id: input-username-or-email
+- assertNotVisible:
+    id: tab-index

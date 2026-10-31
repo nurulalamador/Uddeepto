@@ -1,0 +1,35 @@
+appId: com.kodofact.uddeepto
+name: M225 Cancelling PDF selection keeps the saved CV unchanged
+tags:
+  - android
+  - cv-ai
+  - media
+---
+- runScript:
+    file: ../../scripts/prepare-case.js
+    env:
+      SCENARIO: cv-existing
+      ACTOR_ROLE: learner
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${output.actorUsername}
+- openLink:
+    link: uddeepto://cv
+- extendedWaitUntil:
+    visible:
+      text: Your current CV
+    timeout: 30000
+- tapOn:
+    id: button-replace-with-a-pdf
+- extendedWaitUntil:
+    visible:
+      text: Show roots
+    timeout: 30000
+- back
+- extendedWaitUntil:
+    visible:
+      id: button-replace-with-a-pdf
+    timeout: 30000
+- assertVisible:
+    text: maestro-cv.pdf

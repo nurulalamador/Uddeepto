@@ -1,0 +1,26 @@
+appId: com.kodofact.uddeepto
+name: M043 A report cannot be sent without a reason
+tags:
+  - android
+  - showcase
+---
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${SHOWCASE_USERNAME}
+- openLink:
+    link: uddeepto://post/${POST_ID}
+- extendedWaitUntil:
+    visible:
+      id: post-card-${POST_ID}
+    timeout: 30000
+- tapOn:
+    text: More options
+- tapOn:
+    id: button-report-post
+- tapOn:
+    id: button-send-report
+- assertVisible:
+    text: Choose a reason.
+- tapOn:
+    id: sheet-close

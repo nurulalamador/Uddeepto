@@ -94,7 +94,7 @@ export default function JobsTab() {
 
 export function JobCard({ job, onPress }: { job: JobRow; onPress: () => void }) {
   return (
-    <Card onPress={onPress}>
+    <Card testID={`job-card-${job.id}`} onPress={onPress}>
       <View style={{ flexDirection: "row", gap: 6, flexWrap: "wrap" }}>
         {job.application_status ? <Chip label={job.application_status === "applied" ? "Applied" : `Applied · ${label(job.application_status)}`} tone={job.application_status === "accepted" ? "green" : job.application_status === "rejected" ? "red" : "orange"} /> : null}
         {job.status !== "open" ? <Chip label={label(job.status)} tone="gray" /> : null}

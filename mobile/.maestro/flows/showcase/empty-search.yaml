@@ -1,0 +1,32 @@
+appId: com.kodofact.uddeepto
+name: M137 Post search shows a useful empty state
+tags:
+  - android
+  - showcase
+---
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${LEARNER_USERNAME}
+- tapOn:
+    id: tab-showcase
+- extendedWaitUntil:
+    visible:
+      id: filter-search
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: filter-search
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: filter-search
+- eraseText
+- inputText: zznone${RUN_ID}
+- hideKeyboard
+- extendedWaitUntil:
+    visible:
+      text: Nothing here yet
+    timeout: 30000
+- assertVisible:
+    text: No posts match these filters.

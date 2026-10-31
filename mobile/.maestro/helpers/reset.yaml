@@ -1,0 +1,11 @@
+appId: com.kodofact.uddeepto
+name: Reset app to login
+---
+- launchApp:
+    clearState: true
+    permissions:
+      all: allow
+- extendedWaitUntil:
+    visible:
+      id: input-username-or-email
+    timeout: 60000

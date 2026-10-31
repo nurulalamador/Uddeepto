@@ -1,0 +1,52 @@
+appId: com.kodofact.uddeepto
+name: M074 A disposable account can be permanently deleted
+tags:
+  - android
+  - settings
+  - writes
+  - destructive
+---
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${DELETE_USERNAME}
+- openLink:
+    link: uddeepto://settings
+- extendedWaitUntil:
+    visible:
+      id: input-current-password
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: input-password
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: input-password
+- eraseText
+- inputText: ${PASSWORD}
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: button-delete-my-account
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: button-delete-my-account
+- tapOn:
+    text: Delete forever
+- extendedWaitUntil:
+    visible:
+      id: input-username-or-email
+    timeout: 30000
+- runFlow:
+    file: ../../helpers/credentials.yaml
+    env:
+      USERNAME: ${DELETE_USERNAME}
+      LOGIN_PASSWORD: ${PASSWORD}
+- extendedWaitUntil:
+    visible:
+      text: Invalid credentials
+    timeout: 30000
+- assertNotVisible:
+    id: tab-index

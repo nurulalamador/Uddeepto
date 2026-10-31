@@ -1,0 +1,83 @@
+appId: com.kodofact.uddeepto
+name: M056 Job salary maximum cannot be below the minimum
+tags:
+  - android
+  - jobs
+---
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${PUBLISH_HIRER_USERNAME}
+- openLink:
+    link: uddeepto://job-post
+- extendedWaitUntil:
+    visible:
+      id: input-job-title
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: input-job-title
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: input-job-title
+- eraseText
+- inputText: Maestro new job ${RUN_ID}
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: input-description
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: input-description
+- eraseText
+- inputText: A remote Android fixture role.
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: dropdown-interest-category
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: dropdown-interest-category
+- tapOn:
+    id: option-${CATEGORY_ID}
+- scrollUntilVisible:
+    element:
+      id: dropdown-work-mode
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: dropdown-work-mode
+- tapOn:
+    id: option-remote
+- scrollUntilVisible:
+    element:
+      id: input-salary-min
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: input-salary-min
+- eraseText
+- inputText: '60000'
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: input-salary-max
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: input-salary-max
+- eraseText
+- inputText: '40000'
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: button-post-this-job
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: button-post-this-job
+- assertVisible:
+    text: The maximum salary is below the minimum.

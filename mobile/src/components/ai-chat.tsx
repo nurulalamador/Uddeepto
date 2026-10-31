@@ -93,8 +93,8 @@ export function AiChat({ endpoint = "frontend/ai/chat", starters, intro }: { end
         }
       />
       <View style={[styles.composer, { paddingBottom: bottom }]}>
-        <TextInput value={text} onChangeText={setText} placeholder="Ask anything…" placeholderTextColor="#9aa7a0" multiline style={styles.input} />
-        <Pressable onPress={() => send()} disabled={!text.trim() || pending} accessibilityLabel="Send" style={{ opacity: !text.trim() || pending ? 0.5 : 1 }}>
+        <TextInput testID="ai-input" value={text} onChangeText={setText} placeholder="Ask anything…" placeholderTextColor="#9aa7a0" multiline style={styles.input} />
+        <Pressable testID="ai-send" onPress={() => send()} disabled={!text.trim() || pending} accessibilityState={{ disabled: !text.trim() || pending }} accessibilityLabel="Send" style={{ opacity: !text.trim() || pending ? 0.5 : 1 }}>
           <LinearGradient colors={gradients.ai} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.send}>
             <Ionicons name="send" size={18} color="#fff" />
           </LinearGradient>

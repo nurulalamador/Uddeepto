@@ -1,0 +1,42 @@
+appId: com.kodofact.uddeepto
+name: M089 Signup role selection can be changed without losing form data
+tags:
+  - android
+  - auth
+---
+- runFlow:
+    file: ../../helpers/reset.yaml
+- tapOn:
+    text: Create an account
+- extendedWaitUntil:
+    visible:
+      id: input-full-name
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: input-full-name
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: input-full-name
+- eraseText
+- inputText: Maestro Role
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: register-role-hirer
+    direction: UP
+    timeout: 30000
+- tapOn:
+    id: register-role-hirer
+- assertVisible:
+    id: register-role-hirer
+    selected: true
+- tapOn:
+    id: register-role-learner
+- assertVisible:
+    id: register-role-learner
+    selected: true
+- assertVisible:
+    id: input-full-name
+    text: Maestro Role

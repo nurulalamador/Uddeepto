@@ -1,0 +1,48 @@
+appId: com.kodofact.uddeepto
+name: M188 Applicant Message action opens a direct conversation
+tags:
+  - android
+  - jobs
+---
+- runScript:
+    file: ../../scripts/prepare-case.js
+    env:
+      SCENARIO: applicant-owner
+      ACTOR_ROLE: hirer
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${output.actorUsername}
+- tapOn:
+    id: tab-hiring
+- tapOn:
+    id: top-tab-applicants
+- extendedWaitUntil:
+    visible:
+      id: filter-search
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: filter-search
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: filter-search
+- eraseText
+- inputText: ${output.applicantName}
+- hideKeyboard
+- extendedWaitUntil:
+    visible:
+      text: Maestro APPLY
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: button-message
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: button-message
+- extendedWaitUntil:
+    visible:
+      id: chat-input
+    timeout: 30000

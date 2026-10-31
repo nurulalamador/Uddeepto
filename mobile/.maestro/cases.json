@@ -1,0 +1,1815 @@
+[
+  {
+    "id": "M001",
+    "group": "auth",
+    "title": "Login shows the required controls",
+    "file": "flows/auth/login-form.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M002",
+    "group": "auth",
+    "title": "Empty login is rejected locally",
+    "file": "flows/auth/empty-login.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M003",
+    "group": "auth",
+    "title": "Login requires a password",
+    "file": "flows/auth/missing-password.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M004",
+    "group": "auth",
+    "title": "Password visibility can be toggled both ways",
+    "file": "flows/auth/password-toggle.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M005",
+    "group": "auth",
+    "title": "Wrong password cannot open the workspace",
+    "file": "flows/auth/invalid-password.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M006",
+    "group": "auth",
+    "title": "Suspended account cannot sign in",
+    "file": "flows/auth/suspended-user.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M007",
+    "group": "auth",
+    "title": "Admin is told to use the web version",
+    "file": "flows/auth/admin-web-only.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M008",
+    "group": "auth",
+    "title": "Learner can sign in by email",
+    "file": "flows/auth/login-email.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M009",
+    "group": "auth",
+    "title": "Registration requires a full name",
+    "file": "flows/auth/register-validation-name.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M010",
+    "group": "auth",
+    "title": "Registration rejects an invalid email",
+    "file": "flows/auth/register-validation-email.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M011",
+    "group": "auth",
+    "title": "Registration rejects an invalid username",
+    "file": "flows/auth/register-validation-username.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M012",
+    "group": "auth",
+    "title": "Registration rejects a short password",
+    "file": "flows/auth/register-validation-password.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M013",
+    "group": "auth",
+    "title": "New learner reaches the correct first screen",
+    "file": "flows/auth/register-learner.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M014",
+    "group": "auth",
+    "title": "New hirer reaches the correct first screen",
+    "file": "flows/auth/register-hirer.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M015",
+    "group": "navigation",
+    "title": "Learner has learning tabs and can navigate them",
+    "file": "flows/navigation/learner-tabs.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M016",
+    "group": "navigation",
+    "title": "Hirer has hiring tabs and no learner tabs",
+    "file": "flows/navigation/hirer-tabs.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M017",
+    "group": "navigation",
+    "title": "Session survives an app restart",
+    "file": "flows/navigation/session-restart.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M018",
+    "group": "navigation",
+    "title": "Signed-out users cannot open a private job link",
+    "file": "flows/navigation/signed-out-link.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M019",
+    "group": "navigation",
+    "title": "Sign out removes access after restart",
+    "file": "flows/navigation/logout.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M020",
+    "group": "search",
+    "title": "Search requires at least two letters",
+    "file": "flows/search/minimum-query.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M021",
+    "group": "search",
+    "title": "Unknown search explains the empty result",
+    "file": "flows/search/empty-results.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M022",
+    "group": "search",
+    "title": "Search opens the requested hirer profile",
+    "file": "flows/search/open-person.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M023",
+    "group": "profile",
+    "title": "Own hirer profile shows active jobs and opens details",
+    "file": "flows/profile/hirer-own-active-jobs.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M024",
+    "group": "profile",
+    "title": "Other hirer profile shows active jobs and opens details",
+    "file": "flows/profile/hirer-other-active-jobs.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M025",
+    "group": "profile",
+    "title": "A future deadline keeps the hirer job active",
+    "file": "flows/profile/hirer-future-deadline.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M026",
+    "group": "profile",
+    "title": "Own empty hirer profile explains missing jobs",
+    "file": "flows/profile/own-empty-hirer.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M027",
+    "group": "profile",
+    "title": "Other empty hirer profile shows its empty state",
+    "file": "flows/profile/other-empty-hirer.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M028",
+    "group": "profile",
+    "title": "A profile ID can be copied",
+    "file": "flows/profile/copy-id.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M029",
+    "group": "profile",
+    "title": "Edited headline persists after reopening the profile",
+    "file": "flows/profile/edit-headline.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M030",
+    "group": "profile",
+    "title": "Profile rejects an empty name",
+    "file": "flows/profile/invalid-name.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M031",
+    "group": "profile",
+    "title": "Interest search filters the list",
+    "file": "flows/profile/interests-filter.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M032",
+    "group": "profile",
+    "title": "A learner with no interests can complete onboarding",
+    "file": "flows/profile/newbie-onboarding.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M033",
+    "group": "profile",
+    "title": "Education form requires an institution",
+    "file": "flows/profile/education-validation.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M034",
+    "group": "profile",
+    "title": "Experience form requires a title and workplace",
+    "file": "flows/profile/experience-validation.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M035",
+    "group": "showcase",
+    "title": "Post composer requires an interest",
+    "file": "flows/showcase/required-interest.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M036",
+    "group": "showcase",
+    "title": "Post composer requires content",
+    "file": "flows/showcase/required-content.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M037",
+    "group": "showcase",
+    "title": "Text post appears in the feed after publishing",
+    "file": "flows/showcase/publish-text.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M038",
+    "group": "showcase",
+    "title": "Photo upload publishes and survives opening the post",
+    "file": "flows/showcase/publish-picture.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M039",
+    "group": "showcase",
+    "title": "Selected picture can be removed before publishing",
+    "file": "flows/showcase/remove-attachment.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M040",
+    "group": "showcase",
+    "title": "Appreciation can be added and removed",
+    "file": "flows/showcase/appreciation.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M041",
+    "group": "showcase",
+    "title": "Submitted comment persists after opening the post again",
+    "file": "flows/showcase/comment.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M042",
+    "group": "showcase",
+    "title": "Cancelling post deletion keeps the post",
+    "file": "flows/showcase/delete-cancel.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M043",
+    "group": "showcase",
+    "title": "A report cannot be sent without a reason",
+    "file": "flows/showcase/report-reason.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M044",
+    "group": "learning",
+    "title": "Free course preview opens without enrollment",
+    "file": "flows/learning/course-preview.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M045",
+    "group": "learning",
+    "title": "Free course enrollment unlocks materials and records progress",
+    "file": "flows/learning/course-enroll-progress.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M046",
+    "group": "learning",
+    "title": "Free contest can be joined and entry form opens",
+    "file": "flows/learning/contest-join.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M047",
+    "group": "learning",
+    "title": "Contest leaderboard opens separately from details",
+    "file": "flows/learning/contest-leaderboard.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M048",
+    "group": "learning",
+    "title": "Webinar registration persists after reopening",
+    "file": "flows/learning/webinar-reserve.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M049",
+    "group": "learning",
+    "title": "Full webinar does not offer a reservation",
+    "file": "flows/learning/webinar-full.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M050",
+    "group": "learning",
+    "title": "Past webinar offers its recording and no reservation",
+    "file": "flows/learning/webinar-past.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M051",
+    "group": "jobs",
+    "title": "Learner can open job details from the jobs list",
+    "file": "flows/jobs/job-details.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M052",
+    "group": "jobs",
+    "title": "Closed job cannot accept an application",
+    "file": "flows/jobs/closed-job.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M053",
+    "group": "jobs",
+    "title": "Application requires a cover letter",
+    "file": "flows/jobs/application-validation.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M054",
+    "group": "jobs",
+    "title": "Learner applies using the saved CV",
+    "file": "flows/jobs/apply-saved-cv.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M055",
+    "group": "jobs",
+    "title": "Hirer job form requires a title and description",
+    "file": "flows/jobs/post-validation.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M056",
+    "group": "jobs",
+    "title": "Job salary maximum cannot be below the minimum",
+    "file": "flows/jobs/salary-validation.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M057",
+    "group": "jobs",
+    "title": "Hirer creates a remote job that is saved as a draft",
+    "file": "flows/jobs/create-job.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M058",
+    "group": "jobs",
+    "title": "Hirer can close and reopen an owned job",
+    "file": "flows/jobs/close-reopen.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M059",
+    "group": "jobs",
+    "title": "Hirer sees the seeded applicant and cover letter",
+    "file": "flows/jobs/applicants.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M060",
+    "group": "messages",
+    "title": "New conversation search requires two letters",
+    "file": "flows/messages/people-minimum.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M061",
+    "group": "messages",
+    "title": "Unknown person gives an empty result",
+    "file": "flows/messages/people-not-found.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M062",
+    "group": "messages",
+    "title": "Person search opens the correct conversation",
+    "file": "flows/messages/start-conversation.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M063",
+    "group": "messages",
+    "title": "A direct message is saved and reloads in the conversation",
+    "file": "flows/messages/send-persist.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M064",
+    "group": "messages",
+    "title": "Open community membership unlocks its channels",
+    "file": "flows/messages/community-join.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M065",
+    "group": "messages",
+    "title": "Private community requires approval before channel access",
+    "file": "flows/messages/community-request.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M066",
+    "group": "messages",
+    "title": "A member sends a community channel message",
+    "file": "flows/messages/community-send.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M067",
+    "group": "notifications",
+    "title": "Notification category limits the visible records",
+    "file": "flows/notifications/category-filter.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M068",
+    "group": "notifications",
+    "title": "A notification opens its linked job",
+    "file": "flows/notifications/open-target.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M069",
+    "group": "notifications",
+    "title": "Mark all read empties the unread list",
+    "file": "flows/notifications/mark-read.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M070",
+    "group": "settings",
+    "title": "Changing password rejects fewer than eight characters",
+    "file": "flows/settings/short-password.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M071",
+    "group": "settings",
+    "title": "Changing password rejects mismatched confirmation",
+    "file": "flows/settings/password-mismatch.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M072",
+    "group": "settings",
+    "title": "Account deletion requires password confirmation",
+    "file": "flows/settings/delete-requires-password.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M073",
+    "group": "settings",
+    "title": "Cancelling account deletion preserves the session",
+    "file": "flows/settings/delete-cancel.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M074",
+    "group": "settings",
+    "title": "A disposable account can be permanently deleted",
+    "file": "flows/settings/delete-account.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M075",
+    "group": "cv-ai",
+    "title": "CV template can be selected without sharing a file",
+    "file": "flows/cv-ai/cv-template.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M076",
+    "group": "cv-ai",
+    "title": "AI fails clearly when the isolated server has no key",
+    "file": "flows/cv-ai/ai-unconfigured.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M077",
+    "group": "profile",
+    "title": "A hirer with only closed jobs has no active posts",
+    "file": "flows/profile/exclude-closed-jobs.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M078",
+    "group": "profile",
+    "title": "A hirer with only draft jobs has no active posts",
+    "file": "flows/profile/exclude-draft-jobs.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M079",
+    "group": "profile",
+    "title": "A hirer with only expired jobs has no active posts",
+    "file": "flows/profile/exclude-expired-jobs.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M080",
+    "group": "messages",
+    "title": "Connected socket delivers an incoming message before the polling interval",
+    "file": "flows/messages/live-receive.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M081",
+    "group": "settings",
+    "title": "Password change signs out sessions and accepts only the new password",
+    "file": "flows/settings/change-password.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M082",
+    "group": "cv-ai",
+    "title": "Generated PDF is saved as the current CV and persists",
+    "file": "flows/cv-ai/save-cv.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M083",
+    "group": "learning",
+    "title": "Contest participant can submit a code entry",
+    "file": "flows/learning/contest-submit.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M084",
+    "group": "jobs",
+    "title": "Hirer changes applicant status and it persists",
+    "file": "flows/jobs/applicant-status.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M085",
+    "group": "auth",
+    "title": "Unknown username cannot create a session",
+    "file": "flows/auth/unknown-user.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M086",
+    "group": "auth",
+    "title": "Surrounding whitespace is removed from the login identifier",
+    "file": "flows/auth/trim-identifier.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M087",
+    "group": "auth",
+    "title": "Registration refuses an existing email",
+    "file": "flows/auth/duplicate-email.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M088",
+    "group": "auth",
+    "title": "Registration refuses an existing username",
+    "file": "flows/auth/duplicate-username.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M089",
+    "group": "auth",
+    "title": "Signup role selection can be changed without losing form data",
+    "file": "flows/auth/role-toggle.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M090",
+    "group": "auth",
+    "title": "Sign in link returns from registration to login",
+    "file": "flows/auth/return-to-login.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M091",
+    "group": "auth",
+    "title": "Signup password visibility can be toggled",
+    "file": "flows/auth/signup-password-toggle.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M092",
+    "group": "navigation",
+    "title": "Hirer cannot open the restricted course route",
+    "file": "flows/navigation/guard-hirer-course.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M093",
+    "group": "navigation",
+    "title": "Hirer cannot open the restricted cv route",
+    "file": "flows/navigation/guard-hirer-cv.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M094",
+    "group": "navigation",
+    "title": "Learner cannot open the restricted job-post route",
+    "file": "flows/navigation/guard-learner-job-post.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M095",
+    "group": "navigation",
+    "title": "Cancelling sign out keeps the current account signed in",
+    "file": "flows/navigation/logout-cancel.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M096",
+    "group": "navigation",
+    "title": "Android back returns from a job to the jobs tab",
+    "file": "flows/navigation/back-to-tab.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M097",
+    "group": "search",
+    "title": "Search result opens the correct course detail",
+    "file": "flows/search/open-course.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M098",
+    "group": "search",
+    "title": "Search result opens the correct job detail",
+    "file": "flows/search/open-job.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M099",
+    "group": "search",
+    "title": "Search result opens the correct contest detail",
+    "file": "flows/search/open-contest.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M100",
+    "group": "search",
+    "title": "Search result opens the correct webinar detail",
+    "file": "flows/search/open-webinar.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M101",
+    "group": "search",
+    "title": "Clearing a query returns search to its initial state",
+    "file": "flows/search/clear-query.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M102",
+    "group": "search",
+    "title": "Hirer search does not expose learner course results",
+    "file": "flows/search/hirer-restricted-results.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M103",
+    "group": "profile",
+    "title": "Profile name bio phone and address persist after saving",
+    "file": "flows/profile/save-details.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M104",
+    "group": "profile",
+    "title": "Leaving profile edit without saving preserves the stored name",
+    "file": "flows/profile/discard-edit.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M105",
+    "group": "profile",
+    "title": "Learner profile does not show hirer controls or job section",
+    "file": "flows/profile/learner-no-job-section.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M106",
+    "group": "profile",
+    "title": "Another user profile has messaging but no account editing actions",
+    "file": "flows/profile/other-profile-actions.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M107",
+    "group": "profile",
+    "title": "Added interests remain selected after saving and reopening",
+    "file": "flows/profile/interests-persist.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M108",
+    "group": "profile",
+    "title": "Removing the last interest disables saving",
+    "file": "flows/profile/last-interest-required.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M109",
+    "group": "profile",
+    "title": "Interest AI help can return to the unchanged selected list",
+    "file": "flows/profile/interests-ai-back.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M110",
+    "group": "profile",
+    "title": "Profile picture uploads and displays the server image",
+    "file": "flows/profile/upload-picture.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M111",
+    "group": "profile",
+    "title": "Profile picture can be removed after upload",
+    "file": "flows/profile/remove-picture.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M112",
+    "group": "profile",
+    "title": "Profile cover uploads and displays the server image",
+    "file": "flows/profile/upload-cover.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M113",
+    "group": "profile",
+    "title": "Profile cover can be removed after upload",
+    "file": "flows/profile/remove-cover.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M114",
+    "group": "profile",
+    "title": "Cancelling the photo picker does not mark a profile picture as selected",
+    "file": "flows/profile/cancel-picture-picker.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M115",
+    "group": "education",
+    "title": "New account education list has a useful empty state",
+    "file": "flows/education/empty-list.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M116",
+    "group": "education",
+    "title": "education requires a start month",
+    "file": "flows/education/start-required.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M117",
+    "group": "education",
+    "title": "education requires an end date unless current",
+    "file": "flows/education/end-required.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M118",
+    "group": "education",
+    "title": "education rejects a future start date",
+    "file": "flows/education/future-start.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M119",
+    "group": "education",
+    "title": "education rejects an end date before the start date",
+    "file": "flows/education/end-before-start.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M120",
+    "group": "education",
+    "title": "Unsaved education entry can be discarded",
+    "file": "flows/education/cancel-add.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M121",
+    "group": "education",
+    "title": "Current education entry is saved and can be reopened",
+    "file": "flows/education/create-current.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M122",
+    "group": "education",
+    "title": "Existing education entry changes persist",
+    "file": "flows/education/edit-existing.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M123",
+    "group": "education",
+    "title": "Cancelling education deletion keeps the record",
+    "file": "flows/education/delete-cancel.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M124",
+    "group": "education",
+    "title": "Deleting education removes it from the server-backed list",
+    "file": "flows/education/delete-existing.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M125",
+    "group": "experience",
+    "title": "New account experience list has a useful empty state",
+    "file": "flows/experience/empty-list.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M126",
+    "group": "experience",
+    "title": "experience requires a start month",
+    "file": "flows/experience/start-required.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M127",
+    "group": "experience",
+    "title": "experience requires an end date unless current",
+    "file": "flows/experience/end-required.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M128",
+    "group": "experience",
+    "title": "experience rejects a future start date",
+    "file": "flows/experience/future-start.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M129",
+    "group": "experience",
+    "title": "experience rejects an end date before the start date",
+    "file": "flows/experience/end-before-start.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M130",
+    "group": "experience",
+    "title": "Unsaved experience entry can be discarded",
+    "file": "flows/experience/cancel-add.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M131",
+    "group": "experience",
+    "title": "Current experience entry is saved and can be reopened",
+    "file": "flows/experience/create-current.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M132",
+    "group": "experience",
+    "title": "Existing experience entry changes persist",
+    "file": "flows/experience/edit-existing.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M133",
+    "group": "experience",
+    "title": "Cancelling experience deletion keeps the record",
+    "file": "flows/experience/delete-cancel.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M134",
+    "group": "experience",
+    "title": "Deleting experience removes it from the server-backed list",
+    "file": "flows/experience/delete-existing.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M135",
+    "group": "experience",
+    "title": "Experience requires a category or Others",
+    "file": "flows/experience/category-required.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M136",
+    "group": "experience",
+    "title": "Experience can be saved under Others",
+    "file": "flows/experience/others-category.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M137",
+    "group": "showcase",
+    "title": "Post search shows a useful empty state",
+    "file": "flows/showcase/empty-search.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M138",
+    "group": "showcase",
+    "title": "An interest filter excludes posts from other interests",
+    "file": "flows/showcase/category-filter.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M139",
+    "group": "showcase",
+    "title": "Leaving an unsent composer does not create a post",
+    "file": "flows/showcase/discard-composer.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M140",
+    "group": "showcase",
+    "title": "Own post offers delete and hides report",
+    "file": "flows/showcase/own-menu.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M141",
+    "group": "showcase",
+    "title": "Another person post offers report and hides delete",
+    "file": "flows/showcase/other-menu.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M142",
+    "group": "showcase",
+    "title": "Deleting an owned post removes it and reopening shows an error",
+    "file": "flows/showcase/delete-post.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M143",
+    "group": "showcase",
+    "title": "A valid report reaches the moderators",
+    "file": "flows/showcase/report-post.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M144",
+    "group": "showcase",
+    "title": "Reporting the same post twice is refused",
+    "file": "flows/showcase/duplicate-report.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M145",
+    "group": "showcase",
+    "title": "Post appreciation survives reopening the post",
+    "file": "flows/showcase/appreciation-persist.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M146",
+    "group": "showcase",
+    "title": "Whitespace-only comments cannot be submitted",
+    "file": "flows/showcase/comment-whitespace.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M147",
+    "group": "showcase",
+    "title": "Comment appreciation toggles and persists",
+    "file": "flows/showcase/comment-appreciation.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M148",
+    "group": "showcase",
+    "title": "Post pagination reaches records beyond the first page",
+    "file": "flows/showcase/pagination.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M149",
+    "group": "showcase",
+    "title": "video attachment uploads through the native picker",
+    "file": "flows/showcase/publish-video.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M150",
+    "group": "showcase",
+    "title": "audio attachment uploads through the native picker",
+    "file": "flows/showcase/publish-audio.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M151",
+    "group": "learning",
+    "title": "Course search explains that no course matches",
+    "file": "flows/learning/course-search-empty.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M152",
+    "group": "learning",
+    "title": "Course interest filter excludes unrelated courses",
+    "file": "flows/learning/course-interest-filter.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M153",
+    "group": "learning",
+    "title": "New learner has an empty enrolled course list",
+    "file": "flows/learning/my-courses-empty.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M154",
+    "group": "learning",
+    "title": "An enrolled course appears in My courses",
+    "file": "flows/learning/my-courses-enrolled.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M155",
+    "group": "learning",
+    "title": "Course catalog pagination loads a second page",
+    "file": "flows/learning/course-pagination.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M156",
+    "group": "learning",
+    "title": "Paid course cannot enroll without payment",
+    "file": "flows/learning/premium-payment.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M157",
+    "group": "learning",
+    "title": "Unenrolled learner cannot open a locked material by deep link",
+    "file": "flows/learning/locked-material.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M158",
+    "group": "learning",
+    "title": "Course instructor opens and lists published courses",
+    "file": "flows/learning/instructor-details.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M159",
+    "group": "learning",
+    "title": "Previous returns from the second material to the first",
+    "file": "flows/learning/material-previous.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M160",
+    "group": "events",
+    "title": "Events contests upcoming filter opens the matching event",
+    "file": "flows/events/contest-upcoming.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M161",
+    "group": "events",
+    "title": "Events contests previous filter opens the matching event",
+    "file": "flows/events/contest-previous.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M162",
+    "group": "events",
+    "title": "Events webinars upcoming filter opens the matching event",
+    "file": "flows/events/webinar-upcoming.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M163",
+    "group": "events",
+    "title": "Events webinars previous filter opens the matching event",
+    "file": "flows/events/webinar-previous.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M164",
+    "group": "events",
+    "title": "Contest search shows an empty list",
+    "file": "flows/events/contest-search-empty.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M165",
+    "group": "events",
+    "title": "Contest entry tab requires membership",
+    "file": "flows/events/unjoined-entry.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M166",
+    "group": "events",
+    "title": "Past contest does not accept a new join",
+    "file": "flows/events/past-contest.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M167",
+    "group": "events",
+    "title": "Contest membership persists after reopening",
+    "file": "flows/events/joined-persist.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M168",
+    "group": "events",
+    "title": "Contest submission remains disabled for whitespace code",
+    "file": "flows/events/empty-code.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M169",
+    "group": "events",
+    "title": "Webinar speaker opens the instructor profile",
+    "file": "flows/events/webinar-speaker.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M170",
+    "group": "events",
+    "title": "Upcoming registered webinar hides its meeting URL until opening time",
+    "file": "flows/events/registered-link-hidden.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M171",
+    "group": "jobs",
+    "title": "Job posting requires an interest category",
+    "file": "flows/jobs/interest-required.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M172",
+    "group": "jobs",
+    "title": "On-site job requires a location",
+    "file": "flows/jobs/location-required.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M173",
+    "group": "jobs",
+    "title": "Remote mode hides location and switching back restores it",
+    "file": "flows/jobs/remote-toggle.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M174",
+    "group": "jobs",
+    "title": "November deadline picker does not offer day 31",
+    "file": "flows/jobs/deadline-november.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M175",
+    "group": "jobs",
+    "title": "Job type filter removes permanent roles from contract results",
+    "file": "flows/jobs/type-filter.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M176",
+    "group": "jobs",
+    "title": "New learner has no applications",
+    "file": "flows/jobs/empty-applications.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M177",
+    "group": "jobs",
+    "title": "Application without a current CV requires a PDF",
+    "file": "flows/jobs/application-cv-required.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M178",
+    "group": "jobs",
+    "title": "Application can attach a PDF through the native picker",
+    "file": "flows/jobs/application-pdf-upload.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M179",
+    "group": "jobs",
+    "title": "Existing application cannot be submitted a second time",
+    "file": "flows/jobs/already-applied.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M180",
+    "group": "jobs",
+    "title": "Saved application appears in My applications",
+    "file": "flows/jobs/applied-list.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M181",
+    "group": "jobs",
+    "title": "Hirer cannot apply to or manage another hirer job",
+    "file": "flows/jobs/nonowner-hirer.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M182",
+    "group": "jobs",
+    "title": "Expired open job cannot accept new applications",
+    "file": "flows/jobs/expired-application.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M183",
+    "group": "jobs",
+    "title": "Jobs list loads records after the first page",
+    "file": "flows/jobs/pagination.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M184",
+    "group": "jobs",
+    "title": "Hirer with no applications sees the empty state",
+    "file": "flows/jobs/hirer-empty-applicants.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M185",
+    "group": "jobs",
+    "title": "Hirer can mark an applicant accepted",
+    "file": "flows/jobs/applicant-accepted.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M186",
+    "group": "jobs",
+    "title": "Hirer can mark an applicant rejected",
+    "file": "flows/jobs/applicant-rejected.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M187",
+    "group": "jobs",
+    "title": "Applicant Profile action opens the applicant account",
+    "file": "flows/jobs/applicant-profile.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M188",
+    "group": "jobs",
+    "title": "Applicant Message action opens a direct conversation",
+    "file": "flows/jobs/applicant-message.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M189",
+    "group": "messages",
+    "title": "New account has an empty inbox",
+    "file": "flows/messages/empty-inbox.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M190",
+    "group": "messages",
+    "title": "Hirer inbox does not show a community tab",
+    "file": "flows/messages/hirer-no-community.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M191",
+    "group": "messages",
+    "title": "Cancelling person search returns to the inbox",
+    "file": "flows/messages/cancel-new.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M192",
+    "group": "messages",
+    "title": "Whitespace-only direct messages cannot be sent",
+    "file": "flows/messages/whitespace-send.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M193",
+    "group": "messages",
+    "title": "Nonmember cannot open a private conversation by ID",
+    "file": "flows/messages/conversation-access.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M194",
+    "group": "messages",
+    "title": "Nonmember cannot read a protected community channel",
+    "file": "flows/messages/community-nonmember.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M195",
+    "group": "messages",
+    "title": "Cancelling community leave keeps channel access",
+    "file": "flows/messages/leave-cancel.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M196",
+    "group": "messages",
+    "title": "Leaving a community removes membership and channel access",
+    "file": "flows/messages/leave-community.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M197",
+    "group": "messages",
+    "title": "Pending private membership survives reopening",
+    "file": "flows/messages/private-request-persist.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M198",
+    "group": "messages",
+    "title": "Profile Send message opens a direct chat",
+    "file": "flows/messages/profile-message.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M199",
+    "group": "messages",
+    "title": "Socket reconnects after a full app restart",
+    "file": "flows/messages/reconnect.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M200",
+    "group": "notifications",
+    "title": "Social notification filter displays post interactions",
+    "file": "flows/notifications/social-filter.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M201",
+    "group": "notifications",
+    "title": "An unused notification category shows an empty state",
+    "file": "flows/notifications/empty-category.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M202",
+    "group": "notifications",
+    "title": "Post notification opens the correct post detail",
+    "file": "flows/notifications/linked-post.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M203",
+    "group": "settings",
+    "title": "Password change is disabled while a required field is empty",
+    "file": "flows/settings/change-disabled.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M204",
+    "group": "settings",
+    "title": "Wrong current password is rejected without signing out",
+    "file": "flows/settings/wrong-current-password.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M205",
+    "group": "settings",
+    "title": "Password change requires a different new password",
+    "file": "flows/settings/same-password.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M206",
+    "group": "settings",
+    "title": "Incorrect deletion password preserves the account",
+    "file": "flows/settings/wrong-delete-password.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M207",
+    "group": "cv-ai",
+    "title": "CV starts with the signed-in profile name",
+    "file": "flows/cv-ai/cv-initial-values.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M208",
+    "group": "cv-ai",
+    "title": "CV cannot be previewed or saved without a name",
+    "file": "flows/cv-ai/cv-name-required.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M209",
+    "group": "cv-ai",
+    "title": "CV preview opens and closes without saving",
+    "file": "flows/cv-ai/cv-preview.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M210",
+    "group": "cv-ai",
+    "title": "modern template is saved and restored with the CV",
+    "file": "flows/cv-ai/save-modern.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M211",
+    "group": "cv-ai",
+    "title": "minimal template is saved and restored with the CV",
+    "file": "flows/cv-ai/save-minimal.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M212",
+    "group": "cv-ai",
+    "title": "executive template is saved and restored with the CV",
+    "file": "flows/cv-ai/save-executive.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M213",
+    "group": "cv-ai",
+    "title": "creative template is saved and restored with the CV",
+    "file": "flows/cv-ai/save-creative.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M214",
+    "group": "cv-ai",
+    "title": "CV accent colour is persisted",
+    "file": "flows/cv-ai/cv-accent.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M215",
+    "group": "cv-ai",
+    "title": "CV skills and languages survive saving",
+    "file": "flows/cv-ai/cv-skills.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M216",
+    "group": "cv-ai",
+    "title": "A project persists in the saved CV",
+    "file": "flows/cv-ai/cv-project.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M217",
+    "group": "cv-ai",
+    "title": "CV project order persists after moving an entry up",
+    "file": "flows/cv-ai/cv-reorder-projects.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M218",
+    "group": "cv-ai",
+    "title": "CV row can be removed before saving",
+    "file": "flows/cv-ai/cv-delete-row.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M219",
+    "group": "cv-ai",
+    "title": "Cancelling CV reset preserves unsaved edits",
+    "file": "flows/cv-ai/cv-reset-cancel.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M220",
+    "group": "cv-ai",
+    "title": "Confirmed CV reset restores profile values",
+    "file": "flows/cv-ai/cv-reset-confirm.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M221",
+    "group": "cv-ai",
+    "title": "Native PDF upload becomes the current CV",
+    "file": "flows/cv-ai/cv-upload.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M222",
+    "group": "cv-ai",
+    "title": "A file named PDF with invalid content is refused",
+    "file": "flows/cv-ai/cv-reject-fake.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M223",
+    "group": "cv-ai",
+    "title": "Cancelling current CV removal preserves it",
+    "file": "flows/cv-ai/cv-remove-cancel.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M224",
+    "group": "cv-ai",
+    "title": "Current CV removal persists after reopening",
+    "file": "flows/cv-ai/cv-remove.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M225",
+    "group": "cv-ai",
+    "title": "Cancelling PDF selection keeps the saved CV unchanged",
+    "file": "flows/cv-ai/cv-upload-cancel.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M226",
+    "group": "cv-ai",
+    "title": "AI send is disabled for empty or whitespace input",
+    "file": "flows/cv-ai/ai-whitespace.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M227",
+    "group": "cv-ai",
+    "title": "Custom AI prompt shows a clear error without losing the question",
+    "file": "flows/cv-ai/ai-custom-error.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M228",
+    "group": "leaderboard",
+    "title": "Learner can open the complete leaderboard from dashboard",
+    "file": "flows/leaderboard/learner-full.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M229",
+    "group": "leaderboard",
+    "title": "Leaderboard entry opens the learner profile",
+    "file": "flows/leaderboard/open-profile.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M230",
+    "group": "leaderboard",
+    "title": "Leaderboard filters learners by interest",
+    "file": "flows/leaderboard/interest-filter.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M231",
+    "group": "video",
+    "title": "Video pauses at the first checkpoint with unanswered questions",
+    "file": "flows/video/first-checkpoint.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M232",
+    "group": "video",
+    "title": "Android back cannot bypass an unanswered video checkpoint",
+    "file": "flows/video/cannot-dismiss.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M233",
+    "group": "video",
+    "title": "Video quiz waits until all questions are answered",
+    "file": "flows/video/partial-answers.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M234",
+    "group": "video",
+    "title": "Wrong video answers require rewatching instead of continuing",
+    "file": "flows/video/failed-quiz.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M235",
+    "group": "video",
+    "title": "Rewatching a failed part reopens its checkpoint with no answers",
+    "file": "flows/video/retry-quiz.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M236",
+    "group": "video",
+    "title": "Two correct answers out of three pass the video checkpoint",
+    "file": "flows/video/two-thirds-pass.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M237",
+    "group": "video",
+    "title": "Passing a checkpoint allows playback until the next check",
+    "file": "flows/video/next-checkpoint.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M238",
+    "group": "video",
+    "title": "Saved checkpoint passes are respected when reopening a lesson",
+    "file": "flows/video/resume-checkpoint.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M239",
+    "group": "video",
+    "title": "Passing the final video check completes the lesson",
+    "file": "flows/video/final-completion.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M240",
+    "group": "video",
+    "title": "Completed video replays without checkpoint gates",
+    "file": "flows/video/completed-replay.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M241",
+    "group": "video",
+    "title": "Unenrolled learner cannot open a private video lesson",
+    "file": "flows/video/enrollment-access.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M242",
+    "group": "permissions",
+    "title": "Account navigation works when optional permissions are denied",
+    "file": "flows/permissions/deny-optional.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M243",
+    "group": "permissions",
+    "title": "System photo selection works without broad storage access",
+    "file": "flows/permissions/photo-without-storage.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M244",
+    "group": "errors",
+    "title": "Missing job has a retry action instead of a broken detail screen",
+    "file": "flows/errors/missing-job.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M245",
+    "group": "errors",
+    "title": "Missing course has a retry action instead of a broken detail screen",
+    "file": "flows/errors/missing-course.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M246",
+    "group": "errors",
+    "title": "Missing post has a retry action instead of a broken detail screen",
+    "file": "flows/errors/missing-post.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M247",
+    "group": "errors",
+    "title": "Missing profile has a retry action instead of a broken detail screen",
+    "file": "flows/errors/missing-profile.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M248",
+    "group": "network",
+    "title": "Course list recovers after a temporary server failure",
+    "file": "flows/network/course-retry.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M249",
+    "group": "network",
+    "title": "A dropped connection shows retry and recovers without signing out",
+    "file": "flows/network/disconnected-retry.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M250",
+    "group": "network",
+    "title": "A 401 renews the session and retries the original profile request",
+    "file": "flows/network/renew-session.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M251",
+    "group": "network",
+    "title": "Rejected refresh returns the account to the sign-in screen",
+    "file": "flows/network/refresh-rejected.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M252",
+    "group": "network",
+    "title": "Failed profile save keeps edits and allows retry",
+    "file": "flows/network/profile-save-retry.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M253",
+    "group": "network",
+    "title": "Failed message send retains the draft and permits retry",
+    "file": "flows/network/message-send-retry.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M254",
+    "group": "network",
+    "title": "Failed CV save preserves the draft and succeeds after retry",
+    "file": "flows/network/cv-save-retry.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M255",
+    "group": "network",
+    "title": "503 upload failure preserves the attached picture and post draft",
+    "file": "flows/network/photo-upload-503.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M256",
+    "group": "network",
+    "title": "413 upload failure preserves the attached picture and post draft",
+    "file": "flows/network/photo-upload-413.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M257",
+    "group": "network",
+    "title": "Failed application preserves the letter and current CV for retry",
+    "file": "flows/network/application-retry.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M258",
+    "group": "network",
+    "title": "Temporary registration failure preserves fields and allows retry",
+    "file": "flows/network/registration-retry.yaml",
+    "status": "Authored, not executed"
+  },
+  {
+    "id": "M259",
+    "group": "network",
+    "title": "Quiz fetch failure can be retried without skipping the checkpoint",
+    "file": "flows/network/quiz-retry.yaml",
+    "status": "Authored, not executed"
+  }
+]

@@ -25,3 +25,7 @@ export const signSocketTicket=user=>String(user.id);export const verifySocketTic
 export const{notify,unnotify,notifyAdmins,notifyInterested,notifyApplicationStatus}=createNotifier(query,items=>emitBatch(items.map(item=>({rooms:[userRoom(item.to)],event:item.event,payload:item.payload}))));
 // Used by the auth module.
 export const validate=schema=>(q,_s,n)=>{try{q.body=schema.parse(q.body);n();}catch(e){n(e);}};export const signAccess=()=>'access-token';export const signRefresh=()=>'refresh-'+Math.random();export const verifyRefresh=()=>({exp:Math.floor(Date.now()/1000)+3600});export const publicUser='id,name,email,username,role';export const platformSetting=async(_key,fallback)=>fallback;
+
+// Upload fixtures use synthetic bytes; image decoding is outside these API tests.
+export const optimizeUpload = async file => file;
+export const optimizeStoredUpload = async file => file;

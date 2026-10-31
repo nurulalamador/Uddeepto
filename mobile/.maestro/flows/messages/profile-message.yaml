@@ -1,0 +1,30 @@
+appId: com.kodofact.uddeepto
+name: M198 Profile Send message opens a direct chat
+tags:
+  - android
+  - messages
+---
+- runScript:
+    file: ../../scripts/prepare-case.js
+    env:
+      SCENARIO: basic
+      ACTOR_ROLE: learner
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${output.actorUsername}
+- openLink:
+    link: uddeepto://user/${RECEIVER_ID}
+- extendedWaitUntil:
+    visible:
+      id: button-send-message
+    timeout: 30000
+- tapOn:
+    id: button-send-message
+- extendedWaitUntil:
+    visible:
+      id: chat-input
+    timeout: 30000
+- assertVisible:
+    id: chat-send
+    enabled: false

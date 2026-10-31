@@ -1,3 +1,4 @@
+import { loadBackendService } from "./load-backend.js";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
@@ -28,13 +29,7 @@ test("notifications: events, API and delivery rules", async (t) => {
     await db.exec(await sqlFile(file));
   process.env.UPLOAD_DIR = mkdtempSync(join(tmpdir(), "uddeepto-uploads-"));
 
-  let source = await readFile(new URL("../../backend/services/frontend/src/server.js", import.meta.url), "utf8");
-  source = source
-    .replace(/import bcrypt from ['"]bcryptjs['"];/, () => "const bcrypt={hash:async value=>'test-only:'+value};")
-    .replace(/(['"])@uddeepto\/common\1/, () => JSON.stringify(new URL("./harness.js", import.meta.url).href))
-    .replace(/(['"])express\1/, () => JSON.stringify(import.meta.resolve("express")))
-    .replace(/(['"])zod\1/, () => JSON.stringify(import.meta.resolve("zod")));
-  await import("data:text/javascript;base64," + Buffer.from(source).toString("base64"));
+  await loadBackendService("frontend");
   await once(server, "listening");
   const base = `http://127.0.0.1:${server.address().port}`;
 

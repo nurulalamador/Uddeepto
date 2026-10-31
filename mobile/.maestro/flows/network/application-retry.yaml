@@ -1,0 +1,83 @@
+appId: com.kodofact.uddeepto
+name: M257 Failed application preserves the letter and current CV for retry
+tags:
+  - android
+  - network
+  - writes
+onFlowStart:
+  - runScript: ../../scripts/clear-faults.js
+onFlowComplete:
+  - runScript: ../../scripts/clear-faults.js
+---
+- runScript:
+    file: ../../scripts/prepare-case.js
+    env:
+      SCENARIO: application-saved
+      ACTOR_ROLE: learner
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${output.actorUsername}
+- openLink:
+    link: uddeepto://job/${output.jobId}
+- extendedWaitUntil:
+    visible:
+      text: About the job
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: input-cover-letter
+    direction: DOWN
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: input-cover-letter
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: input-cover-letter
+- eraseText
+- inputText: Maestro retry application
+- hideKeyboard
+- runScript:
+    file: ../../scripts/set-faults.js
+    env:
+      FAULTS: '[{"method":"POST","path":"/api/v1/jobs/${output.jobId}/apply","mode":"status","status":503,"message":"Maestro application temporarily unavailable"}]'
+- scrollUntilVisible:
+    element:
+      id: button-send-application
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: button-send-application
+- extendedWaitUntil:
+    visible:
+      text: Maestro application temporarily unavailable
+    timeout: 30000
+- assertVisible:
+    text: Maestro application temporarily unavailable
+- scrollUntilVisible:
+    element:
+      id: input-cover-letter
+    direction: UP
+    timeout: 30000
+- assertVisible:
+    id: input-cover-letter
+    text: Maestro retry application
+- scrollUntilVisible:
+    element:
+      text: Your Current CV
+    direction: DOWN
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: button-send-application
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: button-send-application
+- scrollUntilVisible:
+    element:
+      text: Your application
+    direction: UP
+    timeout: 30000

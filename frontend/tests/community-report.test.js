@@ -1,3 +1,4 @@
+import { loadBackendService } from "./load-backend.js";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
@@ -15,15 +16,7 @@ test("community report API validates, deduplicates, and protects posts", async (
   await db.exec(schema);
   await db.exec(await readFile(new URL("../../backend/database/012_notifications.sql", import.meta.url), "utf8"));
 
-  let source = await readFile(
-    new URL("../../backend/services/community/src/server.js", import.meta.url),
-    "utf8",
-  );
-  // The service file may use single or double quotes (it is auto-formatted), so match both.
-  source = source
-    .replace(/(['"])express\1/, () => JSON.stringify(import.meta.resolve("express")))
-    .replace(/(['"])@uddeepto\/common\1/, () => JSON.stringify(new URL("./harness.js", import.meta.url).href));
-  await import("data:text/javascript;base64," + Buffer.from(source).toString("base64"));
+  await loadBackendService("community");
   await once(server, "listening");
 
   const user = async (name) =>

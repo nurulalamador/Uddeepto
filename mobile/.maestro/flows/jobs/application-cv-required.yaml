@@ -1,0 +1,42 @@
+appId: com.kodofact.uddeepto
+name: M177 Application without a current CV requires a PDF
+tags:
+  - android
+  - jobs
+---
+- runScript:
+    file: ../../scripts/prepare-case.js
+    env:
+      SCENARIO: application-empty
+      ACTOR_ROLE: learner
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${output.actorUsername}
+- openLink:
+    link: uddeepto://job/${output.jobId}
+- extendedWaitUntil:
+    visible:
+      text: About the job
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: input-cover-letter
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: input-cover-letter
+- eraseText
+- inputText: A useful cover letter
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: button-send-application
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: button-send-application
+- extendedWaitUntil:
+    visible:
+      text: Attach your CV as a PDF.
+    timeout: 30000

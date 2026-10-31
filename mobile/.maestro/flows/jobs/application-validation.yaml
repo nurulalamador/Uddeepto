@@ -1,0 +1,25 @@
+appId: com.kodofact.uddeepto
+name: M053 Application requires a cover letter
+tags:
+  - android
+  - jobs
+---
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${APPLY_USERNAME}
+- openLink:
+    link: uddeepto://job/${JOB_ID}
+- extendedWaitUntil:
+    visible:
+      text: ${JOB_TITLE}
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: button-send-application
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: button-send-application
+- assertVisible:
+    text: Write a short cover letter.

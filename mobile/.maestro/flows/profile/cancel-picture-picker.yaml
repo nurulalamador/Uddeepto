@@ -1,0 +1,43 @@
+appId: com.kodofact.uddeepto
+name: M114 Cancelling the photo picker does not mark a profile picture as selected
+tags:
+  - android
+  - profile
+  - media
+---
+- runScript:
+    file: ../../scripts/prepare-case.js
+    env:
+      SCENARIO: basic
+      ACTOR_ROLE: learner
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${output.actorUsername}
+- addMedia:
+    - ../../assets/showcase-photo.png
+- openLink:
+    link: uddeepto://edit-profile
+- extendedWaitUntil:
+    visible:
+      id: input-full-name
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: edit-profile-picture
+    direction: UP
+    timeout: 30000
+- tapOn:
+    id: edit-profile-picture
+- extendedWaitUntil:
+    visible:
+      id: .*:id/icon_thumbnail
+      index: 0
+    timeout: 30000
+- back
+- extendedWaitUntil:
+    visible:
+      id: edit-profile-picture
+    timeout: 30000
+- assertNotVisible:
+    text: Picture chosen.*

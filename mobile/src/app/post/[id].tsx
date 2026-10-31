@@ -72,7 +72,7 @@ export default function PostScreen() {
                 <Text style={styles.name}>{item.name}</Text>
                 <Text style={styles.text}>{item.content}</Text>
               </View>
-              <Pressable onPress={() => like(item)} style={styles.like} hitSlop={6}>
+              <Pressable testID={`comment-like-${item.id}`} accessibilityRole="button" accessibilityLabel={item.my_reaction ? "Remove comment appreciation" : "Appreciate comment"} onPress={() => like(item)} style={styles.like} hitSlop={6}>
                 <Ionicons name={item.my_reaction ? "heart" : "heart-outline"} size={15} color={item.my_reaction ? colors.red : colors.muted} />
                 <Text style={styles.likeText}>{count(item.reactions)}</Text>
               </Pressable>
@@ -82,8 +82,8 @@ export default function PostScreen() {
       />
       {error ? <Text style={styles.error}>{error}</Text> : null}
       <View style={styles.composer}>
-        <TextInput value={text} onChangeText={setText} placeholder="Write a comment…" placeholderTextColor="#9aa7a0" style={styles.input} multiline maxLength={2000} />
-        <Pressable onPress={send} disabled={!text.trim() || busy} style={[styles.send, (!text.trim() || busy) && { opacity: 0.5 }]} accessibilityLabel="Send comment" accessibilityRole="button">
+        <TextInput testID="comment-input" value={text} onChangeText={setText} placeholder="Write a comment…" placeholderTextColor="#9aa7a0" style={styles.input} multiline maxLength={2000} />
+        <Pressable testID="comment-send" onPress={send} disabled={!text.trim() || busy} accessibilityState={{ disabled: !text.trim() || busy }} style={[styles.send, (!text.trim() || busy) && { opacity: 0.5 }]} accessibilityLabel="Send comment" accessibilityRole="button">
           <Ionicons name="send" size={18} color="#fff" />
         </Pressable>
       </View>

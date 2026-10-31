@@ -1,0 +1,43 @@
+appId: com.kodofact.uddeepto
+name: M134 Deleting experience removes it from the server-backed list
+tags:
+  - android
+  - experience
+  - writes
+---
+- runScript:
+    file: ../../scripts/prepare-case.js
+    env:
+      SCENARIO: experience-existing
+      ACTOR_ROLE: learner
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${output.actorUsername}
+- openLink:
+    link: uddeepto://experience
+- extendedWaitUntil:
+    visible:
+      id: button-add-experience
+    timeout: 30000
+- tapOn:
+    id: entry-experience-${output.entryId}
+- extendedWaitUntil:
+    visible:
+      id: input-job-title
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: button-delete
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: button-delete
+- tapOn:
+    text: Delete
+- extendedWaitUntil:
+    visible:
+      text: No experience added yet.
+    timeout: 30000
+- assertNotVisible:
+    id: entry-experience-${output.entryId}

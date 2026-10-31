@@ -1,0 +1,26 @@
+appId: com.kodofact.uddeepto
+name: M240 Completed video replays without checkpoint gates
+tags:
+  - android
+  - video
+  - media
+---
+- runScript:
+    file: ../../scripts/prepare-case.js
+    env:
+      SCENARIO: video-completed
+      ACTOR_ROLE: learner
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${output.actorUsername}
+- openLink:
+    link: uddeepto://course/${VIDEO_COURSE_ID}/${VIDEO_MATERIAL_ID}
+- extendedWaitUntil:
+    visible:
+      id: video-player
+    timeout: 30000
+- assertNotVisible:
+    id: quiz-video
+- assertNotVisible:
+    id: quiz-panel

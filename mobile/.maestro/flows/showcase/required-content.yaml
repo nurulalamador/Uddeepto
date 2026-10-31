@@ -1,0 +1,36 @@
+appId: com.kodofact.uddeepto
+name: M036 Post composer requires content
+tags:
+  - android
+  - showcase
+---
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${SHOWCASE_USERNAME}
+- tapOn:
+    id: tab-showcase
+- tapOn:
+    text: Create a post
+- extendedWaitUntil:
+    visible:
+      id: input-what-do-you-want-to-share
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: dropdown-interest
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: dropdown-interest
+- tapOn:
+    id: option-${CATEGORY_ID}
+- scrollUntilVisible:
+    element:
+      id: button-publish-post
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: button-publish-post
+- assertVisible:
+    text: Write something to share.

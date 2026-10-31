@@ -1,0 +1,58 @@
+appId: com.kodofact.uddeepto
+name: M174 November deadline picker does not offer day 31
+tags:
+  - android
+  - jobs
+---
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${PUBLISH_HIRER_USERNAME}
+- openLink:
+    link: uddeepto://job-post
+- extendedWaitUntil:
+    visible:
+      id: input-job-title
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: dropdown-month
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: dropdown-month
+- repeat:
+    times: 12
+    while:
+      notVisible:
+        id: option-11
+    commands:
+      - swipe:
+          from:
+            id: option-list
+          direction: UP
+          duration: 400
+- tapOn:
+    id: option-11
+- scrollUntilVisible:
+    element:
+      id: dropdown-day
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: dropdown-day
+- repeat:
+    times: 8
+    while:
+      notVisible:
+        id: option-30
+    commands:
+      - swipe:
+          from:
+            id: option-list
+          direction: UP
+          duration: 400
+- assertVisible:
+    id: option-30
+- assertNotVisible:
+    id: option-31

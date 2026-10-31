@@ -1,0 +1,18 @@
+appId: com.kodofact.uddeepto
+name: M094 Learner cannot open the restricted job-post route
+tags:
+  - android
+  - navigation
+---
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${LEARNER_USERNAME}
+- openLink:
+    link: uddeepto://job-post
+- extendedWaitUntil:
+    visible:
+      id: tab-index
+    timeout: 30000
+- assertNotVisible:
+    id: input-job-title

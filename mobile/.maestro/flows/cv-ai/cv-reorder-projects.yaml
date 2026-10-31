@@ -1,0 +1,96 @@
+appId: com.kodofact.uddeepto
+name: M217 CV project order persists after moving an entry up
+tags:
+  - android
+  - cv-ai
+  - writes
+---
+- runScript:
+    file: ../../scripts/prepare-case.js
+    env:
+      SCENARIO: basic
+      ACTOR_ROLE: learner
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${output.actorUsername}
+- openLink:
+    link: uddeepto://cv
+- extendedWaitUntil:
+    visible:
+      text: Your current CV
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: button-add-project
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: button-add-project
+- scrollUntilVisible:
+    element:
+      id: input-project-name
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: input-project-name
+- eraseText
+- inputText: First Project
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: button-add-project
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: button-add-project
+- scrollUntilVisible:
+    element:
+      id: input-project-name
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: input-project-name
+- eraseText
+- inputText: Second Project
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: cv-projects-up-1
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: cv-projects-up-1
+- tapOn:
+    id: button-save-cv
+- scrollUntilVisible:
+    element:
+      text: CV saved.*
+    direction: UP
+    timeout: 30000
+- stopApp
+- launchApp
+- extendedWaitUntil:
+    visible:
+      id: tab-index
+    timeout: 30000
+- openLink:
+    link: uddeepto://cv
+- extendedWaitUntil:
+    visible:
+      text: Your current CV
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: cv-projects-toggle-0
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: cv-projects-toggle-0
+- extendedWaitUntil:
+    visible:
+      id: input-project-name
+    timeout: 30000
+- assertVisible:
+    id: input-project-name
+    text: Second Project

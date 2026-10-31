@@ -1,0 +1,30 @@
+appId: com.kodofact.uddeepto
+name: M065 Private community requires approval before channel access
+tags:
+  - android
+  - messages
+  - writes
+---
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${COMMUNITY_USERNAME}
+- openLink:
+    link: uddeepto://community/${PRIVATE_COMMUNITY_ID}
+- extendedWaitUntil:
+    visible:
+      text: Private Circle
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: button-request-to-join
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: button-request-to-join
+- extendedWaitUntil:
+    visible:
+      text: Your request is waiting for approval.
+    timeout: 30000
+- assertNotVisible:
+    text: Channels

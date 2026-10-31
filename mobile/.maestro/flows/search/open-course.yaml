@@ -1,0 +1,36 @@
+appId: com.kodofact.uddeepto
+name: M097 Search result opens the correct course detail
+tags:
+  - android
+  - search
+---
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${LEARNER_USERNAME}
+- tapOn:
+    id: icon-search
+- extendedWaitUntil:
+    visible:
+      id: global-search
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: global-search
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: global-search
+- eraseText
+- inputText: React Basics
+- hideKeyboard
+- extendedWaitUntil:
+    visible:
+      id: search-result-courses-${COURSE_ID}
+    timeout: 30000
+- tapOn:
+    id: search-result-courses-${COURSE_ID}
+- extendedWaitUntil:
+    visible:
+      text: About this course
+    timeout: 30000

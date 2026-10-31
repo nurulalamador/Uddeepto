@@ -1,0 +1,20 @@
+appId: com.kodofact.uddeepto
+name: M020 Search requires at least two letters
+tags:
+  - android
+  - search
+---
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${LEARNER_USERNAME}
+- tapOn:
+    id: icon-search
+- extendedWaitUntil:
+    visible:
+      id: global-search
+    timeout: 30000
+- inputText: a
+- hideKeyboard
+- assertVisible:
+    text: Type at least two letters to search.

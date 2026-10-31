@@ -1,0 +1,31 @@
+appId: com.kodofact.uddeepto
+name: M108 Removing the last interest disables saving
+tags:
+  - android
+  - profile
+---
+- runScript:
+    file: ../../scripts/prepare-case.js
+    env:
+      SCENARIO: basic
+      ACTOR_ROLE: learner
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${output.actorUsername}
+- openLink:
+    link: uddeepto://interests
+- extendedWaitUntil:
+    visible:
+      id: interests-search
+    timeout: 30000
+- tapOn:
+    id: interest-${CATEGORY_ID}
+- scrollUntilVisible:
+    element:
+      id: interests-save
+    direction: DOWN
+    timeout: 30000
+- assertVisible:
+    id: interests-save
+    enabled: false

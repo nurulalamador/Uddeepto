@@ -1,0 +1,33 @@
+appId: com.kodofact.uddeepto
+name: M066 A member sends a community channel message
+tags:
+  - android
+  - messages
+  - writes
+---
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${CHAT_USERNAME}
+- openLink:
+    link: uddeepto://community/${COMMUNITY_ID}/${CHANNEL_ID}
+- extendedWaitUntil:
+    visible:
+      id: chat-input
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: chat-input
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: chat-input
+- eraseText
+- inputText: Maestro community ${RUN_ID}
+- hideKeyboard
+- tapOn:
+    id: chat-send
+- extendedWaitUntil:
+    visible:
+      text: Maestro community ${RUN_ID}
+    timeout: 30000

@@ -1,0 +1,18 @@
+appId: com.kodofact.uddeepto
+name: Select a fixture from Android Downloads
+---
+- tapOn:
+    text: Show roots
+- tapOn:
+    text: Downloads|Download
+- tapOn:
+    text: UddeeptoMaestro
+- tapOn:
+    text: ${FILE_NAME}
+- runFlow:
+    when:
+      visible:
+        text: Open|Select|Done
+    commands:
+      - tapOn:
+          text: Open|Select|Done

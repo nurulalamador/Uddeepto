@@ -1,0 +1,26 @@
+appId: com.kodofact.uddeepto
+name: M163 Events webinars previous filter opens the matching event
+tags:
+  - android
+  - events
+---
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${LEARNER_USERNAME}
+- tapOn:
+    id: tab-events
+- tapOn:
+    id: top-tab-webinars
+- tapOn:
+    id: pill-previous
+- extendedWaitUntil:
+    visible:
+      id: event-card-${PAST_WEBINAR_ID}
+    timeout: 30000
+- tapOn:
+    id: event-card-${PAST_WEBINAR_ID}
+- extendedWaitUntil:
+    visible:
+      text: Past Design Webinar
+    timeout: 30000

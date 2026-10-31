@@ -1,0 +1,57 @@
+appId: com.kodofact.uddeepto
+name: M178 Application can attach a PDF through the native picker
+tags:
+  - android
+  - jobs
+  - writes
+  - media
+---
+- runScript:
+    file: ../../scripts/prepare-case.js
+    env:
+      SCENARIO: application-empty
+      ACTOR_ROLE: learner
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${output.actorUsername}
+- openLink:
+    link: uddeepto://job/${output.jobId}
+- extendedWaitUntil:
+    visible:
+      text: About the job
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: input-cover-letter
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: input-cover-letter
+- eraseText
+- inputText: Maestro uploaded application
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: button-choose-a-pdf
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: button-choose-a-pdf
+- runFlow:
+    file: ../../helpers/pick-document.yaml
+    env:
+      FILE_NAME: maestro-cv.pdf
+- scrollUntilVisible:
+    element:
+      id: button-send-application
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: button-send-application
+- extendedWaitUntil:
+    visible:
+      text: Your application
+    timeout: 30000
+- assertVisible:
+    text: Applied

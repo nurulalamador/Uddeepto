@@ -1,0 +1,18 @@
+appId: com.kodofact.uddeepto
+name: M092 Hirer cannot open the restricted course route
+tags:
+  - android
+  - navigation
+---
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${HIRER_USERNAME}
+- openLink:
+    link: uddeepto://course/${COURSE_ID}
+- extendedWaitUntil:
+    visible:
+      id: tab-index
+    timeout: 30000
+- assertNotVisible:
+    text: About this course

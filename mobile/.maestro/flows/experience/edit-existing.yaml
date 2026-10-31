@@ -1,0 +1,70 @@
+appId: com.kodofact.uddeepto
+name: M132 Existing experience entry changes persist
+tags:
+  - android
+  - experience
+  - writes
+---
+- runScript:
+    file: ../../scripts/prepare-case.js
+    env:
+      SCENARIO: experience-existing
+      ACTOR_ROLE: learner
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${output.actorUsername}
+- openLink:
+    link: uddeepto://experience
+- extendedWaitUntil:
+    visible:
+      id: button-add-experience
+    timeout: 30000
+- tapOn:
+    id: entry-experience-${output.entryId}
+- extendedWaitUntil:
+    visible:
+      id: input-job-title
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: input-job-title
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: input-job-title
+- eraseText
+- inputText: Maestro edited entry
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: button-save
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: button-save
+- extendedWaitUntil:
+    visible:
+      id: button-add-experience
+    timeout: 30000
+- stopApp
+- launchApp
+- extendedWaitUntil:
+    visible:
+      id: tab-index
+    timeout: 30000
+- openLink:
+    link: uddeepto://experience
+- extendedWaitUntil:
+    visible:
+      id: button-add-experience
+    timeout: 30000
+- tapOn:
+    id: entry-experience-${output.entryId}
+- extendedWaitUntil:
+    visible:
+      id: input-job-title
+    timeout: 30000
+- assertVisible:
+    id: input-job-title
+    text: Maestro edited entry

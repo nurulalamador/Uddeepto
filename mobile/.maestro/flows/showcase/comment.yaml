@@ -1,0 +1,48 @@
+appId: com.kodofact.uddeepto
+name: M041 Submitted comment persists after opening the post again
+tags:
+  - android
+  - showcase
+  - writes
+---
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${SHOWCASE_USERNAME}
+- openLink:
+    link: uddeepto://post/${POST_ID}
+- extendedWaitUntil:
+    visible:
+      id: post-card-${POST_ID}
+    timeout: 30000
+- assertVisible:
+    id: comment-send
+    enabled: false
+- scrollUntilVisible:
+    element:
+      id: comment-input
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: comment-input
+- eraseText
+- inputText: Maestro comment ${RUN_ID}
+- hideKeyboard
+- tapOn:
+    id: comment-send
+- extendedWaitUntil:
+    visible:
+      text: Maestro comment ${RUN_ID}
+    timeout: 30000
+- back
+- openLink:
+    link: uddeepto://post/${POST_ID}
+- extendedWaitUntil:
+    visible:
+      id: post-card-${POST_ID}
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      text: Maestro comment ${RUN_ID}
+    direction: DOWN
+    timeout: 30000

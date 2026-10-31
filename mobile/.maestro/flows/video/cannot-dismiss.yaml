@@ -1,0 +1,30 @@
+appId: com.kodofact.uddeepto
+name: M232 Android back cannot bypass an unanswered video checkpoint
+tags:
+  - android
+  - video
+  - media
+---
+- runScript:
+    file: ../../scripts/prepare-case.js
+    env:
+      SCENARIO: video-quiz
+      ACTOR_ROLE: learner
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${output.actorUsername}
+- openLink:
+    link: uddeepto://course/${VIDEO_COURSE_ID}/${VIDEO_MATERIAL_ID}
+- extendedWaitUntil:
+    visible:
+      id: quiz-video
+    timeout: 30000
+- runFlow:
+    file: ../../helpers/play-quiz.yaml
+- back
+- assertVisible:
+    id: quiz-panel
+- assertVisible:
+    id: button-submit-answers
+    enabled: false

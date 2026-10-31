@@ -1,0 +1,23 @@
+appId: com.kodofact.uddeepto
+name: M190 Hirer inbox does not show a community tab
+tags:
+  - android
+  - messages
+---
+- runScript:
+    file: ../../scripts/prepare-case.js
+    env:
+      SCENARIO: basic
+      ACTOR_ROLE: hirer
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${output.actorUsername}
+- tapOn:
+    id: icon-messages
+- extendedWaitUntil:
+    visible:
+      text: No conversations yet
+    timeout: 30000
+- assertNotVisible:
+    id: top-tab-community

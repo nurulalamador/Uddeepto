@@ -16,7 +16,7 @@ const MEDAL = ["#d9a420", "#8c98a4", "#b9733d"];
 function Row({ entry, mine }: { entry: Entry; mine: boolean }) {
   const router = useRouter();
   return (
-    <Pressable onPress={() => router.push(`/user/${entry.uddeepto_id}`)} style={[styles.row, mine && styles.rowMine]} accessibilityRole="button">
+    <Pressable testID={`leaderboard-user-${entry.id}`} onPress={() => router.push(`/user/${entry.uddeepto_id}`)} style={[styles.row, mine && styles.rowMine]} accessibilityRole="button">
       <View style={[styles.rank, entry.rank <= 3 && { backgroundColor: MEDAL[entry.rank - 1] }]}>
         <Text style={[styles.rankText, entry.rank <= 3 && { color: "#fff" }]}>#{entry.rank}</Text>
       </View>

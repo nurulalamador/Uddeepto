@@ -1,0 +1,37 @@
+appId: com.kodofact.uddeepto
+name: M019 Sign out removes access after restart
+tags:
+  - android
+  - navigation
+---
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${LEARNER_USERNAME}
+- tapOn:
+    id: tab-profile
+- extendedWaitUntil:
+    visible:
+      text: UDDEEPTO ID
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: button-sign-out
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: button-sign-out
+- tapOn:
+    text: Sign out
+- extendedWaitUntil:
+    visible:
+      id: input-username-or-email
+    timeout: 30000
+- stopApp
+- launchApp
+- extendedWaitUntil:
+    visible:
+      id: input-username-or-email
+    timeout: 30000
+- assertNotVisible:
+    id: tab-index

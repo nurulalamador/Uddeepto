@@ -1,0 +1,65 @@
+appId: com.kodofact.uddeepto
+name: M172 On-site job requires a location
+tags:
+  - android
+  - jobs
+---
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${PUBLISH_HIRER_USERNAME}
+- openLink:
+    link: uddeepto://job-post
+- extendedWaitUntil:
+    visible:
+      id: input-job-title
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: input-job-title
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: input-job-title
+- eraseText
+- inputText: Maestro validation role
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: input-description
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: input-description
+- eraseText
+- inputText: A useful local fixture role.
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: dropdown-interest-category
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: dropdown-interest-category
+- repeat:
+    times: 12
+    while:
+      notVisible:
+        id: option-${CATEGORY_ID}
+    commands:
+      - swipe:
+          from:
+            id: option-list
+          direction: UP
+          duration: 400
+- tapOn:
+    id: option-${CATEGORY_ID}
+- scrollUntilVisible:
+    element:
+      id: button-post-this-job
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: button-post-this-job
+- assertVisible:
+    text: Enter where the job is located, or choose Remote.

@@ -39,3 +39,7 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# Local Maestro fixture credentials, uploads and reports
+/.maestro/local/
+/.maestro/artifacts/

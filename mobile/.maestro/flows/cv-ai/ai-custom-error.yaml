@@ -1,0 +1,42 @@
+appId: com.kodofact.uddeepto
+name: M227 Custom AI prompt shows a clear error without losing the question
+tags:
+  - android
+  - cv-ai
+---
+- runScript:
+    file: ../../scripts/prepare-case.js
+    env:
+      SCENARIO: basic
+      ACTOR_ROLE: learner
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${output.actorUsername}
+- openLink:
+    link: uddeepto://ai
+- extendedWaitUntil:
+    visible:
+      id: ai-input
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: ai-input
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: ai-input
+- eraseText
+- inputText: Help me learn Android
+- hideKeyboard
+- tapOn:
+    id: ai-send
+- extendedWaitUntil:
+    visible:
+      text: .*not configured.*
+    timeout: 30000
+- assertVisible:
+    text: Help me learn Android
+- assertVisible:
+    id: ai-input
+    text: ''

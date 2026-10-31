@@ -1,0 +1,27 @@
+appId: com.kodofact.uddeepto
+name: M141 Another person post offers report and hides delete
+tags:
+  - android
+  - showcase
+---
+- runScript:
+    file: ../../scripts/prepare-case.js
+    env:
+      SCENARIO: post-other
+      ACTOR_ROLE: learner
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${output.actorUsername}
+- openLink:
+    link: uddeepto://post/${output.postId}
+- extendedWaitUntil:
+    visible:
+      id: post-card-${output.postId}
+    timeout: 30000
+- tapOn:
+    id: post-menu-${output.postId}
+- assertVisible:
+    id: button-report-post
+- assertNotVisible:
+    id: button-delete-post

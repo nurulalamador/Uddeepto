@@ -1,0 +1,42 @@
+appId: com.kodofact.uddeepto
+name: M051 Learner can open job details from the jobs list
+tags:
+  - android
+  - jobs
+  - smoke
+---
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${LEARNER_USERNAME}
+- tapOn:
+    id: tab-jobs
+- extendedWaitUntil:
+    visible:
+      id: filter-search
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: filter-search
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: filter-search
+- eraseText
+- inputText: ${JOB_TITLE}
+- hideKeyboard
+- extendedWaitUntil:
+    visible:
+      text: ${JOB_TITLE}
+    timeout: 30000
+- tapOn:
+    text: ${JOB_TITLE}
+- extendedWaitUntil:
+    visible:
+      text: About the job
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: button-send-application
+    direction: DOWN
+    timeout: 30000

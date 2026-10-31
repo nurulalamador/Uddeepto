@@ -1,0 +1,42 @@
+appId: com.kodofact.uddeepto
+name: M123 Cancelling education deletion keeps the record
+tags:
+  - android
+  - education
+---
+- runScript:
+    file: ../../scripts/prepare-case.js
+    env:
+      SCENARIO: education-existing
+      ACTOR_ROLE: learner
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${output.actorUsername}
+- openLink:
+    link: uddeepto://education
+- extendedWaitUntil:
+    visible:
+      id: button-add-education
+    timeout: 30000
+- tapOn:
+    id: entry-education-${output.entryId}
+- extendedWaitUntil:
+    visible:
+      id: input-institution
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: button-delete
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: button-delete
+- tapOn:
+    text: Cancel
+- tapOn:
+    id: entry-form-close
+- extendedWaitUntil:
+    visible:
+      id: entry-education-${output.entryId}
+    timeout: 30000

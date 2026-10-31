@@ -1,0 +1,21 @@
+appId: com.kodofact.uddeepto
+name: M027 Other empty hirer profile shows its empty state
+tags:
+  - android
+  - profile
+---
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${LEARNER_USERNAME}
+- openLink:
+    link: uddeepto://user/${EMPTY_HIRER_ID}
+- extendedWaitUntil:
+    visible:
+      text: UDDEEPTO ID
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      text: No active job posts.
+    direction: DOWN
+    timeout: 30000

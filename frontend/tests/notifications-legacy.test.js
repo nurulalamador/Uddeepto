@@ -1,3 +1,4 @@
+import { loadBackendService } from "./load-backend.js";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
@@ -9,14 +10,7 @@ const sqlFile = (name) => readFile(new URL(`../../backend/database/${name}`, imp
 // Loads one backend service file against the in-memory database and returns its base URL.
 async function load(service, patch = (text) => text) {
   const before = servers.length;
-  let source = await readFile(new URL(`../../backend/services/${service}/src/server.js`, import.meta.url), "utf8");
-  source = source
-    .replace(/import bcrypt from ['"]bcryptjs['"];/, () => "const bcrypt={hash:async value=>'test-only:'+value,compare:async()=>true};")
-    .replace(/(['"])@uddeepto\/common\1/, () => JSON.stringify(new URL("./harness.js", import.meta.url).href))
-    .replace(/(['"])express\1/, () => JSON.stringify(import.meta.resolve("express")))
-    .replace(/(['"])zod\1/, () => JSON.stringify(import.meta.resolve("zod")));
-  source = patch(source);
-  await import("data:text/javascript;base64," + Buffer.from(source).toString("base64"));
+  await loadBackendService(service, patch);
   await once(servers[before], "listening");
   return `http://127.0.0.1:${servers[before].address().port}`;
 }
@@ -30,7 +24,7 @@ test("notifications from the auth, community and jobs services", async (t) => {
 
   const urls = { auth: await load("auth"), community: await load("community"), // The real resourceRouter needs a database pool; a tiny stand-in creates the job row so the
   // service's own "job posted" notification code is what gets tested.
-  jobs: await load("jobs", (text) => text.replace("resourceRouter({", () => `((_config)=>{const r=express.Router();r.post("/",auth(),async(q,s)=>{q.user.role=(await query("SELECT role FROM users WHERE id=$1",[q.user.sub])).rows[0].role;const x=(await query("INSERT INTO jobs(creator_id,category_id,title,description,type,status) VALUES($1,$2,$3,$4,$5,$6) RETURNING *",[q.user.sub,q.body.category_id,q.body.title,q.body.description,q.body.type,q.body.status||"draft"])).rows[0];s.status(201).json(x);});return r;})({`)) };
+  jobs: await load("jobs", (text) => `import { query as testQuery } from ${JSON.stringify(new URL("./harness.js", import.meta.url).href)};\n` + text.replace("resourceRouter({", () => `((_config)=>{const r=express.Router();r.post("/",auth(),async(q,s)=>{q.user.role=(await testQuery("SELECT role FROM users WHERE id=$1",[q.user.sub])).rows[0].role;const x=(await testQuery("INSERT INTO jobs(creator_id,category_id,title,description,type,status) VALUES($1,$2,$3,$4,$5,$6) RETURNING *",[q.user.sub,q.body.category_id,q.body.title,q.body.description,q.body.type,q.body.status||"draft"])).rows[0];s.status(201).json(x);});return r;})({`)) };
   const ids = {};
   for (const [name, role] of [["Owner", "learner"], ["Mod", "learner"], ["Joiner", "learner"], ["Applicant", "learner"], ["Hirer", "hirer"], ["Admin", "admin"], ["Admin2", "admin"]])
     ids[name] = (await query("INSERT INTO users(name,email,username,password_hash,role) VALUES($1,$2,$3,'x',$4) RETURNING id", [name, `${name}@example.com`, name, role])).rows[0].id;

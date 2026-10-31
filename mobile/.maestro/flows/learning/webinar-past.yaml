@@ -1,0 +1,23 @@
+appId: com.kodofact.uddeepto
+name: M050 Past webinar offers its recording and no reservation
+tags:
+  - android
+  - learning
+---
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${LEARNER_USERNAME}
+- openLink:
+    link: uddeepto://webinar/${PAST_WEBINAR_ID}
+- extendedWaitUntil:
+    visible:
+      text: Past Design Webinar
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: button-watch-the-recording
+    direction: DOWN
+    timeout: 30000
+- assertNotVisible:
+    id: button-reserve-my-seat

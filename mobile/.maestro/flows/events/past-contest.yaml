@@ -1,0 +1,27 @@
+appId: com.kodofact.uddeepto
+name: M166 Past contest does not accept a new join
+tags:
+  - android
+  - events
+---
+- runScript:
+    file: ../../scripts/prepare-case.js
+    env:
+      SCENARIO: basic
+      ACTOR_ROLE: learner
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${output.actorUsername}
+- openLink:
+    link: uddeepto://contest/${PAST_CONTEST_ID}
+- extendedWaitUntil:
+    visible:
+      id: top-tab-details
+    timeout: 30000
+- assertNotVisible:
+    id: button-join-this-contest
+- tapOn:
+    id: top-tab-entry
+- assertNotVisible:
+    id: button-submit-entry

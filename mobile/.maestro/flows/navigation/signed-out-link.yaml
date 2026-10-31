@@ -1,0 +1,16 @@
+appId: com.kodofact.uddeepto
+name: M018 Signed-out users cannot open a private job link
+tags:
+  - android
+  - navigation
+---
+- runFlow:
+    file: ../../helpers/reset.yaml
+- openLink:
+    link: uddeepto://job/${JOB_ID}
+- extendedWaitUntil:
+    visible:
+      id: input-username-or-email
+    timeout: 30000
+- assertNotVisible:
+    text: About the job

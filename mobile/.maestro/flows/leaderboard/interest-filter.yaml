@@ -1,0 +1,64 @@
+appId: com.kodofact.uddeepto
+name: M230 Leaderboard filters learners by interest
+tags:
+  - android
+  - leaderboard
+---
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${HIRER_USERNAME}
+- tapOn:
+    id: tab-leaderboard
+- extendedWaitUntil:
+    visible:
+      text: Top learners
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: dropdown-all-interests
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: dropdown-all-interests
+- repeat:
+    times: 12
+    while:
+      notVisible:
+        id: option-${CATEGORY_ID}
+    commands:
+      - swipe:
+          from:
+            id: option-list
+          direction: UP
+          duration: 400
+- tapOn:
+    id: option-${CATEGORY_ID}
+- extendedWaitUntil:
+    visible:
+      id: leaderboard-user-${RECEIVER_ID}
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: dropdown-all-interests
+    direction: UP
+    timeout: 30000
+- tapOn:
+    id: dropdown-all-interests
+- repeat:
+    times: 12
+    while:
+      notVisible:
+        id: option-${DESIGN_ID}
+    commands:
+      - swipe:
+          from:
+            id: option-list
+          direction: UP
+          duration: 400
+- tapOn:
+    id: option-${DESIGN_ID}
+- extendedWaitUntil:
+    visible:
+      id: leaderboard-user-${LEARNER_ID}
+    timeout: 30000

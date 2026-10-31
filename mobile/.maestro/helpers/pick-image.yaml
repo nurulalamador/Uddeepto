@@ -1,0 +1,22 @@
+appId: com.kodofact.uddeepto
+name: Choose the newest fixture in the Android photo picker
+---
+- extendedWaitUntil:
+    visible:
+      id: .*:id/icon_thumbnail
+      index: 0
+    timeout: 30000
+- tapOn:
+    id: .*:id/icon_thumbnail
+    index: 0
+- runFlow:
+    when:
+      visible:
+        text: Add.*|Done|Select
+    commands:
+      - tapOn:
+          text: Add.*|Done|Select
+- extendedWaitUntil:
+    visible:
+      id: attachment-0
+    timeout: 30000

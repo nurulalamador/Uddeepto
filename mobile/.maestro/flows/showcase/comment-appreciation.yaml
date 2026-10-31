@@ -1,0 +1,45 @@
+appId: com.kodofact.uddeepto
+name: M147 Comment appreciation toggles and persists
+tags:
+  - android
+  - showcase
+  - writes
+---
+- runScript:
+    file: ../../scripts/prepare-case.js
+    env:
+      SCENARIO: post-comment
+      ACTOR_ROLE: learner
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${output.actorUsername}
+- openLink:
+    link: uddeepto://post/${output.postId}
+- extendedWaitUntil:
+    visible:
+      id: post-card-${output.postId}
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: comment-like-${output.commentId}
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: comment-like-${output.commentId}
+- assertVisible:
+    text: Remove comment appreciation
+- back
+- openLink:
+    link: uddeepto://post/${output.postId}
+- extendedWaitUntil:
+    visible:
+      id: post-card-${output.postId}
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: comment-like-${output.commentId}
+    direction: DOWN
+    timeout: 30000
+- assertVisible:
+    text: Remove comment appreciation

@@ -1,0 +1,29 @@
+appId: com.kodofact.uddeepto
+name: M223 Cancelling current CV removal preserves it
+tags:
+  - android
+  - cv-ai
+---
+- runScript:
+    file: ../../scripts/prepare-case.js
+    env:
+      SCENARIO: cv-existing
+      ACTOR_ROLE: learner
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${output.actorUsername}
+- openLink:
+    link: uddeepto://cv
+- extendedWaitUntil:
+    visible:
+      text: Your current CV
+    timeout: 30000
+- tapOn:
+    id: button-remove
+- tapOn:
+    text: Cancel
+- assertVisible:
+    text: maestro-cv.pdf
+- assertVisible:
+    id: button-view-share

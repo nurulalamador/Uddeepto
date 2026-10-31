@@ -1,0 +1,47 @@
+appId: com.kodofact.uddeepto
+name: M107 Added interests remain selected after saving and reopening
+tags:
+  - android
+  - profile
+  - writes
+---
+- runScript:
+    file: ../../scripts/prepare-case.js
+    env:
+      SCENARIO: basic
+      ACTOR_ROLE: learner
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${output.actorUsername}
+- openLink:
+    link: uddeepto://interests
+- extendedWaitUntil:
+    visible:
+      id: interests-search
+    timeout: 30000
+- tapOn:
+    id: interest-${DESIGN_ID}
+- scrollUntilVisible:
+    element:
+      id: interests-save
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: interests-save
+- extendedWaitUntil:
+    visible:
+      id: tab-index
+    timeout: 30000
+- openLink:
+    link: uddeepto://interests
+- extendedWaitUntil:
+    visible:
+      id: interests-search
+    timeout: 30000
+- assertVisible:
+    id: interest-${DESIGN_ID}
+    selected: true
+- assertVisible:
+    id: interest-${CATEGORY_ID}
+    selected: true

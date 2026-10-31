@@ -1,0 +1,31 @@
+appId: com.kodofact.uddeepto
+name: M199 Socket reconnects after a full app restart
+tags:
+  - android
+  - messages
+  - realtime
+---
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${CHAT_USERNAME}
+- openLink:
+    link: uddeepto://chat/${CONVERSATION_ID}
+- extendedWaitUntil:
+    visible:
+      id: chat-connected
+    timeout: 30000
+- stopApp
+- launchApp
+- extendedWaitUntil:
+    visible:
+      id: tab-index
+    timeout: 30000
+- openLink:
+    link: uddeepto://chat/${CONVERSATION_ID}
+- extendedWaitUntil:
+    visible:
+      id: chat-connected
+    timeout: 30000
+- assertVisible:
+    id: chat-input

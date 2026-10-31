@@ -1,0 +1,30 @@
+appId: com.kodofact.uddeepto
+name: M164 Contest search shows an empty list
+tags:
+  - android
+  - events
+---
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${LEARNER_USERNAME}
+- tapOn:
+    id: tab-events
+- extendedWaitUntil:
+    visible:
+      id: filter-search
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: filter-search
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: filter-search
+- eraseText
+- inputText: zznone${RUN_ID}
+- hideKeyboard
+- extendedWaitUntil:
+    visible:
+      text: No ongoing contests
+    timeout: 30000

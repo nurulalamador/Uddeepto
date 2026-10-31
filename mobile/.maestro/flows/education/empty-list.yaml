@@ -1,0 +1,23 @@
+appId: com.kodofact.uddeepto
+name: M115 New account education list has a useful empty state
+tags:
+  - android
+  - education
+---
+- runScript:
+    file: ../../scripts/prepare-case.js
+    env:
+      SCENARIO: basic
+      ACTOR_ROLE: learner
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${output.actorUsername}
+- openLink:
+    link: uddeepto://education
+- extendedWaitUntil:
+    visible:
+      id: button-add-education
+    timeout: 30000
+- assertVisible:
+    text: No education added yet.

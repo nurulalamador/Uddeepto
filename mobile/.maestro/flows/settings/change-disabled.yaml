@@ -1,0 +1,47 @@
+appId: com.kodofact.uddeepto
+name: M203 Password change is disabled while a required field is empty
+tags:
+  - android
+  - settings
+---
+- runScript:
+    file: ../../scripts/prepare-case.js
+    env:
+      SCENARIO: basic
+      ACTOR_ROLE: learner
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${output.actorUsername}
+- openLink:
+    link: uddeepto://settings
+- extendedWaitUntil:
+    visible:
+      id: input-current-password
+    timeout: 30000
+- assertVisible:
+    id: button-change-password
+    enabled: false
+- scrollUntilVisible:
+    element:
+      id: input-current-password
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: input-current-password
+- eraseText
+- inputText: ${PASSWORD}
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: input-new-password
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: input-new-password
+- eraseText
+- inputText: NewMaestro123
+- hideKeyboard
+- assertVisible:
+    id: button-change-password
+    enabled: false

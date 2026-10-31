@@ -1,0 +1,32 @@
+appId: com.kodofact.uddeepto
+name: M082 Generated PDF is saved as the current CV and persists
+tags:
+  - android
+  - cv-ai
+  - writes
+---
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${CVSAVE_USERNAME}
+- openLink:
+    link: uddeepto://cv
+- extendedWaitUntil:
+    visible:
+      text: Your current CV
+    timeout: 30000
+- tapOn:
+    id: button-save-cv
+- extendedWaitUntil:
+    visible:
+      text: CV saved.*
+    timeout: 30000
+- assertVisible:
+    text: Made in the CV generator
+- back
+- openLink:
+    link: uddeepto://cv
+- extendedWaitUntil:
+    visible:
+      text: Made in the CV generator
+    timeout: 30000

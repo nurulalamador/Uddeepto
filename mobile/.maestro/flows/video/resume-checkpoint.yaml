@@ -1,0 +1,30 @@
+appId: com.kodofact.uddeepto
+name: M238 Saved checkpoint passes are respected when reopening a lesson
+tags:
+  - android
+  - video
+  - media
+---
+- runScript:
+    file: ../../scripts/prepare-case.js
+    env:
+      SCENARIO: video-second
+      ACTOR_ROLE: learner
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${output.actorUsername}
+- openLink:
+    link: uddeepto://course/${VIDEO_COURSE_ID}/${VIDEO_MATERIAL_ID}
+- extendedWaitUntil:
+    visible:
+      id: quiz-video
+    timeout: 30000
+- runFlow:
+    file: ../../helpers/play-quiz.yaml
+- extendedWaitUntil:
+    visible:
+      text: Quick check · 2 of 3
+    timeout: 30000
+- assertNotVisible:
+    text: Quick check · 1 of 3

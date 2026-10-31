@@ -125,12 +125,12 @@ export function QuizVideo({ courseId, materialId, path, passedAlready, onViewed 
   return (
     <View>
       <View style={styles.box}>
-        <VideoView player={player} style={StyleSheet.absoluteFill} nativeControls contentFit="contain" fullscreenOptions={{ enable: false }} />
+        <VideoView testID="quiz-video" player={player} style={StyleSheet.absoluteFill} nativeControls contentFit="contain" fullscreenOptions={{ enable: false }} />
       </View>
       <Text style={styles.hint}>Questions appear at 1/3, 2/3 and the end of the video. Pass them to complete the lesson.</Text>
 
       <Modal visible={Boolean(current)} animationType="slide" onRequestClose={() => {}} statusBarTranslucent navigationBarTranslucent>
-        <View style={styles.modal}>
+        <View testID="quiz-panel" style={styles.modal}>
           {current ? (
             <>
               <View style={styles.head}>
@@ -170,6 +170,9 @@ export function QuizVideo({ courseId, materialId, path, passedAlready, onViewed 
                             return (
                               <Pressable
                                 key={choice}
+                                testID={`quiz-option-${index}-${choice}`}
+                                accessibilityRole="radio"
+                                accessibilityState={{ selected: chosen, disabled: current.state !== "ready" }}
                                 disabled={current.state !== "ready"}
                                 onPress={() => setPanel((value) => (value ? { ...value, answers: value.answers?.map((answer, position) => (position === index ? choice : answer)) } : value))}
                                 style={[styles.option, chosen && { borderColor: colors.green, backgroundColor: colors.greenSoft }, correct && { borderColor: colors.green }, graded === false && chosen && { borderColor: colors.red, backgroundColor: colors.redSoft }]}

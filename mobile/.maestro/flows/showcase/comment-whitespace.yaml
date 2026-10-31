@@ -1,0 +1,34 @@
+appId: com.kodofact.uddeepto
+name: M146 Whitespace-only comments cannot be submitted
+tags:
+  - android
+  - showcase
+---
+- runScript:
+    file: ../../scripts/prepare-case.js
+    env:
+      SCENARIO: post-other
+      ACTOR_ROLE: learner
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${output.actorUsername}
+- openLink:
+    link: uddeepto://post/${output.postId}
+- extendedWaitUntil:
+    visible:
+      id: post-card-${output.postId}
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: comment-input
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: comment-input
+- eraseText
+- inputText: '   '
+- hideKeyboard
+- assertVisible:
+    id: comment-send
+    enabled: false

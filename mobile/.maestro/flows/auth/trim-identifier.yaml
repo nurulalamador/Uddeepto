@@ -1,0 +1,12 @@
+appId: com.kodofact.uddeepto
+name: M086 Surrounding whitespace is removed from the login identifier
+tags:
+  - android
+  - auth
+---
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: '  ${LEARNER_USERNAME}  '
+- assertVisible:
+    id: tab-courses

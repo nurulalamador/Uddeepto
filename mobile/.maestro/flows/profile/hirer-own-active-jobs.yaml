@@ -1,0 +1,39 @@
+appId: com.kodofact.uddeepto
+name: M023 Own hirer profile shows active jobs and opens details
+tags:
+  - android
+  - profile
+  - smoke
+  - regression
+---
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${HIRER_USERNAME}
+- tapOn:
+    id: tab-profile
+- extendedWaitUntil:
+    visible:
+      text: UDDEEPTO ID
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: profile-job-${JOB_ID}
+    direction: DOWN
+    timeout: 30000
+- assertVisible:
+    id: profile-job-${JOB_ID}
+- assertNotVisible:
+    id: profile-job-${CLOSED_JOB_ID}
+- assertNotVisible:
+    id: profile-job-${DRAFT_JOB_ID}
+- assertNotVisible:
+    id: profile-job-${EXPIRED_JOB_ID}
+- tapOn:
+    id: profile-job-${JOB_ID}
+- extendedWaitUntil:
+    visible:
+      text: About the job
+    timeout: 30000
+- assertVisible:
+    text: ${JOB_TITLE}

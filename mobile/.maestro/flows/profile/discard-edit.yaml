@@ -1,0 +1,41 @@
+appId: com.kodofact.uddeepto
+name: M104 Leaving profile edit without saving preserves the stored name
+tags:
+  - android
+  - profile
+---
+- runScript:
+    file: ../../scripts/prepare-case.js
+    env:
+      SCENARIO: basic
+      ACTOR_ROLE: learner
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${output.actorUsername}
+- openLink:
+    link: uddeepto://edit-profile
+- extendedWaitUntil:
+    visible:
+      id: input-full-name
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: input-full-name
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: input-full-name
+- eraseText
+- inputText: Unsaved change
+- hideKeyboard
+- back
+- openLink:
+    link: uddeepto://edit-profile
+- extendedWaitUntil:
+    visible:
+      id: input-full-name
+    timeout: 30000
+- assertVisible:
+    id: input-full-name
+    text: ${output.actorName}

@@ -1,0 +1,55 @@
+appId: com.kodofact.uddeepto
+name: M110 Profile picture uploads and displays the server image
+tags:
+  - android
+  - profile
+  - writes
+  - media
+---
+- runScript:
+    file: ../../scripts/prepare-case.js
+    env:
+      SCENARIO: basic
+      ACTOR_ROLE: learner
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${output.actorUsername}
+- addMedia:
+    - ../../assets/showcase-photo.png
+- openLink:
+    link: uddeepto://edit-profile
+- extendedWaitUntil:
+    visible:
+      id: input-full-name
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: edit-profile-picture
+    direction: UP
+    timeout: 30000
+- tapOn:
+    id: edit-profile-picture
+- runFlow:
+    file: ../../helpers/pick-photo.yaml
+- scrollUntilVisible:
+    element:
+      id: button-save-profile
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: button-save-profile
+- extendedWaitUntil:
+    visible:
+      id: tab-index
+    timeout: 30000
+- openLink:
+    link: uddeepto://user/${output.actorId}
+- extendedWaitUntil:
+    visible:
+      text: UDDEEPTO ID
+    timeout: 30000
+- extendedWaitUntil:
+    visible:
+      id: profile-picture
+    timeout: 30000

@@ -1,0 +1,4 @@
+# Only scenarios are entry points. Helpers never run as standalone tests.
+flows:
+  - "flows/**/*.yaml"
+testOutputDir: artifacts

@@ -1,0 +1,27 @@
+appId: com.kodofact.uddeepto
+name: M140 Own post offers delete and hides report
+tags:
+  - android
+  - showcase
+---
+- runScript:
+    file: ../../scripts/prepare-case.js
+    env:
+      SCENARIO: post-own
+      ACTOR_ROLE: learner
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${output.actorUsername}
+- openLink:
+    link: uddeepto://post/${output.postId}
+- extendedWaitUntil:
+    visible:
+      id: post-card-${output.postId}
+    timeout: 30000
+- tapOn:
+    id: post-menu-${output.postId}
+- assertVisible:
+    id: button-delete-post
+- assertNotVisible:
+    id: button-report-post

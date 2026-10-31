@@ -1,0 +1,42 @@
+appId: com.kodofact.uddeepto
+name: M031 Interest search filters the list
+tags:
+  - android
+  - profile
+---
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${LEARNER_USERNAME}
+- openLink:
+    link: uddeepto://interests
+- extendedWaitUntil:
+    visible:
+      id: interests-search
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: interests-search
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: interests-search
+- eraseText
+- inputText: zznomatch
+- hideKeyboard
+- assertVisible:
+    text: Nothing matches.*
+- scrollUntilVisible:
+    element:
+      id: interests-search
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: interests-search
+- eraseText
+- inputText: Web
+- hideKeyboard
+- assertVisible:
+    id: interest-${CATEGORY_ID}
+- assertNotVisible:
+    id: interest-${DESIGN_ID}

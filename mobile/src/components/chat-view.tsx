@@ -93,7 +93,7 @@ export function ChatView({ path, group, liveEvent, accept, conversationId }: { p
   const rows = [...messages].reverse(); // the list is upside down so it starts at the newest message
 
   return (
-    <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding" keyboardVerticalOffset={90}>
+    <KeyboardAvoidingView testID={connected ? "chat-connected" : "chat-disconnected"} style={{ flex: 1 }} behavior="padding" keyboardVerticalOffset={90}>
       <FlatList
         inverted
         data={rows}
@@ -123,8 +123,8 @@ export function ChatView({ path, group, liveEvent, accept, conversationId }: { p
       />
       {problem ? <Text style={styles.problem}>{problem}</Text> : null}
       <View style={styles.composer}>
-        <TextInput value={text} onChangeText={setText} placeholder="Write a message…" placeholderTextColor="#9aa7a0" style={styles.input} multiline maxLength={4000} />
-        <Pressable onPress={send} disabled={!text.trim() || sending} style={[styles.send, (!text.trim() || sending) && { opacity: 0.5 }]} accessibilityRole="button" accessibilityLabel="Send message">
+        <TextInput testID="chat-input" value={text} onChangeText={setText} placeholder="Write a message…" placeholderTextColor="#9aa7a0" style={styles.input} multiline maxLength={4000} />
+        <Pressable testID="chat-send" onPress={send} disabled={!text.trim() || sending} accessibilityState={{ disabled: !text.trim() || sending }} style={[styles.send, (!text.trim() || sending) && { opacity: 0.5 }]} accessibilityRole="button" accessibilityLabel="Send message">
           <Ionicons name="send" size={18} color="#fff" />
         </Pressable>
       </View>

@@ -104,7 +104,7 @@ export function PostCard({ post, detail = false, onDeleted }: { post: Post; deta
   const others = post.media.filter((item) => !item.mime_type.startsWith("image/"));
 
   return (
-    <Card onPress={detail ? undefined : open} style={{ gap: 10 }}>
+    <Card testID={`post-card-${post.id}`} onPress={detail ? undefined : open} style={{ gap: 10 }}>
       <Pressable style={styles.head} onPress={() => router.push(`/user/${post.creator_id}`)}>
         <Avatar id={post.creator_id} name={post.creator_name} hasPicture={post.creator_has_picture} size={42} />
         <View style={{ flex: 1 }}>
@@ -121,7 +121,7 @@ export function PostCard({ post, detail = false, onDeleted }: { post: Post; deta
             {post.category_name ? ` · ${post.category_name}` : ""}
           </Text>
         </View>
-        <Pressable onPress={() => setMenu(true)} hitSlop={10} accessibilityLabel="More options" style={styles.dots}>
+        <Pressable testID={`post-menu-${post.id}`} onPress={() => setMenu(true)} hitSlop={10} accessibilityLabel="More options" style={styles.dots}>
           <Ionicons name="ellipsis-vertical" size={20} color={colors.muted} />
         </Pressable>
       </Pressable>
@@ -146,6 +146,7 @@ export function PostCard({ post, detail = false, onDeleted }: { post: Post; deta
           {pictures.slice(0, 4).map((item) => (
             <RemoteImage
               key={item.id}
+              testID={`post-image-${post.id}`}
               path={`frontend/showcase/${post.id}/media/${item.id}`}
               style={[styles.picture, pictures.length === 1 ? { width, height: width * 0.75 } : { width: (width - 6) / 2, height: (width - 6) / 2 }]}
             />
@@ -157,7 +158,7 @@ export function PostCard({ post, detail = false, onDeleted }: { post: Post; deta
       ))}
 
       <View style={styles.actions}>
-        <Pressable onPress={toggle} style={styles.action} hitSlop={8} accessibilityRole="button" accessibilityLabel={liked ? "Remove appreciation" : "Appreciate"}>
+        <Pressable testID={`post-appreciate-${post.id}`} onPress={toggle} style={styles.action} hitSlop={8} accessibilityRole="button" accessibilityLabel={liked ? "Remove appreciation" : "Appreciate"}>
           <Ionicons name={liked ? "heart" : "heart-outline"} size={22} color={liked ? colors.red : colors.muted} />
           <Text style={[styles.actionText, liked && { color: colors.red }]}>{likes}</Text>
         </Pressable>

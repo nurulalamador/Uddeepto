@@ -1,0 +1,23 @@
+appId: com.kodofact.uddeepto
+name: M049 Full webinar does not offer a reservation
+tags:
+  - android
+  - learning
+---
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${LEARNER_USERNAME}
+- openLink:
+    link: uddeepto://webinar/${FULL_WEBINAR_ID}
+- extendedWaitUntil:
+    visible:
+      text: Full House Webinar
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      text: All seats are taken.
+    direction: DOWN
+    timeout: 30000
+- assertNotVisible:
+    id: button-reserve-my-seat

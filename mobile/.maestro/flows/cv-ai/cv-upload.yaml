@@ -1,0 +1,37 @@
+appId: com.kodofact.uddeepto
+name: M221 Native PDF upload becomes the current CV
+tags:
+  - android
+  - cv-ai
+  - writes
+  - media
+---
+- runScript:
+    file: ../../scripts/prepare-case.js
+    env:
+      SCENARIO: basic
+      ACTOR_ROLE: learner
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${output.actorUsername}
+- openLink:
+    link: uddeepto://cv
+- extendedWaitUntil:
+    visible:
+      text: Your current CV
+    timeout: 30000
+- tapOn:
+    id: button-upload-a-pdf
+- runFlow:
+    file: ../../helpers/pick-document.yaml
+    env:
+      FILE_NAME: maestro-cv.pdf
+- extendedWaitUntil:
+    visible:
+      text: Your CV was uploaded.
+    timeout: 30000
+- assertVisible:
+    text: Uploaded PDF
+- assertVisible:
+    text: maestro-cv.pdf

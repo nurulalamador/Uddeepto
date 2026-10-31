@@ -1,0 +1,41 @@
+appId: com.kodofact.uddeepto
+name: M015 Learner has learning tabs and can navigate them
+tags:
+  - android
+  - navigation
+  - smoke
+---
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${LEARNER_USERNAME}
+- assertVisible:
+    id: tab-courses
+- assertVisible:
+    id: tab-events
+- assertVisible:
+    id: tab-jobs
+- assertNotVisible:
+    id: tab-hiring
+- tapOn:
+    id: tab-courses
+- extendedWaitUntil:
+    visible:
+      id: filter-search
+    timeout: 30000
+- tapOn:
+    id: tab-events
+- assertVisible:
+    id: top-tab-contests
+- tapOn:
+    id: tab-jobs
+- assertVisible:
+    id: filter-search
+- tapOn:
+    id: tab-profile
+- extendedWaitUntil:
+    visible:
+      text: UDDEEPTO ID
+    timeout: 30000
+- assertNotVisible:
+    id: button-send-message

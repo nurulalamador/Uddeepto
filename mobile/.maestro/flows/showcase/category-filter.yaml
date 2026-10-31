@@ -1,0 +1,42 @@
+appId: com.kodofact.uddeepto
+name: M138 An interest filter excludes posts from other interests
+tags:
+  - android
+  - showcase
+---
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${LEARNER_USERNAME}
+- tapOn:
+    id: tab-showcase
+- extendedWaitUntil:
+    visible:
+      id: filter-search
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: dropdown-all-interests
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: dropdown-all-interests
+- repeat:
+    times: 12
+    while:
+      notVisible:
+        id: option-${DESIGN_ID}
+    commands:
+      - swipe:
+          from:
+            id: option-list
+          direction: UP
+          duration: 400
+- tapOn:
+    id: option-${DESIGN_ID}
+- extendedWaitUntil:
+    visible:
+      text: A design experiment with gradients
+    timeout: 30000
+- assertNotVisible:
+    id: post-card-${POST_ID}

@@ -1,0 +1,34 @@
+appId: com.kodofact.uddeepto
+name: M090 Sign in link returns from registration to login
+tags:
+  - android
+  - auth
+---
+- runFlow:
+    file: ../../helpers/reset.yaml
+- tapOn:
+    text: Create an account
+- extendedWaitUntil:
+    visible:
+      id: input-full-name
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: button-create-account
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: button-create-account
+- scrollUntilVisible:
+    element:
+      text: Sign in
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    text: Sign in
+- extendedWaitUntil:
+    visible:
+      id: input-username-or-email
+    timeout: 30000
+- assertVisible:
+    id: button-sign-in

@@ -1,0 +1,28 @@
+appId: com.kodofact.uddeepto
+name: M025 A future deadline keeps the hirer job active
+tags:
+  - android
+  - profile
+  - regression
+---
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${LEARNER_USERNAME}
+- openLink:
+    link: uddeepto://user/${HIRER_ID}
+- extendedWaitUntil:
+    visible:
+      text: UDDEEPTO ID
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: profile-job-${FUTURE_JOB_ID}
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: profile-job-${FUTURE_JOB_ID}
+- extendedWaitUntil:
+    visible:
+      text: Future Maestro Role
+    timeout: 30000

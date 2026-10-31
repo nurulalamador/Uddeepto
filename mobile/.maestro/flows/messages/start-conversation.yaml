@@ -1,0 +1,36 @@
+appId: com.kodofact.uddeepto
+name: M062 Person search opens the correct conversation
+tags:
+  - android
+  - messages
+---
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${CHAT_USERNAME}
+- tapOn:
+    id: icon-messages
+- extendedWaitUntil:
+    visible:
+      text: New message
+    timeout: 30000
+- tapOn:
+    text: New message
+- extendedWaitUntil:
+    visible:
+      id: people-search
+    timeout: 30000
+- inputText: ${RECEIVER_NAME}
+- hideKeyboard
+- extendedWaitUntil:
+    visible:
+      id: person-${RECEIVER_ID}
+    timeout: 30000
+- tapOn:
+    id: person-${RECEIVER_ID}
+- extendedWaitUntil:
+    visible:
+      id: chat-input
+    timeout: 30000
+- assertVisible:
+    text: Maestro hello from Liam

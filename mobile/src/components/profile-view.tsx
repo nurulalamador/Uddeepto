@@ -83,9 +83,9 @@ export function ProfileView({ reference, children }: { reference: string; childr
   return (
     <ScrollView contentContainerStyle={styles.page} refreshControl={<RefreshControl refreshing={resource.refreshing} onRefresh={resource.refresh} tintColor={colors.green} />}>
       <View style={styles.hero}>
-        {profile.has_cover_image ? <RemoteImage path={`frontend/profile/${profile.id}/cover`} style={styles.cover} fallback={<LinearGradient colors={gradients.hero} style={styles.cover} />} /> : <LinearGradient colors={gradients.hero} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.cover} />}
+        {profile.has_cover_image ? <RemoteImage testID="profile-cover" path={`frontend/profile/${profile.id}/cover`} style={styles.cover} fallback={<LinearGradient colors={gradients.hero} style={styles.cover} />} /> : <LinearGradient colors={gradients.hero} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.cover} />}
         <View style={styles.avatarWrap}>
-          <Avatar id={profile.id} name={profile.name} hasPicture={profile.has_picture} size={84} />
+          <Avatar testID="profile-picture" id={profile.id} name={profile.name} hasPicture={profile.has_picture} size={84} />
         </View>
         <View style={styles.identity}>
           <Text style={styles.name}>{profile.name}</Text>
@@ -106,7 +106,7 @@ export function ProfileView({ reference, children }: { reference: string; childr
         <Text style={styles.idValue} selectable>
           {profile.uddeepto_id}
         </Text>
-        <Pressable onPress={copyId} style={styles.copy} accessibilityRole="button" accessibilityLabel="Copy Uddeepto ID">
+        <Pressable testID={copied ? "profile-id-copied" : "profile-id-copy"} onPress={copyId} style={styles.copy} accessibilityRole="button" accessibilityLabel="Copy Uddeepto ID">
           <Ionicons name={copied ? "checkmark" : "copy-outline"} size={15} color={colors.green} />
           <Text style={{ color: colors.green, fontWeight: "700", fontSize: 13 }}>{copied ? "Copied" : "Copy ID"}</Text>
         </Pressable>
@@ -211,6 +211,7 @@ export function ProfileView({ reference, children }: { reference: string; childr
             profile.job_posts.map((job) => (
               <Pressable
                 key={job.id}
+                testID={`profile-job-${job.id}`}
                 onPress={() => router.push({ pathname: "/job/[id]", params: { id: job.id } })}
                 accessibilityRole="button"
                 accessibilityLabel={`View job: ${job.title}`}

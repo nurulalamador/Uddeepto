@@ -1,0 +1,22 @@
+appId: com.kodofact.uddeepto
+name: M047 Contest leaderboard opens separately from details
+tags:
+  - android
+  - learning
+---
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${LEARNER_USERNAME}
+- openLink:
+    link: uddeepto://contest/${CONTEST_ID}
+- extendedWaitUntil:
+    visible:
+      id: top-tab-leaders
+    timeout: 30000
+- tapOn:
+    id: top-tab-leaders
+- extendedWaitUntil:
+    visible:
+      text: Liam Learner
+    timeout: 30000

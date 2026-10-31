@@ -1,0 +1,29 @@
+appId: com.kodofact.uddeepto
+name: M156 Paid course cannot enroll without payment
+tags:
+  - android
+  - learning
+---
+- runScript:
+    file: ../../scripts/prepare-case.js
+    env:
+      SCENARIO: basic
+      ACTOR_ROLE: learner
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${output.actorUsername}
+- openLink:
+    link: uddeepto://course/${PREMIUM_COURSE_ID}
+- extendedWaitUntil:
+    visible:
+      id: button-enroll-now
+    timeout: 30000
+- tapOn:
+    id: button-enroll-now
+- extendedWaitUntil:
+    visible:
+      text: Complete payment before enrollment
+    timeout: 30000
+- assertNotVisible:
+    id: button-start-learning

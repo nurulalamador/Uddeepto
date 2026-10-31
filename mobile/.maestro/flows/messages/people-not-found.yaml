@@ -1,0 +1,28 @@
+appId: com.kodofact.uddeepto
+name: M061 Unknown person gives an empty result
+tags:
+  - android
+  - messages
+---
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${CHAT_USERNAME}
+- tapOn:
+    id: icon-messages
+- extendedWaitUntil:
+    visible:
+      text: New message
+    timeout: 30000
+- tapOn:
+    text: New message
+- extendedWaitUntil:
+    visible:
+      id: people-search
+    timeout: 30000
+- inputText: zznomatchmaestro
+- hideKeyboard
+- extendedWaitUntil:
+    visible:
+      text: Nobody found
+    timeout: 30000

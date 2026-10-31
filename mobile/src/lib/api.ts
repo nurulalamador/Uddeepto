@@ -1,5 +1,6 @@
 import * as SecureStore from "expo-secure-store";
 import { API_URL } from "./config";
+import { sendMultipart, type ApiResponse } from "./multipart";
 
 export class ApiError extends Error {
   status: number;
@@ -41,7 +42,7 @@ export async function clearTokens() {
 export const getRefreshToken = () => refresh;
 export const getAccessToken = () => access;
 
-async function parse(response: Response) {
+async function parse(response: ApiResponse) {
   if (response.status === 204) return null;
   const text = await response.text();
   if (!text) return null;
@@ -95,9 +96,12 @@ export async function api<T = any>(path: string, options: Options = {}, retried 
     headers["Content-Type"] = "application/json";
     body = JSON.stringify(options.body);
   }
-  let response: Response;
+  let response: ApiResponse;
   try {
-    response = await fetch(`${API_URL}/${path.replace(/^\//, "")}`, { method: options.method || "GET", headers, body, signal: options.signal });
+    const url = `${API_URL}/${path.replace(/^\//, "")}`;
+    response = options.form
+      ? await sendMultipart(url, options.method || "GET", headers, options.form, options.signal)
+      : await fetch(url, { method: options.method || "GET", headers, body, signal: options.signal });
   } catch (error: any) {
     if (error?.name === "AbortError") throw error;
     throw new ApiError(0, messageOf(0, null));

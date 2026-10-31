@@ -1,0 +1,22 @@
+appId: com.kodofact.uddeepto
+name: M021 Unknown search explains the empty result
+tags:
+  - android
+  - search
+---
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${LEARNER_USERNAME}
+- tapOn:
+    id: icon-search
+- extendedWaitUntil:
+    visible:
+      id: global-search
+    timeout: 30000
+- inputText: zzmaestronomatch${RUN_ID}
+- hideKeyboard
+- extendedWaitUntil:
+    visible:
+      text: Nothing found for.*
+    timeout: 30000

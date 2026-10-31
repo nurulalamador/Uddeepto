@@ -1,0 +1,17 @@
+appId: com.kodofact.uddeepto
+name: M001 Login shows the required controls
+tags:
+  - android
+  - auth
+  - smoke
+---
+- runFlow:
+    file: ../../helpers/reset.yaml
+- assertVisible:
+    text: Welcome back.
+- assertVisible:
+    id: input-username-or-email
+- assertVisible:
+    id: input-password
+- assertVisible:
+    id: button-sign-in

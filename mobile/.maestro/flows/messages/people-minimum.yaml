@@ -1,0 +1,26 @@
+appId: com.kodofact.uddeepto
+name: M060 New conversation search requires two letters
+tags:
+  - android
+  - messages
+---
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${CHAT_USERNAME}
+- tapOn:
+    id: icon-messages
+- extendedWaitUntil:
+    visible:
+      text: New message
+    timeout: 30000
+- tapOn:
+    text: New message
+- extendedWaitUntil:
+    visible:
+      id: people-search
+    timeout: 30000
+- inputText: L
+- hideKeyboard
+- assertVisible:
+    text: Type at least two letters of a name.

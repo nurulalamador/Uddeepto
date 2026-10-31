@@ -1,0 +1,45 @@
+appId: com.kodofact.uddeepto
+name: M168 Contest submission remains disabled for whitespace code
+tags:
+  - android
+  - events
+---
+- runScript:
+    file: ../../scripts/prepare-case.js
+    env:
+      SCENARIO: contest-joined
+      ACTOR_ROLE: learner
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${output.actorUsername}
+- openLink:
+    link: uddeepto://contest/${CONTEST_ID}
+- extendedWaitUntil:
+    visible:
+      id: top-tab-entry
+    timeout: 30000
+- tapOn:
+    id: top-tab-entry
+- extendedWaitUntil:
+    visible:
+      id: input-language
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: input-your-code
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: input-your-code
+- eraseText
+- inputText: '  '
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: button-submit-entry
+    direction: DOWN
+    timeout: 30000
+- assertVisible:
+    id: button-submit-entry
+    enabled: false

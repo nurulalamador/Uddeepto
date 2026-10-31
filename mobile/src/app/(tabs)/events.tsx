@@ -85,7 +85,7 @@ function EventList({ kind }: { kind: Kind }) {
           ListEmptyComponent={<Empty icon={kind === "contests" ? "trophy-outline" : "videocam-outline"} title={`No ${phase} ${kind}`} text="Check the other tabs or come back later." />}
           ListFooterComponent={list.loadingMore ? <Loading /> : undefined}
           renderItem={({ item }) => (
-            <Card onPress={() => router.push(`/${single}/${item.id}`)}>
+            <Card testID={`event-card-${item.id}`} onPress={() => router.push(`/${single}/${item.id}`)}>
               <EventSummary
                 title={item.name}
                 start={item.starting_time}

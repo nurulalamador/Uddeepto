@@ -1,0 +1,31 @@
+appId: com.kodofact.uddeepto
+name: M033 Education form requires an institution
+tags:
+  - android
+  - profile
+---
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${PROFILE_USERNAME}
+- openLink:
+    link: uddeepto://education
+- extendedWaitUntil:
+    visible:
+      id: button-add-education
+    timeout: 30000
+- tapOn:
+    id: button-add-education
+- extendedWaitUntil:
+    visible:
+      id: input-institution
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: button-save
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: button-save
+- assertVisible:
+    text: Enter the institution.

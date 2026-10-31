@@ -1,0 +1,25 @@
+appId: com.kodofact.uddeepto
+name: M181 Hirer cannot apply to or manage another hirer job
+tags:
+  - android
+  - jobs
+---
+- runScript:
+    file: ../../scripts/prepare-case.js
+    env:
+      SCENARIO: basic
+      ACTOR_ROLE: hirer
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${output.actorUsername}
+- openLink:
+    link: uddeepto://job/${JOB_ID}
+- extendedWaitUntil:
+    visible:
+      text: About the job
+    timeout: 30000
+- assertNotVisible:
+    id: button-send-application
+- assertNotVisible:
+    id: button-see-applicants

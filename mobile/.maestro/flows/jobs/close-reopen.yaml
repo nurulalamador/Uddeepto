@@ -1,0 +1,33 @@
+appId: com.kodofact.uddeepto
+name: M058 Hirer can close and reopen an owned job
+tags:
+  - android
+  - jobs
+  - writes
+---
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${STATUS_HIRER_USERNAME}
+- tapOn:
+    id: tab-hiring
+- extendedWaitUntil:
+    visible:
+      id: top-tab-posts
+    timeout: 30000
+- extendedWaitUntil:
+    visible:
+      id: job-status-${STATUS_JOB_ID}
+    timeout: 30000
+- tapOn:
+    id: job-status-${STATUS_JOB_ID}
+- extendedWaitUntil:
+    visible:
+      text: Reopen
+    timeout: 30000
+- tapOn:
+    id: job-status-${STATUS_JOB_ID}
+- extendedWaitUntil:
+    visible:
+      text: Close
+    timeout: 30000

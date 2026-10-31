@@ -1,0 +1,32 @@
+appId: com.kodofact.uddeepto
+name: M102 Hirer search does not expose learner course results
+tags:
+  - android
+  - search
+---
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${HIRER_USERNAME}
+- tapOn:
+    id: icon-search
+- extendedWaitUntil:
+    visible:
+      id: global-search
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: global-search
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: global-search
+- eraseText
+- inputText: React Basics
+- hideKeyboard
+- extendedWaitUntil:
+    visible:
+      text: Nothing found for.*
+    timeout: 30000
+- assertNotVisible:
+    id: search-result-courses-${COURSE_ID}

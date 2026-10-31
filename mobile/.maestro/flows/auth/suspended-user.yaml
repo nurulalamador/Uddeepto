@@ -1,0 +1,19 @@
+appId: com.kodofact.uddeepto
+name: M006 Suspended account cannot sign in
+tags:
+  - android
+  - auth
+---
+- runFlow:
+    file: ../../helpers/reset.yaml
+- runFlow:
+    file: ../../helpers/credentials.yaml
+    env:
+      USERNAME: ${BANNED_USERNAME}
+      LOGIN_PASSWORD: ${PASSWORD}
+- extendedWaitUntil:
+    visible:
+      text: .*[Ss]uspended.*|.*[Aa]ccount.*active.*|.*[Aa]ccount.*disabled.*
+    timeout: 30000
+- assertNotVisible:
+    id: tab-index

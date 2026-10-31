@@ -1,0 +1,114 @@
+appId: com.kodofact.uddeepto
+name: M129 experience rejects an end date before the start date
+tags:
+  - android
+  - experience
+---
+- runScript:
+    file: ../../scripts/prepare-case.js
+    env:
+      SCENARIO: basic
+      ACTOR_ROLE: learner
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${output.actorUsername}
+- openLink:
+    link: uddeepto://experience
+- extendedWaitUntil:
+    visible:
+      id: button-add-experience
+    timeout: 30000
+- tapOn:
+    id: button-add-experience
+- extendedWaitUntil:
+    visible:
+      id: input-job-title
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: input-job-title
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: input-job-title
+- eraseText
+- inputText: Maestro entry ${output.unique}
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: input-workplace
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: input-workplace
+- eraseText
+- inputText: Maestro Labs
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: dropdown-interest-category
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: dropdown-interest-category
+- repeat:
+    times: 12
+    while:
+      notVisible:
+        id: option-${CATEGORY_ID}
+    commands:
+      - swipe:
+          from:
+            id: option-list
+          direction: UP
+          duration: 400
+- tapOn:
+    id: option-${CATEGORY_ID}
+- scrollUntilVisible:
+    element:
+      id: date-start-year
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: date-start-year
+- scrollUntilVisible:
+    element:
+      id: option-search
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: option-search
+- eraseText
+- inputText: ${PAST_YEAR}
+- hideKeyboard
+- tapOn:
+    id: option-${PAST_YEAR}
+- scrollUntilVisible:
+    element:
+      id: date-end-year
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: date-end-year
+- scrollUntilVisible:
+    element:
+      id: option-search
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: option-search
+- eraseText
+- inputText: ${EARLIER_YEAR}
+- hideKeyboard
+- tapOn:
+    id: option-${EARLIER_YEAR}
+- scrollUntilVisible:
+    element:
+      id: button-save
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: button-save
+- assertVisible:
+    text: The end date is before the start date.

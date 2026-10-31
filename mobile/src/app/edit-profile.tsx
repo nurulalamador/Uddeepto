@@ -88,14 +88,14 @@ export default function EditProfile() {
       <ScrollView contentContainerStyle={styles.page} keyboardShouldPersistTaps="handled">
         <View style={{ gap: 10 }}>
           <Text style={{ fontSize: 13, fontWeight: "700", color: colors.text }}>Cover picture</Text>
-          <Pressable onPress={() => choose(setCover, [3, 1])} style={{ height: 110, borderRadius: 16, overflow: "hidden", backgroundColor: colors.greenSoft, alignItems: "center", justifyContent: "center" }}>
+          <Pressable testID="edit-profile-cover" onPress={() => choose(setCover, [3, 1])} style={{ height: 110, borderRadius: 16, overflow: "hidden", backgroundColor: colors.greenSoft, alignItems: "center", justifyContent: "center" }}>
             {cover ? <Image source={{ uri: cover.uri }} style={StyleSheet.absoluteFill} contentFit="cover" /> : profile.has_cover_image && !removeCover ? <RemoteImage path={`frontend/profile/${profile.id}/cover`} style={StyleSheet.absoluteFill} /> : null}
             <Text style={{ color: cover || (profile.has_cover_image && !removeCover) ? "#fff" : colors.green, fontWeight: "800", textShadowColor: "rgba(0,0,0,0.5)", textShadowRadius: 4 }}>{cover ? "Cover chosen · tap to change" : profile.has_cover_image && !removeCover ? "Tap to change the cover" : "Tap to add a cover"}</Text>
           </Pressable>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 14 }}>
             <Avatar id={profile.id} name={profile.name} hasPicture={profile.has_picture && !removePicture && !picture} size={64} />
             <View style={{ flex: 1, gap: 8 }}>
-              <Button label={picture ? "Picture chosen · change" : "Change profile picture"} icon="camera-outline" kind="soft" onPress={() => choose(setPicture, [1, 1])} />
+              <Button testID="edit-profile-picture" label={picture ? "Picture chosen · change" : "Change profile picture"} icon="camera-outline" kind="soft" onPress={() => choose(setPicture, [1, 1])} />
               {(profile.has_picture || picture) && !removePicture ? <Button label="Remove picture" kind="secondary" onPress={() => { setPicture(null); setRemovePicture(true); }} /> : null}
             </View>
           </View>

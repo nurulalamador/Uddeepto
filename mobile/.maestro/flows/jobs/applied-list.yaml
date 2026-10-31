@@ -1,0 +1,48 @@
+appId: com.kodofact.uddeepto
+name: M180 Saved application appears in My applications
+tags:
+  - android
+  - jobs
+---
+- runScript:
+    file: ../../scripts/prepare-case.js
+    env:
+      SCENARIO: application-applied
+      ACTOR_ROLE: learner
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${output.actorUsername}
+- tapOn:
+    id: tab-jobs
+- tapOn:
+    id: top-tab-applied
+- extendedWaitUntil:
+    visible:
+      id: filter-search
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: filter-search
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: filter-search
+- eraseText
+- inputText: ${output.jobTitle}
+- hideKeyboard
+- extendedWaitUntil:
+    visible:
+      id: job-card-${output.jobId}
+    timeout: 30000
+- tapOn:
+    id: job-card-${output.jobId}
+- extendedWaitUntil:
+    visible:
+      text: About the job
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      text: Your application
+    direction: DOWN
+    timeout: 30000

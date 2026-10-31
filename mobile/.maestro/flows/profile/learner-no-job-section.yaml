@@ -1,0 +1,27 @@
+appId: com.kodofact.uddeepto
+name: M105 Learner profile does not show hirer controls or job section
+tags:
+  - android
+  - profile
+---
+- runScript:
+    file: ../../scripts/prepare-case.js
+    env:
+      SCENARIO: basic
+      ACTOR_ROLE: learner
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${output.actorUsername}
+- openLink:
+    link: uddeepto://user/${output.actorId}
+- extendedWaitUntil:
+    visible:
+      text: UDDEEPTO ID
+    timeout: 30000
+- assertNotVisible:
+    text: Active job posts
+- assertNotVisible:
+    id: button-see-applicants
+- assertNotVisible:
+    id: profile-job-.*

@@ -1,0 +1,45 @@
+appId: com.kodofact.uddeepto
+name: M130 Unsaved experience entry can be discarded
+tags:
+  - android
+  - experience
+---
+- runScript:
+    file: ../../scripts/prepare-case.js
+    env:
+      SCENARIO: basic
+      ACTOR_ROLE: learner
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${output.actorUsername}
+- openLink:
+    link: uddeepto://experience
+- extendedWaitUntil:
+    visible:
+      id: button-add-experience
+    timeout: 30000
+- tapOn:
+    id: button-add-experience
+- extendedWaitUntil:
+    visible:
+      id: input-job-title
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: input-job-title
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: input-job-title
+- eraseText
+- inputText: Unsaved entry
+- hideKeyboard
+- tapOn:
+    id: entry-form-close
+- extendedWaitUntil:
+    visible:
+      id: button-add-experience
+    timeout: 30000
+- assertVisible:
+    text: No experience added yet.

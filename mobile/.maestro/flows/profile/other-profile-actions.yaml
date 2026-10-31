@@ -1,0 +1,24 @@
+appId: com.kodofact.uddeepto
+name: M106 Another user profile has messaging but no account editing actions
+tags:
+  - android
+  - profile
+---
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${LEARNER_USERNAME}
+- openLink:
+    link: uddeepto://user/${RECEIVER_ID}
+- extendedWaitUntil:
+    visible:
+      text: UDDEEPTO ID
+    timeout: 30000
+- assertVisible:
+    id: button-send-message
+- assertNotVisible:
+    id: button-edit-profile
+- assertNotVisible:
+    id: button-settings
+- assertNotVisible:
+    id: button-sign-out

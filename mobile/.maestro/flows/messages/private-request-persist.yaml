@@ -1,0 +1,42 @@
+appId: com.kodofact.uddeepto
+name: M197 Pending private membership survives reopening
+tags:
+  - android
+  - messages
+  - writes
+---
+- runScript:
+    file: ../../scripts/prepare-case.js
+    env:
+      SCENARIO: basic
+      ACTOR_ROLE: learner
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${output.actorUsername}
+- openLink:
+    link: uddeepto://community/${PRIVATE_COMMUNITY_ID}
+- extendedWaitUntil:
+    visible:
+      id: button-request-to-join
+    timeout: 30000
+- tapOn:
+    id: button-request-to-join
+- extendedWaitUntil:
+    visible:
+      text: Your request is waiting for approval.
+    timeout: 30000
+- stopApp
+- launchApp
+- extendedWaitUntil:
+    visible:
+      id: tab-index
+    timeout: 30000
+- openLink:
+    link: uddeepto://community/${PRIVATE_COMMUNITY_ID}
+- extendedWaitUntil:
+    visible:
+      text: Your request is waiting for approval.
+    timeout: 30000
+- assertNotVisible:
+    id: button-request-to-join

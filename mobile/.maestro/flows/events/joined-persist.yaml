@@ -1,0 +1,49 @@
+appId: com.kodofact.uddeepto
+name: M167 Contest membership persists after reopening
+tags:
+  - android
+  - events
+  - writes
+---
+- runScript:
+    file: ../../scripts/prepare-case.js
+    env:
+      SCENARIO: basic
+      ACTOR_ROLE: learner
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${output.actorUsername}
+- openLink:
+    link: uddeepto://contest/${CONTEST_ID}
+- extendedWaitUntil:
+    visible:
+      id: top-tab-details
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: button-join-this-contest
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: button-join-this-contest
+- extendedWaitUntil:
+    visible:
+      text: Joined
+    timeout: 30000
+- stopApp
+- launchApp
+- extendedWaitUntil:
+    visible:
+      id: tab-index
+    timeout: 30000
+- openLink:
+    link: uddeepto://contest/${CONTEST_ID}
+- extendedWaitUntil:
+    visible:
+      id: top-tab-details
+    timeout: 30000
+- assertVisible:
+    text: Joined
+- assertNotVisible:
+    id: button-join-this-contest

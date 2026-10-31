@@ -1,0 +1,30 @@
+appId: com.kodofact.uddeepto
+name: M064 Open community membership unlocks its channels
+tags:
+  - android
+  - messages
+  - writes
+---
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${COMMUNITY_USERNAME}
+- openLink:
+    link: uddeepto://community/${COMMUNITY_ID}
+- extendedWaitUntil:
+    visible:
+      text: Open Builders
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: button-join-community
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: button-join-community
+- extendedWaitUntil:
+    visible:
+      text: Channels
+    timeout: 30000
+- assertVisible:
+    text: Member

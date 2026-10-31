@@ -1,0 +1,42 @@
+appId: com.kodofact.uddeepto
+name: M046 Free contest can be joined and entry form opens
+tags:
+  - android
+  - learning
+  - writes
+---
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${EVENT_USERNAME}
+- openLink:
+    link: uddeepto://contest/${CONTEST_ID}
+- extendedWaitUntil:
+    visible:
+      id: top-tab-entry
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: button-join-this-contest
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: button-join-this-contest
+- extendedWaitUntil:
+    visible:
+      text: Joined
+    timeout: 30000
+- tapOn:
+    id: top-tab-entry
+- extendedWaitUntil:
+    visible:
+      id: input-language
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: button-submit-entry
+    direction: DOWN
+    timeout: 30000
+- assertVisible:
+    id: button-submit-entry
+    enabled: false

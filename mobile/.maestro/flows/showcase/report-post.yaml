@@ -1,0 +1,66 @@
+appId: com.kodofact.uddeepto
+name: M143 A valid report reaches the moderators
+tags:
+  - android
+  - showcase
+  - writes
+---
+- runScript:
+    file: ../../scripts/prepare-case.js
+    env:
+      SCENARIO: post-other
+      ACTOR_ROLE: learner
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${output.actorUsername}
+- openLink:
+    link: uddeepto://post/${output.postId}
+- extendedWaitUntil:
+    visible:
+      id: post-card-${output.postId}
+    timeout: 30000
+- tapOn:
+    id: post-menu-${output.postId}
+- tapOn:
+    id: button-report-post
+- scrollUntilVisible:
+    element:
+      id: dropdown-reason
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: dropdown-reason
+- repeat:
+    times: 12
+    while:
+      notVisible:
+        id: option-spam
+    commands:
+      - swipe:
+          from:
+            id: option-list
+          direction: UP
+          duration: 400
+- tapOn:
+    id: option-spam
+- scrollUntilVisible:
+    element:
+      id: input-details-optional
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: input-details-optional
+- eraseText
+- inputText: Maestro report detail
+- hideKeyboard
+- tapOn:
+    id: button-send-report
+- extendedWaitUntil:
+    visible:
+      text: Thank you
+    timeout: 30000
+- assertVisible:
+    text: Your report was sent to the moderators.
+- tapOn:
+    text: OK

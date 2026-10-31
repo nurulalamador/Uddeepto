@@ -1,0 +1,31 @@
+appId: com.kodofact.uddeepto
+name: M067 Notification category limits the visible records
+tags:
+  - android
+  - notifications
+---
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${NOTIFY_USERNAME}
+- tapOn:
+    id: icon-notifications
+- extendedWaitUntil:
+    visible:
+      text: Maestro job notification
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: dropdown-all-categories
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: dropdown-all-categories
+- tapOn:
+    id: option-jobs
+- extendedWaitUntil:
+    visible:
+      text: Maestro job notification
+    timeout: 30000
+- assertNotVisible:
+    text: Maestro social notification

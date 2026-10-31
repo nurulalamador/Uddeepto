@@ -14,6 +14,9 @@ import { Text, TextInput } from "./text";
 export { Text, TextInput };
 export type IconName = keyof typeof Ionicons.glyphMap;
 
+// Stable native identifiers for UI automation. Explicit testID props take precedence.
+const controlId = (kind: string, label: string) => `${kind}-${label.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}`;
+
 /* ------------------------------------------------------------------------------------------------ brand */
 
 /** The website's logo mark: a white "u" on a green gradient with an orange star. */
@@ -38,14 +41,14 @@ export function Brand({ size = 40, light = false }: { size?: number; light?: boo
 
 /* ------------------------------------------------------------------------------------------------ layout */
 
-export function Card({ children, style, onPress }: { children: ReactNode; style?: StyleProp<ViewStyle>; onPress?: () => void }) {
+export function Card({ children, style, onPress, testID }: { children: ReactNode; style?: StyleProp<ViewStyle>; onPress?: () => void; testID?: string }) {
   if (onPress)
     return (
-      <Pressable onPress={onPress} style={({ pressed }) => [styles.card, style, pressed && { opacity: 0.88, transform: [{ scale: 0.995 }] }]}>
+      <Pressable testID={testID} onPress={onPress} style={({ pressed }) => [styles.card, style, pressed && { opacity: 0.88, transform: [{ scale: 0.995 }] }]}>
         {children}
       </Pressable>
     );
-  return <View style={[styles.card, style]}>{children}</View>;
+  return <View testID={testID} style={[styles.card, style]}>{children}</View>;
 }
 
 /** A banner with the website's dark green gradient and the orange glow in the corner. */
@@ -81,7 +84,7 @@ export function SectionTitle({ children, action, onAction }: { children: ReactNo
   );
 }
 
-export function Button({ label, onPress, kind = "primary", icon, busy, disabled, style }: { label: string; onPress: () => void; kind?: "primary" | "secondary" | "danger" | "soft"; icon?: IconName; busy?: boolean; disabled?: boolean; style?: StyleProp<ViewStyle> }) {
+export function Button({ label, onPress, kind = "primary", icon, busy, disabled, style, testID }: { label: string; onPress: () => void; kind?: "primary" | "secondary" | "danger" | "soft"; icon?: IconName; busy?: boolean; disabled?: boolean; style?: StyleProp<ViewStyle>; testID?: string }) {
   const off = disabled || busy;
   const fg = kind === "primary" || kind === "danger" ? "#fff" : colors.green;
   const content = (
@@ -93,7 +96,7 @@ export function Button({ label, onPress, kind = "primary", icon, busy, disabled,
   const pressed = (state: { pressed: boolean }) => ({ opacity: off ? 0.55 : state.pressed ? 0.88 : 1 });
   if (kind === "primary")
     return (
-      <Pressable onPress={onPress} disabled={off} accessibilityRole="button" style={(state) => [pressed(state), style]}>
+      <Pressable testID={testID || controlId("button", label)} onPress={onPress} disabled={off} accessibilityRole="button" accessibilityState={{ disabled: Boolean(off), busy: Boolean(busy) }} style={(state) => [pressed(state), style]}>
         <LinearGradient colors={["#1f8c62", "#17684a"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={[styles.button, { borderColor: colors.green }]}>
           {content}
         </LinearGradient>
@@ -101,7 +104,7 @@ export function Button({ label, onPress, kind = "primary", icon, busy, disabled,
     );
   const look = kind === "danger" ? { backgroundColor: colors.red, borderColor: colors.red } : kind === "soft" ? { backgroundColor: colors.greenSoft, borderColor: colors.greenSoft } : { backgroundColor: colors.card, borderColor: colors.borderStrong };
   return (
-    <Pressable onPress={onPress} disabled={off} accessibilityRole="button" style={(state) => [styles.button, look, pressed(state), style]}>
+    <Pressable testID={testID || controlId("button", label)} onPress={onPress} disabled={off} accessibilityRole="button" accessibilityState={{ disabled: Boolean(off), busy: Boolean(busy) }} style={(state) => [styles.button, look, pressed(state), style]}>
       {content}
     </Pressable>
   );
@@ -112,7 +115,7 @@ export function Input(props: TextInputProps & { label?: string; hint?: string })
   return (
     <View style={{ gap: 6 }}>
       {label ? <Text style={styles.inputLabel}>{label}</Text> : null}
-      <TextInput placeholderTextColor="#9aa7a0" {...rest} style={[styles.input, rest.multiline && { minHeight: 96, textAlignVertical: "top" }, style]} />
+      <TextInput placeholderTextColor="#9aa7a0" {...rest} testID={rest.testID || (label ? controlId("input", label) : undefined)} style={[styles.input, rest.multiline && { minHeight: 96, textAlignVertical: "top" }, style]} />
       {hint ? <Muted>{hint}</Muted> : null}
     </View>
   );
@@ -149,7 +152,7 @@ const key = (value: string) => {
  * A picture that needs the signed-in person's token. It is fetched with the token into the cache folder and then shown from
  * there, which works the same for every kind of picture the API serves (profile, instructor, cover, post).
  */
-export function RemoteImage({ path, style, contentFit = "cover", fallback }: { path: string; style?: any; contentFit?: "cover" | "contain"; fallback?: ReactNode }) {
+export function RemoteImage({ path, style, contentFit = "cover", fallback, testID }: { path: string; style?: any; contentFit?: "cover" | "contain"; fallback?: ReactNode; testID?: string }) {
   const url = fileUrl(path);
   const [uri, setUri] = useState<string | null>(memory.get(url) || null);
   const [failed, setFailed] = useState(false);
@@ -172,10 +175,10 @@ export function RemoteImage({ path, style, contentFit = "cover", fallback }: { p
 
   if (failed) return <>{fallback ?? <View style={[style, { backgroundColor: colors.surfaceMuted, alignItems: "center", justifyContent: "center" }]}><Ionicons name="image-outline" size={22} color={colors.subtle} /></View>}</>;
   if (!uri) return <View style={[style, { backgroundColor: colors.surfaceMuted }]} />;
-  return <Image source={{ uri }} style={style} contentFit={contentFit} transition={120} onError={() => setFailed(true)} />;
+  return <Image testID={testID} source={{ uri }} style={style} contentFit={contentFit} transition={120} onError={() => setFailed(true)} />;
 }
 
-export function Avatar({ id, name, hasPicture, size = 40, instructor = false }: { id?: string; name?: string | null; hasPicture?: boolean; size?: number; instructor?: boolean }) {
+export function Avatar({ id, name, hasPicture, size = 40, instructor = false, testID }: { id?: string; name?: string | null; hasPicture?: boolean; size?: number; instructor?: boolean; testID?: string }) {
   const letters = (
     <LinearGradient colors={["#ffe9d6", "#ffd3b0"]} style={{ width: size, height: size, alignItems: "center", justifyContent: "center" }}>
       <Text style={{ color: colors.orange, fontWeight: "800", fontSize: size * 0.38 }}>{initials(name)}</Text>
@@ -183,7 +186,7 @@ export function Avatar({ id, name, hasPicture, size = 40, instructor = false }: 
   );
   return (
     <View style={{ width: size, height: size, borderRadius: size / 2, overflow: "hidden" }}>
-      {hasPicture && id ? <RemoteImage path={instructor ? `frontend/instructors/${id}/image` : `frontend/profile/${id}/picture`} style={{ width: size, height: size }} fallback={letters} /> : letters}
+      {hasPicture && id ? <RemoteImage testID={testID} path={instructor ? `frontend/instructors/${id}/image` : `frontend/profile/${id}/picture`} style={{ width: size, height: size }} fallback={letters} /> : letters}
     </View>
   );
 }
@@ -207,7 +210,7 @@ export function TopTabs<T extends string>({ tabs, value, onChange }: { tabs: { v
       {tabs.map((tab) => {
         const active = tab.value === value;
         return (
-          <Pressable key={tab.value} onPress={() => onChange(tab.value)} accessibilityRole="tab" accessibilityState={{ selected: active }} style={{ flex: 1 }}>
+          <Pressable testID={`top-tab-${tab.value}`} key={tab.value} onPress={() => onChange(tab.value)} accessibilityRole="tab" accessibilityState={{ selected: active }} style={{ flex: 1 }}>
             {active ? (
               <LinearGradient colors={["#1f8c62", "#17684a"]} style={styles.tab}>
                 <Text style={[styles.tabText, { color: "#fff" }]}>{tab.label}</Text>
@@ -236,7 +239,7 @@ export function Pills<T extends string>({ items, value, onChange }: { items: { v
       {items.map((item) => {
         const on = item.value === value;
         return (
-          <Pressable key={item.value} onPress={() => onChange(item.value)} style={[styles.pill, on && { backgroundColor: colors.green, borderColor: colors.green }]}>
+          <Pressable testID={`pill-${item.value}`} key={item.value} onPress={() => onChange(item.value)} style={[styles.pill, on && { backgroundColor: colors.green, borderColor: colors.green }]}>
             <Text style={{ color: on ? "#fff" : colors.muted, fontWeight: "700", fontSize: 13 }}>{item.label}</Text>
           </Pressable>
         );
@@ -247,7 +250,7 @@ export function Pills<T extends string>({ items, value, onChange }: { items: { v
 
 export function IconButton({ icon, onPress, badge, label, color = colors.text }: { icon: IconName; onPress: () => void; badge?: number; label: string; color?: string }) {
   return (
-    <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={badge ? `${label}, ${badge} new` : label} hitSlop={6} style={styles.iconButton}>
+    <Pressable testID={controlId("icon", label)} onPress={onPress} accessibilityRole="button" accessibilityLabel={badge ? `${label}, ${badge} new` : label} hitSlop={6} style={styles.iconButton}>
       <Ionicons name={icon} size={23} color={color} />
       {badge ? (
         <View style={styles.badge}>
@@ -318,7 +321,7 @@ export function Sheet({ visible, title, onClose, children, footer }: { visible: 
         <View style={styles.grab} />
         <View style={styles.sheetHead}>
           <Text style={styles.sheetTitle}>{title}</Text>
-          <Pressable onPress={onClose} hitSlop={10}>
+          <Pressable testID="sheet-close" accessibilityLabel="Close sheet" onPress={onClose} hitSlop={10}>
             <Ionicons name="close" size={22} color={colors.muted} />
           </Pressable>
         </View>
@@ -337,10 +340,11 @@ function OptionList({ options, selected, onPick, searchable }: { options: Option
       {searchable ? (
         <View style={styles.searchRow}>
           <Ionicons name="search-outline" size={18} color={colors.muted} />
-          <TextInput value={term} onChangeText={setTerm} placeholder="Search…" placeholderTextColor="#9aa7a0" style={styles.searchInput} autoCorrect={false} />
+          <TextInput testID="option-search" value={term} onChangeText={setTerm} placeholder="Search…" placeholderTextColor="#9aa7a0" style={styles.searchInput} autoCorrect={false} />
         </View>
       ) : null}
       <FlatList
+        testID="option-list"
         data={shown}
         keyExtractor={(option) => option.value || "none"}
         style={{ maxHeight: 380 }}
@@ -349,7 +353,7 @@ function OptionList({ options, selected, onPick, searchable }: { options: Option
         renderItem={({ item }) => {
           const on = selected.includes(item.value);
           return (
-            <Pressable onPress={() => onPick(item.value)} style={[styles.option, on && { backgroundColor: colors.greenSoft }]} accessibilityRole="button" accessibilityState={{ selected: on }}>
+            <Pressable testID={`option-${item.value || "none"}`} onPress={() => onPick(item.value)} style={[styles.option, on && { backgroundColor: colors.greenSoft }]} accessibilityRole="button" accessibilityState={{ selected: on }}>
               <View style={{ flex: 1 }}>
                 <Text style={[styles.optionText, on && { color: colors.green, fontWeight: "800" }]}>{item.label}</Text>
                 {item.hint ? <Muted>{item.hint}</Muted> : null}
@@ -364,13 +368,13 @@ function OptionList({ options, selected, onPick, searchable }: { options: Option
 }
 
 /** A field that opens a list to pick one option from (instead of showing every option at once). */
-export function Dropdown({ label, value, options, onChange, placeholder = "Select", compact = false, icon, searchable }: { label?: string; value: string; options: Option[]; onChange: (value: string) => void; placeholder?: string; compact?: boolean; icon?: IconName; searchable?: boolean }) {
+export function Dropdown({ label, value, options, onChange, placeholder = "Select", compact = false, icon, searchable, testID }: { label?: string; value: string; options: Option[]; onChange: (value: string) => void; placeholder?: string; compact?: boolean; icon?: IconName; searchable?: boolean; testID?: string }) {
   const [open, setOpen] = useState(false);
   const current = options.find((option) => option.value === value);
   return (
     <View style={{ gap: 6, flex: compact ? 1 : undefined }}>
       {label ? <Text style={styles.inputLabel}>{label}</Text> : null}
-      <Pressable onPress={() => setOpen(true)} style={[styles.select, compact && { minHeight: 42, paddingHorizontal: 12 }]} accessibilityRole="button" accessibilityLabel={label || placeholder}>
+      <Pressable testID={testID || controlId("dropdown", label || placeholder)} onPress={() => setOpen(true)} style={[styles.select, compact && { minHeight: 42, paddingHorizontal: 12 }]} accessibilityRole="button" accessibilityLabel={label || placeholder}>
         {icon ? <Ionicons name={icon} size={17} color={colors.green} /> : null}
         <Text style={[styles.selectText, !current && { color: "#9aa7a0" }]} numberOfLines={1}>
           {current ? current.label : placeholder}
@@ -440,8 +444,8 @@ export function MonthPicker({ label, value, onChange, optional = false }: { labe
     <View style={{ gap: 6 }}>
       <Text style={styles.inputLabel}>{label}</Text>
       <View style={{ flexDirection: "row", gap: 8 }}>
-        <Dropdown compact value={month} placeholder="Month" options={[...(optional ? [{ value: "", label: "—" }] : []), ...MONTHS.map((name, index) => ({ value: String(index + 1).padStart(2, "0"), label: name }))]} onChange={(next) => set(year || String(new Date().getFullYear()), next)} />
-        <Dropdown compact value={year} placeholder="Year" options={[...(optional ? [{ value: "", label: "—" }] : []), ...years.map((item) => ({ value: item, label: item }))]} searchable onChange={(next) => (next ? set(next, month || "01") : onChange(""))} />
+        <Dropdown testID={controlId("date", `${label} month`)} compact value={month} placeholder="Month" options={[...(optional ? [{ value: "", label: "—" }] : []), ...MONTHS.map((name, index) => ({ value: String(index + 1).padStart(2, "0"), label: name }))]} onChange={(next) => set(year || String(new Date().getFullYear()), next)} />
+        <Dropdown testID={controlId("date", `${label} year`)} compact value={year} placeholder="Year" options={[...(optional ? [{ value: "", label: "—" }] : []), ...years.map((item) => ({ value: item, label: item }))]} searchable onChange={(next) => (next ? set(next, month || "01") : onChange(""))} />
       </View>
     </View>
   );
@@ -501,7 +505,7 @@ export function FilterBar({ value, onChangeText, placeholder = "Search…", chil
     <View style={{ paddingHorizontal: 14, paddingTop: 10, gap: 8 }}>
       <View style={styles.searchBox}>
         <Ionicons name="search-outline" size={18} color={colors.muted} />
-        <TextInput value={value} onChangeText={onChangeText} placeholder={placeholder} placeholderTextColor="#9aa7a0" style={styles.searchInput} returnKeyType="search" autoCorrect={false} />
+        <TextInput testID="filter-search" value={value} onChangeText={onChangeText} placeholder={placeholder} placeholderTextColor="#9aa7a0" style={styles.searchInput} returnKeyType="search" autoCorrect={false} />
         {value ? (
           <Pressable onPress={() => onChangeText("")} hitSlop={8}>
             <Ionicons name="close-circle" size={18} color={colors.subtle} />

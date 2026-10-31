@@ -1,0 +1,19 @@
+appId: com.kodofact.uddeepto
+name: M085 Unknown username cannot create a session
+tags:
+  - android
+  - auth
+---
+- runFlow:
+    file: ../../helpers/reset.yaml
+- runFlow:
+    file: ../../helpers/credentials.yaml
+    env:
+      USERNAME: unknown_${RUN_ID}
+      LOGIN_PASSWORD: ${PASSWORD}
+- extendedWaitUntil:
+    visible:
+      text: Invalid credentials
+    timeout: 30000
+- assertNotVisible:
+    id: tab-index

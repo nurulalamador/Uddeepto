@@ -1,0 +1,26 @@
+appId: com.kodofact.uddeepto
+name: M160 Events contests upcoming filter opens the matching event
+tags:
+  - android
+  - events
+---
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${LEARNER_USERNAME}
+- tapOn:
+    id: tab-events
+- tapOn:
+    id: top-tab-contests
+- tapOn:
+    id: pill-upcoming
+- extendedWaitUntil:
+    visible:
+      id: event-card-${UPCOMING_CONTEST_ID}
+    timeout: 30000
+- tapOn:
+    id: event-card-${UPCOMING_CONTEST_ID}
+- extendedWaitUntil:
+    visible:
+      text: Upcoming Design Jam
+    timeout: 30000

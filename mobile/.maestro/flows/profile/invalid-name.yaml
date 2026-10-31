@@ -1,0 +1,29 @@
+appId: com.kodofact.uddeepto
+name: M030 Profile rejects an empty name
+tags:
+  - android
+  - profile
+---
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${PROFILE_USERNAME}
+- openLink:
+    link: uddeepto://edit-profile
+- extendedWaitUntil:
+    visible:
+      id: input-full-name
+    timeout: 30000
+- tapOn:
+    id: input-full-name
+- eraseText
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: button-save-profile
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: button-save-profile
+- assertVisible:
+    text: Enter your name.

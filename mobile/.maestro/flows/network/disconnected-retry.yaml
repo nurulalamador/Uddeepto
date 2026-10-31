@@ -1,0 +1,38 @@
+appId: com.kodofact.uddeepto
+name: M249 A dropped connection shows retry and recovers without signing out
+tags:
+  - android
+  - network
+onFlowStart:
+  - runScript: ../../scripts/clear-faults.js
+onFlowComplete:
+  - runScript: ../../scripts/clear-faults.js
+---
+- runScript:
+    file: ../../scripts/prepare-case.js
+    env:
+      SCENARIO: basic
+      ACTOR_ROLE: learner
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${output.actorUsername}
+- runScript:
+    file: ../../scripts/set-faults.js
+    env:
+      FAULTS: '[{"method":"GET","path":"/api/v1/frontend/catalog/courses","mode":"disconnect","times":4}]'
+- tapOn:
+    id: tab-courses
+- extendedWaitUntil:
+    visible:
+      id: button-try-again
+    timeout: 30000
+- runScript: ../../scripts/clear-faults.js
+- tapOn:
+    id: button-try-again
+- extendedWaitUntil:
+    visible:
+      id: course-card-.*
+    timeout: 30000
+- assertNotVisible:
+    id: input-username-or-email

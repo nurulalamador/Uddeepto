@@ -1,0 +1,31 @@
+appId: com.kodofact.uddeepto
+name: M034 Experience form requires a title and workplace
+tags:
+  - android
+  - profile
+---
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${PROFILE_USERNAME}
+- openLink:
+    link: uddeepto://experience
+- extendedWaitUntil:
+    visible:
+      id: button-add-experience
+    timeout: 30000
+- tapOn:
+    id: button-add-experience
+- extendedWaitUntil:
+    visible:
+      id: input-job-title
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: button-save
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: button-save
+- assertVisible:
+    text: Enter the job title and the workplace.

@@ -1,0 +1,56 @@
+appId: com.kodofact.uddeepto
+name: M135 Experience requires a category or Others
+tags:
+  - android
+  - experience
+---
+- runScript:
+    file: ../../scripts/prepare-case.js
+    env:
+      SCENARIO: basic
+      ACTOR_ROLE: learner
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${output.actorUsername}
+- openLink:
+    link: uddeepto://experience
+- extendedWaitUntil:
+    visible:
+      id: button-add-experience
+    timeout: 30000
+- tapOn:
+    id: button-add-experience
+- extendedWaitUntil:
+    visible:
+      id: input-job-title
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: input-job-title
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: input-job-title
+- eraseText
+- inputText: Engineer
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: input-workplace
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: input-workplace
+- eraseText
+- inputText: Maestro Labs
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: button-save
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: button-save
+- assertVisible:
+    text: Choose the interest this experience belongs to, or Others.

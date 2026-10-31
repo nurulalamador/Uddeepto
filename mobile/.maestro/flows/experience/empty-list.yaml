@@ -1,0 +1,23 @@
+appId: com.kodofact.uddeepto
+name: M125 New account experience list has a useful empty state
+tags:
+  - android
+  - experience
+---
+- runScript:
+    file: ../../scripts/prepare-case.js
+    env:
+      SCENARIO: basic
+      ACTOR_ROLE: learner
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${output.actorUsername}
+- openLink:
+    link: uddeepto://experience
+- extendedWaitUntil:
+    visible:
+      id: button-add-experience
+    timeout: 30000
+- assertVisible:
+    text: No experience added yet.

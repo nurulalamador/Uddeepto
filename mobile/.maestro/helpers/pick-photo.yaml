@@ -1,0 +1,25 @@
+appId: com.kodofact.uddeepto
+name: Select newest media and confirm the Android picker or cropper
+---
+- extendedWaitUntil:
+    visible:
+      id: .*:id/icon_thumbnail
+      index: 0
+    timeout: 30000
+- tapOn:
+    id: .*:id/icon_thumbnail
+    index: 0
+- runFlow:
+    when:
+      visible:
+        text: Add.*|Done|Select
+    commands:
+      - tapOn:
+          text: Add.*|Done|Select
+- runFlow:
+    when:
+      visible:
+        text: Crop|Save|Done
+    commands:
+      - tapOn:
+          text: Crop|Save|Done

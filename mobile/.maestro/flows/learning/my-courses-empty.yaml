@@ -1,0 +1,23 @@
+appId: com.kodofact.uddeepto
+name: M153 New learner has an empty enrolled course list
+tags:
+  - android
+  - learning
+---
+- runScript:
+    file: ../../scripts/prepare-case.js
+    env:
+      SCENARIO: basic
+      ACTOR_ROLE: learner
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${output.actorUsername}
+- tapOn:
+    id: tab-courses
+- tapOn:
+    id: top-tab-enrolled
+- extendedWaitUntil:
+    visible:
+      text: No courses yet
+    timeout: 30000

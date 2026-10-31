@@ -1,0 +1,34 @@
+appId: com.kodofact.uddeepto
+name: M222 A file named PDF with invalid content is refused
+tags:
+  - android
+  - cv-ai
+  - media
+---
+- runScript:
+    file: ../../scripts/prepare-case.js
+    env:
+      SCENARIO: basic
+      ACTOR_ROLE: learner
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${output.actorUsername}
+- openLink:
+    link: uddeepto://cv
+- extendedWaitUntil:
+    visible:
+      text: Your current CV
+    timeout: 30000
+- tapOn:
+    id: button-upload-a-pdf
+- runFlow:
+    file: ../../helpers/pick-document.yaml
+    env:
+      FILE_NAME: invalid-cv.pdf
+- extendedWaitUntil:
+    visible:
+      text: The CV must be a PDF file
+    timeout: 30000
+- assertVisible:
+    text: You have no CV yet. Make one below, or upload a PDF.

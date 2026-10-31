@@ -1,0 +1,37 @@
+appId: com.kodofact.uddeepto
+name: M016 Hirer has hiring tabs and no learner tabs
+tags:
+  - android
+  - navigation
+  - smoke
+---
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${HIRER_USERNAME}
+- assertVisible:
+    id: tab-hiring
+- assertVisible:
+    id: tab-leaderboard
+- assertNotVisible:
+    id: tab-courses
+- assertNotVisible:
+    id: tab-events
+- tapOn:
+    id: tab-hiring
+- assertVisible:
+    id: top-tab-posts
+- assertVisible:
+    id: top-tab-applicants
+- tapOn:
+    id: tab-leaderboard
+- extendedWaitUntil:
+    visible:
+      text: Leaderboard
+    timeout: 30000
+- tapOn:
+    id: tab-profile
+- extendedWaitUntil:
+    visible:
+      text: UDDEEPTO ID
+    timeout: 30000

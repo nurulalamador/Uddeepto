@@ -1,0 +1,22 @@
+appId: com.kodofact.uddeepto
+name: M244 Missing job has a retry action instead of a broken detail screen
+tags:
+  - android
+  - errors
+---
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${LEARNER_USERNAME}
+- openLink:
+    link: uddeepto://job/00000000-0000-4000-8000-000000000000
+- extendedWaitUntil:
+    visible:
+      id: button-try-again
+    timeout: 30000
+- tapOn:
+    id: button-try-again
+- extendedWaitUntil:
+    visible:
+      id: button-try-again
+    timeout: 30000

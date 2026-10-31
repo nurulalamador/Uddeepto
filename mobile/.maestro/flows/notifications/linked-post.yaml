@@ -1,0 +1,51 @@
+appId: com.kodofact.uddeepto
+name: M202 Post notification opens the correct post detail
+tags:
+  - android
+  - notifications
+---
+- runScript:
+    file: ../../scripts/prepare-case.js
+    env:
+      SCENARIO: notifications
+      ACTOR_ROLE: learner
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${output.actorUsername}
+- tapOn:
+    id: icon-notifications
+- extendedWaitUntil:
+    visible:
+      id: dropdown-all-categories
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: dropdown-all-categories
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: dropdown-all-categories
+- repeat:
+    times: 12
+    while:
+      notVisible:
+        id: option-social
+    commands:
+      - swipe:
+          from:
+            id: option-list
+          direction: UP
+          duration: 400
+- tapOn:
+    id: option-social
+- extendedWaitUntil:
+    visible:
+      id: notification-.*
+    timeout: 30000
+- tapOn:
+    id: notification-.*
+- extendedWaitUntil:
+    visible:
+      id: post-card-${output.postId}
+    timeout: 30000

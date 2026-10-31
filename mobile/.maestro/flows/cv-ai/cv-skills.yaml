@@ -1,0 +1,72 @@
+appId: com.kodofact.uddeepto
+name: M215 CV skills and languages survive saving
+tags:
+  - android
+  - cv-ai
+  - writes
+---
+- runScript:
+    file: ../../scripts/prepare-case.js
+    env:
+      SCENARIO: basic
+      ACTOR_ROLE: learner
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${output.actorUsername}
+- openLink:
+    link: uddeepto://cv
+- extendedWaitUntil:
+    visible:
+      text: Your current CV
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: input-skills-separate-with-commas
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: input-skills-separate-with-commas
+- eraseText
+- inputText: React, TypeScript
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: input-languages-separate-with-commas
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: input-languages-separate-with-commas
+- eraseText
+- inputText: Bangla, English
+- hideKeyboard
+- tapOn:
+    id: button-save-cv
+- scrollUntilVisible:
+    element:
+      text: CV saved.*
+    direction: UP
+    timeout: 30000
+- stopApp
+- launchApp
+- extendedWaitUntil:
+    visible:
+      id: tab-index
+    timeout: 30000
+- openLink:
+    link: uddeepto://cv
+- extendedWaitUntil:
+    visible:
+      text: Your current CV
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: input-skills-separate-with-commas
+    direction: DOWN
+    timeout: 30000
+- assertVisible:
+    id: input-skills-separate-with-commas
+    text: React, TypeScript
+- assertVisible:
+    id: input-languages-separate-with-commas
+    text: Bangla, English

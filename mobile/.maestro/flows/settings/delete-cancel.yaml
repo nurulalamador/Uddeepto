@@ -1,0 +1,41 @@
+appId: com.kodofact.uddeepto
+name: M073 Cancelling account deletion preserves the session
+tags:
+  - android
+  - settings
+---
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${SETTINGS_USERNAME}
+- openLink:
+    link: uddeepto://settings
+- extendedWaitUntil:
+    visible:
+      id: input-current-password
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: input-password
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: input-password
+- eraseText
+- inputText: ${PASSWORD}
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: button-delete-my-account
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: button-delete-my-account
+- extendedWaitUntil:
+    visible:
+      text: Delete your account?
+    timeout: 30000
+- tapOn:
+    text: Cancel
+- assertVisible:
+    id: button-delete-my-account

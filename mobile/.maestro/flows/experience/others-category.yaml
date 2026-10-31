@@ -1,0 +1,116 @@
+appId: com.kodofact.uddeepto
+name: M136 Experience can be saved under Others
+tags:
+  - android
+  - experience
+  - writes
+---
+- runScript:
+    file: ../../scripts/prepare-case.js
+    env:
+      SCENARIO: basic
+      ACTOR_ROLE: learner
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${output.actorUsername}
+- openLink:
+    link: uddeepto://experience
+- extendedWaitUntil:
+    visible:
+      id: button-add-experience
+    timeout: 30000
+- tapOn:
+    id: button-add-experience
+- extendedWaitUntil:
+    visible:
+      id: input-job-title
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: input-job-title
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: input-job-title
+- eraseText
+- inputText: Independent work
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: input-workplace
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: input-workplace
+- eraseText
+- inputText: Maestro Labs
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: dropdown-interest-category
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: dropdown-interest-category
+- repeat:
+    times: 12
+    while:
+      notVisible:
+        id: option-others
+    commands:
+      - swipe:
+          from:
+            id: option-list
+          direction: UP
+          duration: 400
+- tapOn:
+    id: option-others
+- scrollUntilVisible:
+    element:
+      id: date-start-year
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: date-start-year
+- scrollUntilVisible:
+    element:
+      id: option-search
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: option-search
+- eraseText
+- inputText: ${PAST_YEAR}
+- hideKeyboard
+- tapOn:
+    id: option-${PAST_YEAR}
+- scrollUntilVisible:
+    element:
+      id: experience-current
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: experience-current
+- scrollUntilVisible:
+    element:
+      id: button-save
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: button-save
+- extendedWaitUntil:
+    visible:
+      id: entry-experience-.*
+    timeout: 30000
+- openLink:
+    link: uddeepto://user/${output.actorId}
+- extendedWaitUntil:
+    visible:
+      text: UDDEEPTO ID
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      text: Independent work
+    direction: DOWN
+    timeout: 30000

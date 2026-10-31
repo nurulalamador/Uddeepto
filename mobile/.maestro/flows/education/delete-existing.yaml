@@ -1,0 +1,43 @@
+appId: com.kodofact.uddeepto
+name: M124 Deleting education removes it from the server-backed list
+tags:
+  - android
+  - education
+  - writes
+---
+- runScript:
+    file: ../../scripts/prepare-case.js
+    env:
+      SCENARIO: education-existing
+      ACTOR_ROLE: learner
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${output.actorUsername}
+- openLink:
+    link: uddeepto://education
+- extendedWaitUntil:
+    visible:
+      id: button-add-education
+    timeout: 30000
+- tapOn:
+    id: entry-education-${output.entryId}
+- extendedWaitUntil:
+    visible:
+      id: input-institution
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: button-delete
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: button-delete
+- tapOn:
+    text: Delete
+- extendedWaitUntil:
+    visible:
+      text: No education added yet.
+    timeout: 30000
+- assertNotVisible:
+    id: entry-education-${output.entryId}

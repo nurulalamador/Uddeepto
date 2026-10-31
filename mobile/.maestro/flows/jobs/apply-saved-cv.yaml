@@ -1,0 +1,45 @@
+appId: com.kodofact.uddeepto
+name: M054 Learner applies using the saved CV
+tags:
+  - android
+  - jobs
+  - writes
+  - regression
+---
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${APPLY_USERNAME}
+- openLink:
+    link: uddeepto://job/${FUTURE_JOB_ID}
+- extendedWaitUntil:
+    visible:
+      text: Future Maestro Role
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: input-cover-letter
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: input-cover-letter
+- eraseText
+- inputText: Maestro application ${RUN_ID}
+- hideKeyboard
+- assertVisible:
+    text: .*Your Current CV.*
+- scrollUntilVisible:
+    element:
+      id: button-send-application
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: button-send-application
+- extendedWaitUntil:
+    visible:
+      text: Your application
+    timeout: 30000
+- assertVisible:
+    text: Applied
+- assertNotVisible:
+    id: button-send-application

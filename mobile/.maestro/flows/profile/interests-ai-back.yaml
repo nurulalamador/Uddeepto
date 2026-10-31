@@ -1,0 +1,46 @@
+appId: com.kodofact.uddeepto
+name: M109 Interest AI help can return to the unchanged selected list
+tags:
+  - android
+  - profile
+---
+- runScript:
+    file: ../../scripts/prepare-case.js
+    env:
+      SCENARIO: basic
+      ACTOR_ROLE: learner
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${output.actorUsername}
+- openLink:
+    link: uddeepto://interests
+- extendedWaitUntil:
+    visible:
+      id: interests-search
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: button-not-sure-ask-the-ai-assistant
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: button-not-sure-ask-the-ai-assistant
+- extendedWaitUntil:
+    visible:
+      id: ai-input
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: button-back-to-the-list
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: button-back-to-the-list
+- extendedWaitUntil:
+    visible:
+      id: interests-search
+    timeout: 30000
+- assertVisible:
+    id: interest-${CATEGORY_ID}
+    selected: true

@@ -1,0 +1,49 @@
+appId: com.kodofact.uddeepto
+name: M218 CV row can be removed before saving
+tags:
+  - android
+  - cv-ai
+---
+- runScript:
+    file: ../../scripts/prepare-case.js
+    env:
+      SCENARIO: basic
+      ACTOR_ROLE: learner
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${output.actorUsername}
+- openLink:
+    link: uddeepto://cv
+- extendedWaitUntil:
+    visible:
+      text: Your current CV
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: button-add-project
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: button-add-project
+- scrollUntilVisible:
+    element:
+      id: input-project-name
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: input-project-name
+- eraseText
+- inputText: Disposable Project
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: cv-projects-delete-0
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: cv-projects-delete-0
+- assertNotVisible:
+    id: cv-projects-row-0
+- assertVisible:
+    text: No projects added.

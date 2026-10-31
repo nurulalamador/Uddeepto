@@ -1,0 +1,30 @@
+appId: com.kodofact.uddeepto
+name: M040 Appreciation can be added and removed
+tags:
+  - android
+  - showcase
+  - writes
+---
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${SHOWCASE_USERNAME}
+- openLink:
+    link: uddeepto://post/${POST_ID}
+- extendedWaitUntil:
+    visible:
+      id: post-card-${POST_ID}
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: post-appreciate-${POST_ID}
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: post-appreciate-${POST_ID}
+- assertVisible:
+    text: Remove appreciation
+- tapOn:
+    id: post-appreciate-${POST_ID}
+- assertVisible:
+    text: Appreciate

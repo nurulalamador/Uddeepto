@@ -1,0 +1,28 @@
+appId: com.kodofact.uddeepto
+name: M182 Expired open job cannot accept new applications
+tags:
+  - android
+  - jobs
+---
+- runScript:
+    file: ../../scripts/prepare-case.js
+    env:
+      SCENARIO: basic
+      ACTOR_ROLE: learner
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${output.actorUsername}
+- openLink:
+    link: uddeepto://job/${EXPIRED_JOB_ID}
+- extendedWaitUntil:
+    visible:
+      text: About the job
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      text: This job is no longer accepting applications.
+    direction: DOWN
+    timeout: 30000
+- assertNotVisible:
+    id: button-send-application

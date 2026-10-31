@@ -1,0 +1,15 @@
+appId: com.kodofact.uddeepto
+name: M008 Learner can sign in by email
+tags:
+  - android
+  - auth
+  - smoke
+---
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${LEARNER_EMAIL}
+- assertVisible:
+    id: tab-courses
+- assertVisible:
+    id: tab-jobs

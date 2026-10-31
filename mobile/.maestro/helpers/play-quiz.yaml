@@ -1,0 +1,20 @@
+appId: com.kodofact.uddeepto
+name: Start playback with native Android video controls
+---
+- extendedWaitUntil:
+    visible:
+      id: quiz-video
+    timeout: 30000
+- runFlow:
+    when:
+      notVisible:
+        text: Play|Replay
+    commands:
+      - tapOn:
+          id: quiz-video
+- tapOn:
+    text: Play|Replay
+- extendedWaitUntil:
+    visible:
+      id: quiz-panel
+    timeout: 30000

@@ -31,7 +31,7 @@ function Manager<T extends { id: string }>({ rows, reload, refreshing, refresh, 
       <ScrollView contentContainerStyle={styles.page} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refresh} tintColor={colors.green} />}>
         {rows.length === 0 ? <Muted style={{ textAlign: "center", padding: 24 }}>{empty}</Muted> : null}
         {rows.map((row) => (
-          <Card key={row.id} onPress={() => setEditing(row)} style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+          <Card testID={`entry-${title}-${row.id}`} key={row.id} onPress={() => setEditing(row)} style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
             <View style={{ flex: 1, gap: 2 }}>{render(row)}</View>
             <Ionicons name="create-outline" size={20} color={colors.green} />
           </Card>
@@ -51,7 +51,7 @@ function FormShell({ title, onClose, children }: { title: string; onClose: () =>
     <KeyboardAvoidingView style={{ flex: 1, backgroundColor: colors.bg }} behavior="padding">
       <View style={styles.head}>
         <Text style={styles.headTitle}>{title}</Text>
-        <Pressable onPress={onClose} hitSlop={10}>
+        <Pressable testID="entry-form-close" accessibilityLabel="Close form" onPress={onClose} hitSlop={10}>
           <Ionicons name="close" size={26} color={colors.text} />
         </Pressable>
       </View>
@@ -130,7 +130,7 @@ function EducationForm({ entry, onDone, onClose }: { entry: Education | null; on
       <Input label="Field of study" value={f.field} onChangeText={set("field")} placeholder="Computer Science" maxLength={200} />
       <MonthPicker label="Start" value={start} onChange={setStart} />
       {current ? null : <MonthPicker label="End" value={end} onChange={setEnd} />}
-      <Button label={current ? "✓ I currently study here" : "I currently study here"} kind={current ? "soft" : "secondary"} onPress={() => setCurrent((v) => !v)} />
+      <Button testID="education-current" label={current ? "✓ I currently study here" : "I currently study here"} kind={current ? "soft" : "secondary"} onPress={() => setCurrent((v) => !v)} />
       <Input label="Grade" value={f.grade} onChangeText={set("grade")} placeholder="CGPA 3.8 / 4.0" maxLength={100} />
       <Input label="Description" value={f.description} onChangeText={set("description")} multiline maxLength={2000} />
       {error ? <Notice>{error}</Notice> : null}
@@ -203,7 +203,7 @@ function ExperienceForm({ entry, onDone, onClose }: { entry: Experience | null; 
       <Input label="Location (optional)" value={f.location} onChangeText={set("location")} placeholder="Dhaka, Bangladesh" maxLength={200} />
       <MonthPicker label="Start" value={start} onChange={setStart} />
       {current ? null : <MonthPicker label="End" value={end} onChange={setEnd} />}
-      <Button label={current ? "✓ I currently work here" : "I currently work here"} kind={current ? "soft" : "secondary"} onPress={() => setCurrent((v) => !v)} />
+      <Button testID="experience-current" label={current ? "✓ I currently work here" : "I currently work here"} kind={current ? "soft" : "secondary"} onPress={() => setCurrent((v) => !v)} />
       <Input label="Description" value={f.description} onChangeText={set("description")} multiline maxLength={2000} placeholder="What did you work on?" />
       {error ? <Notice>{error}</Notice> : null}
       <Button label="Save" icon="checkmark" onPress={save} busy={busy} />

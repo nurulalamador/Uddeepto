@@ -1,0 +1,72 @@
+appId: com.kodofact.uddeepto
+name: M087 Registration refuses an existing email
+tags:
+  - android
+  - auth
+---
+- runScript:
+    file: ../../scripts/prepare-case.js
+    env:
+      SCENARIO: basic
+      ACTOR_ROLE: learner
+- runFlow:
+    file: ../../helpers/reset.yaml
+- tapOn:
+    text: Create an account
+- extendedWaitUntil:
+    visible:
+      id: input-full-name
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: input-full-name
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: input-full-name
+- eraseText
+- inputText: Maestro Duplicate
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: input-email
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: input-email
+- eraseText
+- inputText: ${output.actorUsername}@e2e.test
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: input-username
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: input-username
+- eraseText
+- inputText: new_${output.unique}
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: input-password
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: input-password
+- eraseText
+- inputText: ${PASSWORD}
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: button-create-account
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: button-create-account
+- extendedWaitUntil:
+    visible:
+      text: Already exists
+    timeout: 30000
+- assertNotVisible:
+    id: tab-index

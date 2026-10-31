@@ -73,7 +73,7 @@ export default function Notifications() {
           ListEmptyComponent={<Empty icon="notifications-outline" title="You’re all caught up" text="New activity will show up here." />}
           ListFooterComponent={list.loadingMore ? <Loading /> : undefined}
           renderItem={({ item }) => (
-            <Pressable onPress={() => open(item)} style={[styles.row, !item.read && styles.unread]} android_ripple={{ color: colors.greenSoft }}>
+            <Pressable testID={`notification-${item.id}`} onPress={() => open(item)} style={[styles.row, !item.read && styles.unread]} android_ripple={{ color: colors.greenSoft }}>
               {item.actor_id ? (
                 <Avatar id={item.actor_id} name={item.actor_name} hasPicture={item.actor_has_picture} size={42} />
               ) : (

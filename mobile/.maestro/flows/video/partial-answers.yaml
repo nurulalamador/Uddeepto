@@ -1,0 +1,36 @@
+appId: com.kodofact.uddeepto
+name: M233 Video quiz waits until all questions are answered
+tags:
+  - android
+  - video
+  - media
+---
+- runScript:
+    file: ../../scripts/prepare-case.js
+    env:
+      SCENARIO: video-quiz
+      ACTOR_ROLE: learner
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${output.actorUsername}
+- openLink:
+    link: uddeepto://course/${VIDEO_COURSE_ID}/${VIDEO_MATERIAL_ID}
+- extendedWaitUntil:
+    visible:
+      id: quiz-video
+    timeout: 30000
+- runFlow:
+    file: ../../helpers/play-quiz.yaml
+- scrollUntilVisible:
+    element:
+      id: quiz-option-0-0
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: quiz-option-0-0
+- assertVisible:
+    text: 1 of 3 answered
+- assertVisible:
+    id: button-submit-answers
+    enabled: false

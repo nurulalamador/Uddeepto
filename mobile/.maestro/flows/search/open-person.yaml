@@ -1,0 +1,30 @@
+appId: com.kodofact.uddeepto
+name: M022 Search opens the requested hirer profile
+tags:
+  - android
+  - search
+---
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${LEARNER_USERNAME}
+- tapOn:
+    id: icon-search
+- extendedWaitUntil:
+    visible:
+      id: global-search
+    timeout: 30000
+- inputText: ${HIRER_NAME}
+- hideKeyboard
+- extendedWaitUntil:
+    visible:
+      id: search-result-users-${HIRER_ID}
+    timeout: 30000
+- tapOn:
+    id: search-result-users-${HIRER_ID}
+- extendedWaitUntil:
+    visible:
+      text: UDDEEPTO ID
+    timeout: 30000
+- assertVisible:
+    id: button-send-message

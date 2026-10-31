@@ -1,0 +1,32 @@
+appId: com.kodofact.uddeepto
+name: M159 Previous returns from the second material to the first
+tags:
+  - android
+  - learning
+---
+- runScript:
+    file: ../../scripts/prepare-case.js
+    env:
+      SCENARIO: course-enrolled
+      ACTOR_ROLE: learner
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${output.actorUsername}
+- openLink:
+    link: uddeepto://course/${COURSE_ID}/${SECOND_MATERIAL_ID}
+- extendedWaitUntil:
+    visible:
+      text: Components and Props
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: button-previous
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: button-previous
+- extendedWaitUntil:
+    visible:
+      text: Welcome to React
+    timeout: 30000

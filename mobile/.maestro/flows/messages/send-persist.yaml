@@ -1,0 +1,45 @@
+appId: com.kodofact.uddeepto
+name: M063 A direct message is saved and reloads in the conversation
+tags:
+  - android
+  - messages
+  - writes
+---
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${CHAT_USERNAME}
+- openLink:
+    link: uddeepto://chat/${CONVERSATION_ID}
+- extendedWaitUntil:
+    visible:
+      id: chat-input
+    timeout: 30000
+- assertVisible:
+    id: chat-send
+    enabled: false
+- scrollUntilVisible:
+    element:
+      id: chat-input
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: chat-input
+- eraseText
+- inputText: Maestro direct ${RUN_ID}
+- hideKeyboard
+- tapOn:
+    id: chat-send
+- extendedWaitUntil:
+    visible:
+      text: Maestro direct ${RUN_ID}
+    timeout: 30000
+- back
+- openLink:
+    link: uddeepto://chat/${CONVERSATION_ID}
+- extendedWaitUntil:
+    visible:
+      id: chat-input
+    timeout: 30000
+- assertVisible:
+    text: Maestro direct ${RUN_ID}

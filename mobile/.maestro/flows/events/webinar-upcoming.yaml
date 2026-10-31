@@ -1,0 +1,26 @@
+appId: com.kodofact.uddeepto
+name: M162 Events webinars upcoming filter opens the matching event
+tags:
+  - android
+  - events
+---
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${LEARNER_USERNAME}
+- tapOn:
+    id: tab-events
+- tapOn:
+    id: top-tab-webinars
+- tapOn:
+    id: pill-upcoming
+- extendedWaitUntil:
+    visible:
+      id: event-card-${WEBINAR_ID}
+    timeout: 30000
+- tapOn:
+    id: event-card-${WEBINAR_ID}
+- extendedWaitUntil:
+    visible:
+      text: Upcoming API Webinar
+    timeout: 30000

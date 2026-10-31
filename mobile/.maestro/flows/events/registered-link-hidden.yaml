@@ -1,0 +1,37 @@
+appId: com.kodofact.uddeepto
+name: M170 Upcoming registered webinar hides its meeting URL until opening time
+tags:
+  - android
+  - events
+  - writes
+---
+- runScript:
+    file: ../../scripts/prepare-case.js
+    env:
+      SCENARIO: basic
+      ACTOR_ROLE: learner
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${output.actorUsername}
+- openLink:
+    link: uddeepto://webinar/${WEBINAR_ID}
+- extendedWaitUntil:
+    visible:
+      text: Upcoming API Webinar
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: button-reserve-my-seat
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: button-reserve-my-seat
+- extendedWaitUntil:
+    visible:
+      text: Registered
+    timeout: 30000
+- assertNotVisible:
+    id: button-join-the-meeting
+- assertVisible:
+    text: The meeting link appears here shortly before the webinar starts.

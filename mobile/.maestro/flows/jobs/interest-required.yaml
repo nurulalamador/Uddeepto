@@ -1,0 +1,45 @@
+appId: com.kodofact.uddeepto
+name: M171 Job posting requires an interest category
+tags:
+  - android
+  - jobs
+---
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${PUBLISH_HIRER_USERNAME}
+- openLink:
+    link: uddeepto://job-post
+- extendedWaitUntil:
+    visible:
+      id: input-job-title
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: input-job-title
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: input-job-title
+- eraseText
+- inputText: Maestro validation role
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: input-description
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: input-description
+- eraseText
+- inputText: A useful local fixture role.
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: button-post-this-job
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: button-post-this-job
+- assertVisible:
+    text: Choose the interest category this job belongs to.

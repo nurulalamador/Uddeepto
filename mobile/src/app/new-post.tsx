@@ -55,7 +55,7 @@ export default function NewPost() {
       await api("frontend/showcase", { method: "POST", form });
       router.back();
     } catch (problem: any) {
-      setError(problem.status === 0 && pictures.length ? "The upload did not reach the server. A large video or file may be too big, so try a smaller one." : problem.message);
+      setError(problem.status === 0 && pictures.length ? "Could not upload the attachments. Check your connection and try again." : problem.message);
       setBusy(false);
       if (problem.status === 403) Alert.alert("Not allowed", problem.message);
     }
@@ -70,7 +70,7 @@ export default function NewPost() {
       <Text style={styles.label}>Pictures, video or audio</Text>
       <View style={styles.row}>
         {pictures.map((picture, index) => (
-          <View key={picture.uri} style={styles.thumb}>
+          <View testID={`attachment-${index}`} key={picture.uri} style={styles.thumb}>
             {picture.type.startsWith("image/") ? (
               <Image source={{ uri: picture.uri }} style={{ width: "100%", height: "100%" }} contentFit="cover" />
             ) : (

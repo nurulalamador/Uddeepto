@@ -72,14 +72,14 @@ export default function Interests() {
         <Card>
           <View style={styles.search}>
             <Ionicons name="search-outline" size={18} color={colors.muted} />
-            <TextInput value={term} onChangeText={setTerm} placeholder="Search interests…" placeholderTextColor="#9aa7a0" style={styles.searchInput} autoCorrect={false} />
+            <TextInput testID="interests-search" value={term} onChangeText={setTerm} placeholder="Search interests…" placeholderTextColor="#9aa7a0" style={styles.searchInput} autoCorrect={false} />
           </View>
           <Muted>{selected.length} selected · pick as many as you like (up to 30). You can change them any time.</Muted>
           <View style={styles.chips}>
             {shown.map((item) => {
               const on = selected.includes(String(item.id));
               return (
-                <Pressable key={item.id} onPress={() => toggle(String(item.id))} style={[styles.chip, on && styles.chipOn]} accessibilityRole="button" accessibilityState={{ selected: on }}>
+                <Pressable testID={`interest-${item.id}`} key={item.id} onPress={() => toggle(String(item.id))} style={[styles.chip, on && styles.chipOn]} accessibilityRole="button" accessibilityState={{ selected: on }}>
                   {on ? <Ionicons name="checkmark" size={14} color="#fff" /> : null}
                   <Text style={[styles.chipText, on && { color: "#fff" }]}>{item.name}</Text>
                 </Pressable>
@@ -91,7 +91,7 @@ export default function Interests() {
       )}
       <Button label="Not sure? Ask the AI assistant" icon="sparkles-outline" kind="soft" onPress={() => setAsking(true)} />
       {error && categories ? <Notice>{error}</Notice> : null}
-      <Button label={selected.length ? `Save ${selected.length} interest${selected.length === 1 ? "" : "s"}` : "Choose at least one"} icon="checkmark" onPress={save} busy={busy} disabled={!selected.length} />
+      <Button testID="interests-save" label={selected.length ? `Save ${selected.length} interest${selected.length === 1 ? "" : "s"}` : "Choose at least one"} icon="checkmark" onPress={save} busy={busy} disabled={!selected.length} />
     </ScrollView>
   );
 }

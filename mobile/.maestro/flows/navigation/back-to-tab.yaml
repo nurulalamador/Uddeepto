@@ -1,0 +1,41 @@
+appId: com.kodofact.uddeepto
+name: M096 Android back returns from a job to the jobs tab
+tags:
+  - android
+  - navigation
+---
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${LEARNER_USERNAME}
+- tapOn:
+    id: tab-jobs
+- extendedWaitUntil:
+    visible:
+      id: filter-search
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: filter-search
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: filter-search
+- eraseText
+- inputText: ${JOB_TITLE}
+- hideKeyboard
+- extendedWaitUntil:
+    visible:
+      id: job-card-${JOB_ID}
+    timeout: 30000
+- tapOn:
+    id: job-card-${JOB_ID}
+- extendedWaitUntil:
+    visible:
+      text: About the job
+    timeout: 30000
+- back
+- assertVisible:
+    id: top-tab-explore
+- assertVisible:
+    id: filter-search

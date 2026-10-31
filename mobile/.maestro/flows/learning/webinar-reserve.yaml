@@ -1,0 +1,37 @@
+appId: com.kodofact.uddeepto
+name: M048 Webinar registration persists after reopening
+tags:
+  - android
+  - learning
+  - writes
+---
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${EVENT_USERNAME}
+- openLink:
+    link: uddeepto://webinar/${WEBINAR_ID}
+- extendedWaitUntil:
+    visible:
+      text: Upcoming API Webinar
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: button-reserve-my-seat
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: button-reserve-my-seat
+- extendedWaitUntil:
+    visible:
+      text: Registered
+    timeout: 30000
+- back
+- openLink:
+    link: uddeepto://webinar/${WEBINAR_ID}
+- extendedWaitUntil:
+    visible:
+      text: Registered
+    timeout: 30000
+- assertNotVisible:
+    id: button-reserve-my-seat

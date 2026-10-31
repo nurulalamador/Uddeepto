@@ -1,0 +1,70 @@
+appId: com.kodofact.uddeepto
+name: M037 Text post appears in the feed after publishing
+tags:
+  - android
+  - showcase
+  - writes
+  - smoke
+---
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${SHOWCASE_USERNAME}
+- tapOn:
+    id: tab-showcase
+- tapOn:
+    text: Create a post
+- extendedWaitUntil:
+    visible:
+      id: input-what-do-you-want-to-share
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: input-what-do-you-want-to-share
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: input-what-do-you-want-to-share
+- eraseText
+- inputText: Maestro text ${RUN_ID}
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: dropdown-interest
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: dropdown-interest
+- tapOn:
+    id: option-${CATEGORY_ID}
+- scrollUntilVisible:
+    element:
+      id: button-publish-post
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: button-publish-post
+- extendedWaitUntil:
+    visible:
+      id: filter-search
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: filter-search
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: filter-search
+- eraseText
+- inputText: Maestro text ${RUN_ID}
+- hideKeyboard
+- extendedWaitUntil:
+    visible:
+      text: Maestro text ${RUN_ID}
+    timeout: 30000
+- tapOn:
+    text: Maestro text ${RUN_ID}
+- extendedWaitUntil:
+    visible:
+      text: Comments
+    timeout: 30000

@@ -1,0 +1,32 @@
+appId: com.kodofact.uddeepto
+name: M044 Free course preview opens without enrollment
+tags:
+  - android
+  - learning
+---
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${LEARNER_USERNAME}
+- openLink:
+    link: uddeepto://course/${COURSE_ID}
+- extendedWaitUntil:
+    visible:
+      text: ${COURSE_TITLE}
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      text: 1. Welcome to React
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    text: 1. Welcome to React
+- extendedWaitUntil:
+    visible:
+      text: Welcome to React
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      text: .*viewing a free preview.*
+    direction: DOWN
+    timeout: 30000

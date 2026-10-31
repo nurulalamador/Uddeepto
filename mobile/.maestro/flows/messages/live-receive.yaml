@@ -1,0 +1,27 @@
+appId: com.kodofact.uddeepto
+name: M080 Connected socket delivers an incoming message before the polling interval
+tags:
+  - android
+  - messages
+  - writes
+  - realtime
+---
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${CHAT_USERNAME}
+- openLink:
+    link: uddeepto://chat/${CONVERSATION_ID}
+- extendedWaitUntil:
+    visible:
+      id: chat-input
+    timeout: 30000
+- extendedWaitUntil:
+    visible:
+      id: chat-connected
+    timeout: 30000
+- runScript: ../../scripts/send-incoming.js
+- extendedWaitUntil:
+    visible:
+      text: ${output.incomingText}
+    timeout: 8000

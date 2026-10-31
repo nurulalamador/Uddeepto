@@ -1,0 +1,43 @@
+appId: com.kodofact.uddeepto
+name: M148 Post pagination reaches records beyond the first page
+tags:
+  - android
+  - showcase
+  - writes
+---
+- runScript:
+    file: ../../scripts/prepare-case.js
+    env:
+      SCENARIO: pagination-posts
+      ACTOR_ROLE: learner
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${output.actorUsername}
+- tapOn:
+    id: tab-showcase
+- extendedWaitUntil:
+    visible:
+      id: filter-search
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: filter-search
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: filter-search
+- eraseText
+- inputText: ${output.batchPrefix}
+- hideKeyboard
+- extendedWaitUntil:
+    visible:
+      id: post-card-${output.pageFirstId}
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: post-card-${output.pageLastId}
+    direction: DOWN
+    timeout: 30000
+- assertVisible:
+    id: post-card-${output.pageLastId}

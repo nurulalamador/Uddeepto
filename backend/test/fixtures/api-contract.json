@@ -1,0 +1,952 @@
+{
+  "auth": [
+    {
+      "method": "GET",
+      "path": "/health",
+      "handlers": 1
+    },
+    {
+      "method": "POST",
+      "path": "/register",
+      "handlers": 2
+    },
+    {
+      "method": "POST",
+      "path": "/login",
+      "handlers": 2
+    },
+    {
+      "method": "POST",
+      "path": "/refresh",
+      "handlers": 2
+    },
+    {
+      "method": "POST",
+      "path": "/logout",
+      "handlers": 2
+    },
+    {
+      "method": "POST",
+      "path": "/logout-all",
+      "handlers": 2
+    },
+    {
+      "method": "POST",
+      "path": "/change-password",
+      "handlers": 3
+    }
+  ],
+  "users": [
+    {
+      "method": "GET",
+      "path": "/health",
+      "handlers": 1
+    },
+    {
+      "method": "GET",
+      "path": "/interests",
+      "handlers": 1
+    },
+    {
+      "method": "POST",
+      "path": "/interests",
+      "handlers": 3
+    },
+    {
+      "method": "GET",
+      "path": "/me",
+      "handlers": 2
+    },
+    {
+      "method": "PATCH",
+      "path": "/me",
+      "handlers": 2
+    },
+    {
+      "method": "PUT",
+      "path": "/me/picture",
+      "handlers": 3
+    },
+    {
+      "method": "GET",
+      "path": "/:id/picture",
+      "handlers": 1
+    },
+    {
+      "method": "PUT",
+      "path": "/me/interests",
+      "handlers": 2
+    },
+    {
+      "method": "GET",
+      "path": "/:id",
+      "handlers": 2
+    },
+    {
+      "method": "GET",
+      "path": "/",
+      "handlers": 3
+    }
+  ],
+  "courses": [
+    {
+      "method": "GET",
+      "path": "/health",
+      "handlers": 1
+    },
+    {
+      "method": "GET",
+      "path": "/:id/materials",
+      "handlers": 2
+    },
+    {
+      "method": "POST",
+      "path": "/:id/materials",
+      "handlers": 3
+    },
+    {
+      "method": "GET",
+      "path": "/:courseId/materials/:materialId/content",
+      "handlers": 2
+    },
+    {
+      "method": "POST",
+      "path": "/:id/enroll",
+      "handlers": 2
+    },
+    {
+      "method": "GET",
+      "path": "/me/enrollments",
+      "handlers": 2
+    },
+    {
+      "method": "GET",
+      "path": "/",
+      "handlers": 2
+    },
+    {
+      "method": "GET",
+      "path": "/:id",
+      "handlers": 2
+    },
+    {
+      "method": "POST",
+      "path": "/",
+      "handlers": 3
+    },
+    {
+      "method": "PATCH",
+      "path": "/:id",
+      "handlers": 2
+    },
+    {
+      "method": "DELETE",
+      "path": "/:id",
+      "handlers": 2
+    }
+  ],
+  "community": [
+    {
+      "method": "GET",
+      "path": "/health",
+      "handlers": 1
+    },
+    {
+      "method": "GET",
+      "path": "/showcase",
+      "handlers": 2
+    },
+    {
+      "method": "POST",
+      "path": "/showcase",
+      "handlers": 2
+    },
+    {
+      "method": "POST",
+      "path": "/showcase/:id/comments",
+      "handlers": 2
+    },
+    {
+      "method": "PUT",
+      "path": "/showcase/:id/reactions/:reaction",
+      "handlers": 2
+    },
+    {
+      "method": "POST",
+      "path": "/showcase/:id/report",
+      "handlers": 2
+    },
+    {
+      "method": "POST",
+      "path": "/:id/join",
+      "handlers": 2
+    },
+    {
+      "method": "POST",
+      "path": "/:id/chats",
+      "handlers": 2
+    },
+    {
+      "method": "GET",
+      "path": "/:id/chats/:chatId/messages",
+      "handlers": 2
+    },
+    {
+      "method": "POST",
+      "path": "/:id/chats/:chatId/messages",
+      "handlers": 2
+    },
+    {
+      "method": "GET",
+      "path": "/",
+      "handlers": 2
+    },
+    {
+      "method": "GET",
+      "path": "/:id",
+      "handlers": 2
+    },
+    {
+      "method": "POST",
+      "path": "/",
+      "handlers": 2
+    },
+    {
+      "method": "PATCH",
+      "path": "/:id",
+      "handlers": 2
+    },
+    {
+      "method": "DELETE",
+      "path": "/:id",
+      "handlers": 2
+    }
+  ],
+  "contests": [
+    {
+      "method": "GET",
+      "path": "/health",
+      "handlers": 1
+    },
+    {
+      "method": "POST",
+      "path": "/:id/join",
+      "handlers": 2
+    },
+    {
+      "method": "GET",
+      "path": "/:id/problems",
+      "handlers": 2
+    },
+    {
+      "method": "POST",
+      "path": "/:id/problems",
+      "handlers": 2
+    },
+    {
+      "method": "POST",
+      "path": "/:id/submissions",
+      "handlers": 2
+    },
+    {
+      "method": "GET",
+      "path": "/:id/leaderboard",
+      "handlers": 1
+    },
+    {
+      "method": "GET",
+      "path": "/",
+      "handlers": 2
+    },
+    {
+      "method": "GET",
+      "path": "/:id",
+      "handlers": 2
+    },
+    {
+      "method": "POST",
+      "path": "/",
+      "handlers": 3
+    },
+    {
+      "method": "PATCH",
+      "path": "/:id",
+      "handlers": 2
+    },
+    {
+      "method": "DELETE",
+      "path": "/:id",
+      "handlers": 2
+    }
+  ],
+  "webinars": [
+    {
+      "method": "GET",
+      "path": "/health",
+      "handlers": 1
+    },
+    {
+      "method": "GET",
+      "path": "/me/registrations",
+      "handlers": 2
+    },
+    {
+      "method": "GET",
+      "path": "/",
+      "handlers": 2
+    },
+    {
+      "method": "GET",
+      "path": "/:id",
+      "handlers": 2
+    },
+    {
+      "method": "POST",
+      "path": "/",
+      "handlers": 3
+    },
+    {
+      "method": "PATCH",
+      "path": "/:id",
+      "handlers": 2
+    },
+    {
+      "method": "DELETE",
+      "path": "/:id",
+      "handlers": 2
+    },
+    {
+      "method": "POST",
+      "path": "/:id/register",
+      "handlers": 2
+    }
+  ],
+  "jobs": [
+    {
+      "method": "GET",
+      "path": "/health",
+      "handlers": 1
+    },
+    {
+      "method": "GET",
+      "path": "/me/applications",
+      "handlers": 2
+    },
+    {
+      "method": "POST",
+      "path": "/",
+      "handlers": 1
+    },
+    {
+      "method": "GET",
+      "path": "/",
+      "handlers": 2
+    },
+    {
+      "method": "GET",
+      "path": "/:id",
+      "handlers": 2
+    },
+    {
+      "method": "POST",
+      "path": "/",
+      "handlers": 3
+    },
+    {
+      "method": "PATCH",
+      "path": "/:id",
+      "handlers": 2
+    },
+    {
+      "method": "DELETE",
+      "path": "/:id",
+      "handlers": 2
+    },
+    {
+      "method": "POST",
+      "path": "/:id/apply",
+      "handlers": 3
+    },
+    {
+      "method": "PATCH",
+      "path": "/:jobId/applications/:userId",
+      "handlers": 2
+    }
+  ],
+  "messages": [
+    {
+      "method": "GET",
+      "path": "/health",
+      "handlers": 1
+    },
+    {
+      "method": "GET",
+      "path": "/",
+      "handlers": 1
+    },
+    {
+      "method": "POST",
+      "path": "/",
+      "handlers": 1
+    },
+    {
+      "method": "GET",
+      "path": "/:id",
+      "handlers": 1
+    },
+    {
+      "method": "POST",
+      "path": "/:id",
+      "handlers": 1
+    },
+    {
+      "method": "POST",
+      "path": "/:id/read",
+      "handlers": 1
+    }
+  ],
+  "payments": [
+    {
+      "method": "GET",
+      "path": "/health",
+      "handlers": 1
+    },
+    {
+      "method": "GET",
+      "path": "/",
+      "handlers": 1
+    },
+    {
+      "method": "POST",
+      "path": "/intent",
+      "handlers": 1
+    },
+    {
+      "method": "POST",
+      "path": "/:id/confirm",
+      "handlers": 2
+    }
+  ],
+  "frontend": [
+    {
+      "method": "GET",
+      "path": "/health",
+      "handlers": 1
+    },
+    {
+      "method": "POST",
+      "path": "/internal/emit",
+      "handlers": 1
+    },
+    {
+      "method": "GET",
+      "path": "/dashboard",
+      "handlers": 1
+    },
+    {
+      "method": "GET",
+      "path": "/dashboard/learner",
+      "handlers": 1
+    },
+    {
+      "method": "GET",
+      "path": "/people",
+      "handlers": 1
+    },
+    {
+      "method": "GET",
+      "path": "/leaderboard",
+      "handlers": 1
+    },
+    {
+      "method": "GET",
+      "path": "/profile/:id",
+      "handlers": 1
+    },
+    {
+      "method": "GET",
+      "path": "/profile/:id/picture",
+      "handlers": 1
+    },
+    {
+      "method": "GET",
+      "path": "/profile/:id/cover",
+      "handlers": 1
+    },
+    {
+      "method": "PATCH",
+      "path": "/profile",
+      "handlers": 2
+    },
+    {
+      "method": "POST",
+      "path": "/profile/education",
+      "handlers": 1
+    },
+    {
+      "method": "PATCH",
+      "path": "/profile/education/:entryId",
+      "handlers": 1
+    },
+    {
+      "method": "DELETE",
+      "path": "/profile/education/:entryId",
+      "handlers": 1
+    },
+    {
+      "method": "POST",
+      "path": "/profile/experience",
+      "handlers": 1
+    },
+    {
+      "method": "PATCH",
+      "path": "/profile/experience/:entryId",
+      "handlers": 1
+    },
+    {
+      "method": "DELETE",
+      "path": "/profile/experience/:entryId",
+      "handlers": 1
+    },
+    {
+      "method": "GET",
+      "path": "/showcase",
+      "handlers": 1
+    },
+    {
+      "method": "GET",
+      "path": "/showcase/:id",
+      "handlers": 1
+    },
+    {
+      "method": "GET",
+      "path": "/showcase/:id/media/:mediaId",
+      "handlers": 2
+    },
+    {
+      "method": "GET",
+      "path": "/instructors/:id/image",
+      "handlers": 1
+    },
+    {
+      "method": "GET",
+      "path": "/course-covers/:id",
+      "handlers": 1
+    },
+    {
+      "method": "POST",
+      "path": "/showcase",
+      "handlers": 3
+    },
+    {
+      "method": "DELETE",
+      "path": "/showcase/:id",
+      "handlers": 1
+    },
+    {
+      "method": "PUT",
+      "path": "/showcase/:id/reaction",
+      "handlers": 1
+    },
+    {
+      "method": "GET",
+      "path": "/showcase/:id/comments",
+      "handlers": 1
+    },
+    {
+      "method": "POST",
+      "path": "/showcase/:id/comments",
+      "handlers": 1
+    },
+    {
+      "method": "PUT",
+      "path": "/comments/:id/reaction",
+      "handlers": 1
+    },
+    {
+      "method": "GET",
+      "path": "/catalog/:kind",
+      "handlers": 1
+    },
+    {
+      "method": "GET",
+      "path": "/detail/:kind/:id",
+      "handlers": 1
+    },
+    {
+      "method": "PUT",
+      "path": "/courses/:id/complete/:materialId",
+      "handlers": 1
+    },
+    {
+      "method": "GET",
+      "path": "/webinars/:id",
+      "handlers": 1
+    },
+    {
+      "method": "POST",
+      "path": "/webinars/:id/join",
+      "handlers": 1
+    },
+    {
+      "method": "POST",
+      "path": "/contests/:id/join",
+      "handlers": 1
+    },
+    {
+      "method": "GET",
+      "path": "/contests/:id",
+      "handlers": 1
+    },
+    {
+      "method": "GET",
+      "path": "/contests/:id/participants",
+      "handlers": 1
+    },
+    {
+      "method": "GET",
+      "path": "/contests/:id/participants/:userId/submissions",
+      "handlers": 1
+    },
+    {
+      "method": "POST",
+      "path": "/communities",
+      "handlers": 1
+    },
+    {
+      "method": "GET",
+      "path": "/communities/mine",
+      "handlers": 1
+    },
+    {
+      "method": "GET",
+      "path": "/communities/:id",
+      "handlers": 1
+    },
+    {
+      "method": "GET",
+      "path": "/communities/:id/members",
+      "handlers": 1
+    },
+    {
+      "method": "DELETE",
+      "path": "/communities/:id/membership",
+      "handlers": 1
+    },
+    {
+      "method": "PATCH",
+      "path": "/communities/:id/members/:userId",
+      "handlers": 1
+    },
+    {
+      "method": "POST",
+      "path": "/communities/:id/chats",
+      "handlers": 1
+    },
+    {
+      "method": "GET",
+      "path": "/communities/:id/chats/:chatId",
+      "handlers": 1
+    },
+    {
+      "method": "POST",
+      "path": "/communities/:id/chats/:chatId",
+      "handlers": 1
+    },
+    {
+      "method": "PUT",
+      "path": "/communities/:id/chats/:chatId/messages/:messageId/reaction",
+      "handlers": 1
+    },
+    {
+      "method": "DELETE",
+      "path": "/communities/:id/chats/:chatId/messages/:messageId",
+      "handlers": 1
+    },
+    {
+      "method": "GET",
+      "path": "/jobs",
+      "handlers": 1
+    },
+    {
+      "method": "GET",
+      "path": "/jobs/applicants",
+      "handlers": 1
+    },
+    {
+      "method": "GET",
+      "path": "/dashboard/hirer",
+      "handlers": 1
+    },
+    {
+      "method": "GET",
+      "path": "/jobs/:id",
+      "handlers": 1
+    },
+    {
+      "method": "GET",
+      "path": "/jobs/:id/applications",
+      "handlers": 1
+    },
+    {
+      "method": "GET",
+      "path": "/jobs/:id/applications/:userId/resume",
+      "handlers": 1
+    },
+    {
+      "method": "PATCH",
+      "path": "/jobs/:id/applications/:userId",
+      "handlers": 1
+    },
+    {
+      "method": "PATCH",
+      "path": "/jobs/:id/status",
+      "handlers": 1
+    },
+    {
+      "method": "GET",
+      "path": "/messages",
+      "handlers": 1
+    },
+    {
+      "method": "POST",
+      "path": "/messages",
+      "handlers": 1
+    },
+    {
+      "method": "GET",
+      "path": "/messages/:id",
+      "handlers": 1
+    },
+    {
+      "method": "POST",
+      "path": "/messages/:id",
+      "handlers": 1
+    },
+    {
+      "method": "POST",
+      "path": "/admin/instructors",
+      "handlers": 2
+    },
+    {
+      "method": "PATCH",
+      "path": "/admin/instructors/:id",
+      "handlers": 2
+    },
+    {
+      "method": "DELETE",
+      "path": "/admin/instructors/:id",
+      "handlers": 1
+    },
+    {
+      "method": "GET",
+      "path": "/admin/settings",
+      "handlers": 1
+    },
+    {
+      "method": "PATCH",
+      "path": "/admin/settings",
+      "handlers": 1
+    },
+    {
+      "method": "GET",
+      "path": "/admin/overview",
+      "handlers": 1
+    },
+    {
+      "method": "GET",
+      "path": "/admin/:table",
+      "handlers": 1
+    },
+    {
+      "method": "POST",
+      "path": "/admin/users",
+      "handlers": 1
+    },
+    {
+      "method": "POST",
+      "path": "/admin/:table/bulk",
+      "handlers": 1
+    },
+    {
+      "method": "POST",
+      "path": "/admin/:table",
+      "handlers": 2
+    },
+    {
+      "method": "PATCH",
+      "path": "/admin/:table/:id",
+      "handlers": 2
+    },
+    {
+      "method": "DELETE",
+      "path": "/admin/:table/:id",
+      "handlers": 1
+    },
+    {
+      "method": "GET",
+      "path": "/manage/courses/:id/materials",
+      "handlers": 1
+    },
+    {
+      "method": "POST",
+      "path": "/manage/courses/:id/materials",
+      "handlers": 3
+    },
+    {
+      "method": "DELETE",
+      "path": "/manage/courses/:id/materials/:materialId",
+      "handlers": 1
+    },
+    {
+      "method": "GET",
+      "path": "/courses/:id/materials/:materialId/content",
+      "handlers": 1
+    },
+    {
+      "method": "GET",
+      "path": "/courses/:id/materials/:materialId/file",
+      "handlers": 1
+    },
+    {
+      "method": "GET",
+      "path": "/courses/:id",
+      "handlers": 1
+    },
+    {
+      "method": "GET",
+      "path": "/instructors/:id",
+      "handlers": 1
+    },
+    {
+      "method": "POST",
+      "path": "/contests/:id/submit",
+      "handlers": 3
+    },
+    {
+      "method": "GET",
+      "path": "/contests/:id/submissions/:submissionId/file",
+      "handlers": 1
+    },
+    {
+      "method": "GET",
+      "path": "/manage/contests/:id/problems",
+      "handlers": 1
+    },
+    {
+      "method": "POST",
+      "path": "/manage/contests/:id/problems",
+      "handlers": 1
+    },
+    {
+      "method": "GET",
+      "path": "/manage/contests/:id/submissions",
+      "handlers": 1
+    },
+    {
+      "method": "PATCH",
+      "path": "/manage/submissions/:id",
+      "handlers": 1
+    },
+    {
+      "method": "POST",
+      "path": "/realtime/ticket",
+      "handlers": 1
+    },
+    {
+      "method": "GET",
+      "path": "/notifications",
+      "handlers": 1
+    },
+    {
+      "method": "GET",
+      "path": "/notifications/unread-count",
+      "handlers": 1
+    },
+    {
+      "method": "POST",
+      "path": "/notifications/read-all",
+      "handlers": 1
+    },
+    {
+      "method": "PATCH",
+      "path": "/notifications/:id",
+      "handlers": 1
+    },
+    {
+      "method": "DELETE",
+      "path": "/notifications/:id",
+      "handlers": 1
+    },
+    {
+      "method": "DELETE",
+      "path": "/notifications",
+      "handlers": 1
+    },
+    {
+      "method": "POST",
+      "path": "/ai/chat",
+      "handlers": 1
+    },
+    {
+      "method": "POST",
+      "path": "/ai/interests",
+      "handlers": 1
+    },
+    {
+      "method": "PUT",
+      "path": "/profile/interests",
+      "handlers": 1
+    },
+    {
+      "method": "POST",
+      "path": "/account/password",
+      "handlers": 1
+    },
+    {
+      "method": "DELETE",
+      "path": "/account",
+      "handlers": 1
+    },
+    {
+      "method": "GET",
+      "path": "/cv",
+      "handlers": 1
+    },
+    {
+      "method": "GET",
+      "path": "/cv/file",
+      "handlers": 1
+    },
+    {
+      "method": "PUT",
+      "path": "/cv",
+      "handlers": 2
+    },
+    {
+      "method": "DELETE",
+      "path": "/cv",
+      "handlers": 1
+    },
+    {
+      "method": "POST",
+      "path": "/courses/:id/materials/:materialId/ai",
+      "handlers": 1
+    },
+    {
+      "method": "GET",
+      "path": "/courses/:id/materials/:materialId/quiz/:checkpoint",
+      "handlers": 1
+    },
+    {
+      "method": "POST",
+      "path": "/courses/:id/materials/:materialId/quiz/:checkpoint",
+      "handlers": 1
+    },
+    {
+      "method": "GET",
+      "path": "/search",
+      "handlers": 1
+    }
+  ]
+}

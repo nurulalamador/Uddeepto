@@ -1,0 +1,36 @@
+appId: com.kodofact.uddeepto
+name: M099 Search result opens the correct contest detail
+tags:
+  - android
+  - search
+---
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${LEARNER_USERNAME}
+- tapOn:
+    id: icon-search
+- extendedWaitUntil:
+    visible:
+      id: global-search
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: global-search
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: global-search
+- eraseText
+- inputText: Live Code Sprint
+- hideKeyboard
+- extendedWaitUntil:
+    visible:
+      id: search-result-contests-${CONTEST_ID}
+    timeout: 30000
+- tapOn:
+    id: search-result-contests-${CONTEST_ID}
+- extendedWaitUntil:
+    visible:
+      text: Live Code Sprint
+    timeout: 30000

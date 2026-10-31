@@ -1,0 +1,63 @@
+appId: com.kodofact.uddeepto
+name: M235 Rewatching a failed part reopens its checkpoint with no answers
+tags:
+  - android
+  - video
+  - writes
+  - media
+---
+- runScript:
+    file: ../../scripts/prepare-case.js
+    env:
+      SCENARIO: video-quiz
+      ACTOR_ROLE: learner
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${output.actorUsername}
+- openLink:
+    link: uddeepto://course/${VIDEO_COURSE_ID}/${VIDEO_MATERIAL_ID}
+- extendedWaitUntil:
+    visible:
+      id: quiz-video
+    timeout: 30000
+- runFlow:
+    file: ../../helpers/play-quiz.yaml
+- scrollUntilVisible:
+    element:
+      id: quiz-option-0-1
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: quiz-option-0-1
+- scrollUntilVisible:
+    element:
+      id: quiz-option-1-1
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: quiz-option-1-1
+- scrollUntilVisible:
+    element:
+      id: quiz-option-2-1
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: quiz-option-2-1
+- tapOn:
+    id: button-submit-answers
+- extendedWaitUntil:
+    visible:
+      id: button-watch-again
+    timeout: 30000
+- tapOn:
+    id: button-watch-again
+- extendedWaitUntil:
+    visible:
+      text: Quick check · 1 of 3
+    timeout: 30000
+- assertVisible:
+    id: button-submit-answers
+    enabled: false
+- assertVisible:
+    text: 0 of 3 answered

@@ -123,7 +123,7 @@ function Posts({ onApplicants }: { onApplicants: (id: string) => void }) {
               </Muted>
               <View style={styles.actions}>
                 <Button label={`${count(item.application_count)} applicant${count(item.application_count) === 1 ? "" : "s"}`} icon="people-outline" kind="soft" onPress={() => onApplicants(item.id)} style={{ flex: 1 }} />
-                {["open", "closed"].includes(item.status) ? <Button label={item.status === "open" ? "Close" : "Reopen"} icon={item.status === "open" ? "lock-closed-outline" : "lock-open-outline"} kind="secondary" onPress={() => toggle(item)} style={{ flex: 1 }} /> : null}
+                {["open", "closed"].includes(item.status) ? <Button testID={`job-status-${item.id}`} label={item.status === "open" ? "Close" : "Reopen"} icon={item.status === "open" ? "lock-closed-outline" : "lock-open-outline"} kind="secondary" onPress={() => toggle(item)} style={{ flex: 1 }} /> : null}
               </View>
             </Card>
           )}

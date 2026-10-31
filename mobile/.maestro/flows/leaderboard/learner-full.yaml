@@ -1,0 +1,23 @@
+appId: com.kodofact.uddeepto
+name: M228 Learner can open the complete leaderboard from dashboard
+tags:
+  - android
+  - leaderboard
+---
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${LEARNER_USERNAME}
+- scrollUntilVisible:
+    element:
+      id: button-complete-leaderboard
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: button-complete-leaderboard
+- extendedWaitUntil:
+    visible:
+      text: Top learners
+    timeout: 30000
+- assertVisible:
+    id: dropdown-all-interests

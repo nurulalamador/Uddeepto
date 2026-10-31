@@ -1,0 +1,26 @@
+appId: com.kodofact.uddeepto
+name: M161 Events contests previous filter opens the matching event
+tags:
+  - android
+  - events
+---
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${LEARNER_USERNAME}
+- tapOn:
+    id: tab-events
+- tapOn:
+    id: top-tab-contests
+- tapOn:
+    id: pill-previous
+- extendedWaitUntil:
+    visible:
+      id: event-card-${PAST_CONTEST_ID}
+    timeout: 30000
+- tapOn:
+    id: event-card-${PAST_CONTEST_ID}
+- extendedWaitUntil:
+    visible:
+      text: Past Music Showdown
+    timeout: 30000

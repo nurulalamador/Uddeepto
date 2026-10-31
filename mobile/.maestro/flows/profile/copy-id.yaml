@@ -1,0 +1,20 @@
+appId: com.kodofact.uddeepto
+name: M028 A profile ID can be copied
+tags:
+  - android
+  - profile
+---
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${LEARNER_USERNAME}
+- tapOn:
+    id: tab-profile
+- extendedWaitUntil:
+    visible:
+      text: UDDEEPTO ID
+    timeout: 30000
+- tapOn:
+    text: Copy Uddeepto ID
+- assertVisible:
+    id: profile-id-copied

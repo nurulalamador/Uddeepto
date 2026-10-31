@@ -27,7 +27,7 @@ export function MediaPlayer({ path, audio = false, name, onPlayStart }: { path: 
 
   return (
     <View style={[styles.box, audio && { aspectRatio: undefined, height: 96, backgroundColor: colors.greenDark }]}>
-      <VideoView player={player} style={StyleSheet.absoluteFill} nativeControls contentFit="contain" fullscreenOptions={{ enable: !audio }} />
+      <VideoView testID={audio ? "audio-player" : "video-player"} player={player} style={StyleSheet.absoluteFill} nativeControls contentFit="contain" fullscreenOptions={{ enable: !audio }} />
       {audio ? (
         <View style={styles.audioLabel} pointerEvents="none">
           <Ionicons name="musical-notes" size={18} color={colors.orangeLight} />

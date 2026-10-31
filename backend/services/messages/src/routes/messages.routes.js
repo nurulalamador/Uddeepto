@@ -1,0 +1,11 @@
+import { listConversations, createConversation, listMessages, sendMessage, markConversationRead } from "../controllers/messages.controller.js";
+import { auth } from "@uddeepto/common";
+import express from "express";
+const router = express.Router();
+router.use(auth());
+router.get("/", listConversations);
+router.post("/", createConversation);
+router.get("/:id", listMessages);
+router.post("/:id", sendMessage);
+router.post("/:id/read", markConversationRead);
+export default router;

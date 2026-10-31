@@ -1,0 +1,23 @@
+appId: com.kodofact.uddeepto
+name: M157 Unenrolled learner cannot open a locked material by deep link
+tags:
+  - android
+  - learning
+---
+- runScript:
+    file: ../../scripts/prepare-case.js
+    env:
+      SCENARIO: basic
+      ACTOR_ROLE: learner
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${output.actorUsername}
+- openLink:
+    link: uddeepto://course/${COURSE_ID}/${SECOND_MATERIAL_ID}
+- extendedWaitUntil:
+    visible:
+      id: button-try-again
+    timeout: 30000
+- assertVisible:
+    text: Enroll in this course to open this material

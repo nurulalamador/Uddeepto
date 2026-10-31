@@ -1,0 +1,104 @@
+appId: com.kodofact.uddeepto
+name: M057 Hirer creates a remote job that is saved as a draft
+tags:
+  - android
+  - jobs
+  - writes
+---
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${PUBLISH_HIRER_USERNAME}
+- tapOn:
+    id: tab-hiring
+- tapOn:
+    text: Post a job
+- extendedWaitUntil:
+    visible:
+      id: input-job-title
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: input-job-title
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: input-job-title
+- eraseText
+- inputText: Maestro new job ${RUN_ID}
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: input-description
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: input-description
+- eraseText
+- inputText: A remote Android fixture role.
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: dropdown-interest-category
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: dropdown-interest-category
+- tapOn:
+    id: option-${CATEGORY_ID}
+- scrollUntilVisible:
+    element:
+      id: dropdown-work-mode
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: dropdown-work-mode
+- tapOn:
+    id: option-remote
+- scrollUntilVisible:
+    element:
+      id: button-post-this-job
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: button-post-this-job
+- extendedWaitUntil:
+    visible:
+      id: top-tab-posts
+    timeout: 30000
+- stopApp
+- launchApp
+- extendedWaitUntil:
+    visible:
+      id: tab-index
+    timeout: 30000
+- tapOn:
+    id: tab-hiring
+- extendedWaitUntil:
+    visible:
+      id: filter-search
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: filter-search
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: filter-search
+- eraseText
+- inputText: Maestro new job ${RUN_ID}
+- hideKeyboard
+- extendedWaitUntil:
+    visible:
+      text: Maestro new job ${RUN_ID}
+    timeout: 30000
+- tapOn:
+    text: Maestro new job ${RUN_ID}
+- extendedWaitUntil:
+    visible:
+      text: About the job
+    timeout: 30000
+- assertVisible:
+    text: Draft
+- assertVisible:
+    text: Remote

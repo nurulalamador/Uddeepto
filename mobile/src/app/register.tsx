@@ -55,7 +55,7 @@ export default function Register() {
                 {ROLES.map((item) => {
                   const on = role === item.value;
                   return (
-                    <Pressable key={item.value} onPress={() => setRole(item.value)} style={[styles.role, on && styles.roleOn]} accessibilityRole="button" accessibilityState={{ selected: on }}>
+                    <Pressable testID={`register-role-${item.value}`} key={item.value} onPress={() => setRole(item.value)} style={[styles.role, on && styles.roleOn]} accessibilityRole="button" accessibilityState={{ selected: on }}>
                       <Ionicons name={item.icon} size={22} color={on ? colors.green : colors.muted} />
                       <Text style={{ fontWeight: "800", color: on ? colors.green : colors.text }}>{item.title}</Text>
                       <Text style={{ fontSize: 12, color: colors.muted }}>{item.text}</Text>

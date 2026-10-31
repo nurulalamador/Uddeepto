@@ -1,0 +1,34 @@
+appId: com.kodofact.uddeepto
+name: M195 Cancelling community leave keeps channel access
+tags:
+  - android
+  - messages
+---
+- runScript:
+    file: ../../scripts/prepare-case.js
+    env:
+      SCENARIO: community-member
+      ACTOR_ROLE: learner
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${output.actorUsername}
+- openLink:
+    link: uddeepto://community/${COMMUNITY_ID}
+- extendedWaitUntil:
+    visible:
+      text: Channels
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: button-leave-community
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: button-leave-community
+- tapOn:
+    text: Cancel
+- assertVisible:
+    text: Channels
+- assertVisible:
+    id: button-leave-community

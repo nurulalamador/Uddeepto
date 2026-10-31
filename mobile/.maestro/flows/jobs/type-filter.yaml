@@ -1,0 +1,42 @@
+appId: com.kodofact.uddeepto
+name: M175 Job type filter removes permanent roles from contract results
+tags:
+  - android
+  - jobs
+---
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${LEARNER_USERNAME}
+- tapOn:
+    id: tab-jobs
+- extendedWaitUntil:
+    visible:
+      id: filter-search
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: dropdown-any-type
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: dropdown-any-type
+- repeat:
+    times: 12
+    while:
+      notVisible:
+        id: option-contract
+    commands:
+      - swipe:
+          from:
+            id: option-list
+          direction: UP
+          duration: 400
+- tapOn:
+    id: option-contract
+- extendedWaitUntil:
+    visible:
+      text: Data Analyst
+    timeout: 30000
+- assertNotVisible:
+    id: job-card-${JOB_ID}

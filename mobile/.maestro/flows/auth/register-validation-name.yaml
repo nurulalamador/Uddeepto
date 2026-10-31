@@ -1,0 +1,19 @@
+appId: com.kodofact.uddeepto
+name: M009 Registration requires a full name
+tags:
+  - android
+  - auth
+---
+- runFlow:
+    file: ../../helpers/reset.yaml
+- tapOn:
+    text: Create an account
+- scrollUntilVisible:
+    element:
+      id: button-create-account
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: button-create-account
+- assertVisible:
+    text: Enter your full name.

@@ -1,0 +1,29 @@
+appId: com.kodofact.uddeepto
+name: M229 Leaderboard entry opens the learner profile
+tags:
+  - android
+  - leaderboard
+---
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${HIRER_USERNAME}
+- tapOn:
+    id: tab-leaderboard
+- extendedWaitUntil:
+    visible:
+      text: Top learners
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: leaderboard-user-${RECEIVER_ID}
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: leaderboard-user-${RECEIVER_ID}
+- extendedWaitUntil:
+    visible:
+      text: UDDEEPTO ID
+    timeout: 30000
+- assertVisible:
+    id: button-send-message

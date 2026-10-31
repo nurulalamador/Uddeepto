@@ -1,0 +1,37 @@
+appId: com.kodofact.uddeepto
+name: M226 AI send is disabled for empty or whitespace input
+tags:
+  - android
+  - cv-ai
+---
+- runScript:
+    file: ../../scripts/prepare-case.js
+    env:
+      SCENARIO: basic
+      ACTOR_ROLE: learner
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${output.actorUsername}
+- openLink:
+    link: uddeepto://ai
+- extendedWaitUntil:
+    visible:
+      id: ai-input
+    timeout: 30000
+- assertVisible:
+    id: ai-send
+    enabled: false
+- scrollUntilVisible:
+    element:
+      id: ai-input
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: ai-input
+- eraseText
+- inputText: '   '
+- hideKeyboard
+- assertVisible:
+    id: ai-send
+    enabled: false

@@ -1,0 +1,32 @@
+appId: com.kodofact.uddeepto
+name: M069 Mark all read empties the unread list
+tags:
+  - android
+  - notifications
+  - writes
+---
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${NOTIFY_USERNAME}
+- tapOn:
+    id: icon-notifications
+- extendedWaitUntil:
+    visible:
+      id: dropdown-all
+    timeout: 30000
+- tapOn:
+    text: Mark all read
+- scrollUntilVisible:
+    element:
+      id: dropdown-all
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: dropdown-all
+- tapOn:
+    id: option-unread
+- extendedWaitUntil:
+    visible:
+      text: You’re all caught up
+    timeout: 30000

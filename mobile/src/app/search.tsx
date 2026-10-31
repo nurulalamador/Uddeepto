@@ -29,8 +29,8 @@ export default function SearchScreen() {
     <View style={{ flex: 1 }}>
       <View style={styles.box}>
         <Ionicons name="search-outline" size={20} color={colors.muted} />
-        <TextInput autoFocus value={text} onChangeText={setText} placeholder="Search people, contests, webinars, jobs…" placeholderTextColor="#9aa7a0" style={styles.input} returnKeyType="search" autoCorrect={false} />
-        {text ? <Ionicons name="close-circle" size={20} color={colors.muted} onPress={() => setText("")} /> : null}
+        <TextInput testID="global-search" autoFocus value={text} onChangeText={setText} placeholder="Search people, contests, webinars, jobs…" placeholderTextColor="#9aa7a0" style={styles.input} returnKeyType="search" autoCorrect={false} />
+        {text ? <Ionicons testID="search-clear" name="close-circle" size={20} color={colors.muted} onPress={() => setText("")} /> : null}
       </View>
       <ScrollView contentContainerStyle={styles.page} keyboardShouldPersistTaps="handled">
         {query.length < 2 ? (
@@ -50,7 +50,7 @@ export default function SearchScreen() {
                   {data.labels[type] || type} ({data.counts[type]})
                 </SectionTitle>
                 {data.results[type].map((result) => (
-                  <Card key={`${type}-${result.id}`} onPress={() => open(result)} style={styles.result}>
+                  <Card testID={`search-result-${type}-${result.id}`} key={`${type}-${result.id}`} onPress={() => open(result)} style={styles.result}>
                     {type === "users" ? (
                       <Avatar id={result.id} name={result.title} hasPicture={Boolean(result.image)} size={40} />
                     ) : (

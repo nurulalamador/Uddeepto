@@ -1,0 +1,56 @@
+appId: com.kodofact.uddeepto
+name: M234 Wrong video answers require rewatching instead of continuing
+tags:
+  - android
+  - video
+  - writes
+  - media
+---
+- runScript:
+    file: ../../scripts/prepare-case.js
+    env:
+      SCENARIO: video-quiz
+      ACTOR_ROLE: learner
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${output.actorUsername}
+- openLink:
+    link: uddeepto://course/${VIDEO_COURSE_ID}/${VIDEO_MATERIAL_ID}
+- extendedWaitUntil:
+    visible:
+      id: quiz-video
+    timeout: 30000
+- runFlow:
+    file: ../../helpers/play-quiz.yaml
+- scrollUntilVisible:
+    element:
+      id: quiz-option-0-1
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: quiz-option-0-1
+- scrollUntilVisible:
+    element:
+      id: quiz-option-1-1
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: quiz-option-1-1
+- scrollUntilVisible:
+    element:
+      id: quiz-option-2-1
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: quiz-option-2-1
+- tapOn:
+    id: button-submit-answers
+- extendedWaitUntil:
+    visible:
+      id: button-watch-again
+    timeout: 30000
+- assertNotVisible:
+    id: button-continue-watching
+- assertVisible:
+    text: 0 of 3 correct.*

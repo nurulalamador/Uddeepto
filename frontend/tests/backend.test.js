@@ -1,3 +1,4 @@
+import { loadBackendService } from "./load-backend.js";
 import test from'node:test';import assert from'node:assert/strict';import{readFile}from'node:fs/promises';import{once}from'node:events';import{db,query,server}from'./harness.js';import{mkdtempSync,existsSync,readdirSync}from'node:fs';import{tmpdir}from'node:os';import{join}from'node:path';
 test('frontend adapter: SQL and authorization integration',async t=>{
   let sql=await readFile(new URL('../../backend/database/001_initial_schema.sql',import.meta.url),'utf8');
@@ -17,13 +18,7 @@ test('frontend adapter: SQL and authorization integration',async t=>{
   await db.exec(await readFile(new URL('../../backend/database/012_notifications.sql',import.meta.url),'utf8'));
   await db.exec(await readFile(new URL('../../backend/database/013_experience_other_category.sql',import.meta.url),'utf8'));
   process.env.UPLOAD_DIR=mkdtempSync(join(tmpdir(),'uddeepto-uploads-'));
-  let source=await readFile(new URL('../../backend/services/frontend/src/server.js',import.meta.url),'utf8');
-  // The service file may use single or double quotes (it is auto-formatted), so match both.
-  source=source.replace(/import bcrypt from ['"]bcryptjs['"];/,()=>"const bcrypt={hash:async value=>'test-only:'+value};")
-    .replace(/(['"])@uddeepto\/common\1/,()=>JSON.stringify(new URL('./harness.js',import.meta.url).href))
-    .replace(/(['"])express\1/,()=>JSON.stringify(import.meta.resolve('express')))
-    .replace(/(['"])zod\1/,()=>JSON.stringify(import.meta.resolve('zod')));
-  await import('data:text/javascript;base64,'+Buffer.from(source).toString('base64'));await once(server,'listening');
+  await loadBackendService("frontend");await once(server,'listening');
   const base=`http://127.0.0.1:${server.address().port}`;
   const ids={};for(const[name,role]of[['Learner','learner'],['Other','learner'],['Hirer','hirer'],['Admin','admin']])ids[name]=(await query('INSERT INTO users(name,email,username,password_hash,role) VALUES($1,$2,$3,$4,$5) RETURNING id',[name,`${name}@example.com`,name,'test-only',role])).rows[0].id;
   const category=(await query("INSERT INTO interest_categories(name,slug,icon) VALUES('Web Development','web-development','code') RETURNING id")).rows[0].id;
@@ -209,8 +204,10 @@ test('frontend adapter: SQL and authorization integration',async t=>{
       assert.equal(dash.streak,1);assert.equal(dash.activity.at(-1).count,1);assert.equal(dash.stats.materials_done,1);assert.ok(dash.stats.materials_total>=3);
       await query('DELETE FROM courses WHERE id=$1',[c]);
     });
-    await t.test('hirer workspace: no showcase posting, messaging, applicants across jobs, dashboard',async()=>{
-      const denied=await request('/showcase',{as:'Hirer',method:'POST',body:{category_id:category,content:'Hiring!'}});assert.equal(denied.status,403);
+    await t.test('hirer workspace: showcase posting, messaging, applicants across jobs, dashboard',async()=>{
+      const posted=await request('/showcase',{as:'Hirer',method:'POST',body:{category_id:category,content:'Hiring!'}});assert.equal(posted.status,200);assert.ok(posted.data.id);
+      assert.equal((await query('SELECT creator_id FROM showcase_posts WHERE id=$1',[posted.data.id])).rows[0].creator_id,ids.Hirer);
+      await query('DELETE FROM showcase_posts WHERE id=$1',[posted.data.id]);
       assert.equal((await request('/showcase',{as:'Hirer'})).status,200,'hirers can still read the showcase');
       const mk=async(title,status='open')=>(await query("INSERT INTO jobs(creator_id,title,description,type,status,is_remote) VALUES($1,$2,'Desc','permanent',$3,true) RETURNING id",[ids.Hirer,title,status])).rows[0].id;
       const a=await mk('Applicant job A'),b=await mk('Applicant job B');
@@ -341,8 +338,11 @@ test('frontend adapter: SQL and authorization integration',async t=>{
       const download=await get(fileUrl(doc.id)+'?download=1');
       assert.equal(download.status,200);assert.match(download.headers.get('content-disposition'),/^attachment/);
       let mine=(await ok('/catalog/courses?tab=enrolled')).find(item=>item.id===c);
-      assert.equal(Number(mine.progress_total),3);assert.equal(Number(mine.progress_done),2);
+      assert.equal(Number(mine.progress_total),3);assert.equal(Number(mine.progress_done),1,'ranged video playback must not complete the video');
       await ok(`/courses/${c}/materials/${text.id}/content`);
+      assert.equal((await ok(`/courses/${c}`)).progress_done,2);
+      assert.equal((await query('SELECT status FROM course_enrollments WHERE course_id=$1 AND user_id=$2',[c,ids.Learner])).rows[0].status,'active');
+      await ok(`/courses/${c}/complete/${video.id}`,{method:'PUT'});
       const done=await ok(`/courses/${c}`);assert.equal(done.progress_done,3);assert.equal((await query('SELECT status FROM course_enrollments WHERE course_id=$1 AND user_id=$2',[c,ids.Learner])).rows[0].status,'completed');
       assert.equal((await request(`/courses/${c}`,{as:'Hirer'})).status,403);
       const instructorPage=await ok(`/instructors/${own}`);assert.equal(instructorPage.courses.length,1);assert.equal(instructorPage.social_links.website,'https://example.com');

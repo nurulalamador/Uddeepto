@@ -1,0 +1,45 @@
+appId: com.kodofact.uddeepto
+name: M196 Leaving a community removes membership and channel access
+tags:
+  - android
+  - messages
+  - writes
+---
+- runScript:
+    file: ../../scripts/prepare-case.js
+    env:
+      SCENARIO: community-member
+      ACTOR_ROLE: learner
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${output.actorUsername}
+- tapOn:
+    id: icon-messages
+- openLink:
+    link: uddeepto://community/${COMMUNITY_ID}
+- extendedWaitUntil:
+    visible:
+      text: Channels
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: button-leave-community
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: button-leave-community
+- tapOn:
+    text: Leave
+- extendedWaitUntil:
+    visible:
+      id: top-tab-inbox
+    timeout: 30000
+- openLink:
+    link: uddeepto://community/${COMMUNITY_ID}
+- extendedWaitUntil:
+    visible:
+      id: button-join-community
+    timeout: 30000
+- assertNotVisible:
+    text: Channels

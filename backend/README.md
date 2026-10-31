@@ -18,13 +18,39 @@ Plain JavaScript, Express, direct PostgreSQL (`pg`) এবং Supabase-hosted Po
 | Direct messages | 4008 | `/api/v1/messages` |
 | Payments | 4009 | `/api/v1/payments` |
 
+## Source layout
+
+Gateway এবং load balancer এখন `infrastructure/`-এ। `services/`-এ শুধু business services আছে। প্রতিটি service-এর `src/server.js` server চালু করে এবং `src/app.js` application তৈরি করে।
+
+```text
+backend/
+  infrastructure/
+    gateway/src/          # config, app, proxy routes, server startup
+    loadbalancer/src/     # HTTP server, balancing and health checks
+  services/<service>/src/
+    server.js            # startup only
+    app.js               # application composition
+    routes/              # endpoints and middleware order
+    controllers/         # request handling and responses
+    services/            # business helpers, when needed
+    validators/          # request schemas, when needed
+    middleware/          # permissions and request guards, when needed
+    config/              # feature configuration, when needed
+  packages/common/src/   # database, JWT, errors, uploads, notifications, sockets
+  test/                  # API contract and gateway regression tests
+```
+
+`services/frontend` হলো backend-এর frontend API adapter। এর routes/controllers/services এখন profile, courses, jobs, communities, messages, admin, notifications, AI ইত্যাদি feature অনুযায়ী আলাদা। এটি বাইরের Next.js `frontend/` application নয়।
+
+বিস্তারিত: [ARCHITECTURE.md](./ARCHITECTURE.md)। Endpoint, request/response, JWT এবং database schema এই refactor-এ বদলায়নি।
+
 ## Load balancer
 
 ```
 client / Next.js BFF -> load balancer :4000 -> gateway-1 :4101 / gateway-2 :4102 -> services
 ```
 
-`services/loadbalancer` is a small dependency-free Node HTTP balancer. Callers keep using port 4000 (`BACKEND_URL`), so nothing in the frontend changes.
+`infrastructure/loadbalancer` is a small dependency-free Node HTTP balancer. Callers keep using port 4000 (`BACKEND_URL`), so nothing in the frontend changes.
 
 - **Distribution:** round-robin by default; `LB_STRATEGY=least-connections` sends work to the least busy gateway.
 - **Health checks:** each gateway's `/health` is probed every 5 s (every 1 s while it is down). Two failures take it out of rotation; one success brings it back. A refused or reset connection removes it immediately.
@@ -33,7 +59,7 @@ client / Next.js BFF -> load balancer :4000 -> gateway-1 :4101 / gateway-2 :4102
 - **WebSocket:** `Upgrade` request-ও একটা healthy gateway-তে tunnel হয় (live updates এর জন্য), সংযোগ চলাকালীন বাইট দুই দিকে সরাসরি যায়।
 - **Endpoints:** `GET /health` (balancer + how many gateways are healthy; use this for the platform health check), `GET /lb/status` (per-gateway detail; localhost only, or send header `x-lb-token` matching `LB_STATUS_TOKEN`).
 - **Which copy answered:** every response carries `X-Gateway-Instance` and `X-Load-Balancer`.
-- **Config:** `LB_PORT`, `GATEWAY_URLS` (comma separated), `LB_STRATEGY`, `LB_STATUS_TOKEN`. Run another gateway copy with `npm start -w services/gateway -- --port=4103 --id=gateway-3` and add its URL to `GATEWAY_URLS`.
+- **Config:** `LB_PORT`, `GATEWAY_URLS` (comma separated), `LB_STRATEGY`, `LB_STATUS_TOKEN`. Run another gateway copy with `npm start -w infrastructure/gateway -- --port=4103 --id=gateway-3` and add its URL to `GATEWAY_URLS`.
 - **Tests:** `npm run test:lb`.
 - **Docker:** `docker-compose.yml` starts `loadbalancer` + `gateway-1` + `gateway-2` and the services.
 
@@ -96,6 +122,7 @@ UPDATE users SET role = 'admin' WHERE email = 'admin@example.com';
 ```bash
 npm install
 npm run check
+npm test
 npm run dev
 ```
 

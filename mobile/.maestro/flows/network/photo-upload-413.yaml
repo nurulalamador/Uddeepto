@@ -1,0 +1,84 @@
+appId: com.kodofact.uddeepto
+name: M256 413 upload failure preserves the attached picture and post draft
+tags:
+  - android
+  - network
+  - writes
+  - media
+onFlowStart:
+  - runScript: ../../scripts/clear-faults.js
+onFlowComplete:
+  - runScript: ../../scripts/clear-faults.js
+---
+- runScript:
+    file: ../../scripts/prepare-case.js
+    env:
+      SCENARIO: basic
+      ACTOR_ROLE: learner
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${output.actorUsername}
+- addMedia:
+    - ../../assets/showcase-photo.png
+- tapOn:
+    id: tab-showcase
+- tapOn:
+    text: Create a post
+- extendedWaitUntil:
+    visible:
+      id: input-what-do-you-want-to-share
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: input-what-do-you-want-to-share
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: input-what-do-you-want-to-share
+- eraseText
+- inputText: Maestro upload retry ${output.unique}
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: dropdown-interest
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: dropdown-interest
+- repeat:
+    times: 12
+    while:
+      notVisible:
+        id: option-${CATEGORY_ID}
+    commands:
+      - swipe:
+          from:
+            id: option-list
+          direction: UP
+          duration: 400
+- tapOn:
+    id: option-${CATEGORY_ID}
+- tapOn:
+    id: button-pictures
+- runFlow:
+    file: ../../helpers/pick-photo.yaml
+- extendedWaitUntil:
+    visible:
+      id: attachment-0
+    timeout: 30000
+- runScript:
+    file: ../../scripts/set-faults.js
+    env:
+      FAULTS: '[{"method":"POST","path":"/api/v1/frontend/showcase","mode":"status","status":413,"message":"Maestro upload refused 413"}]'
+- tapOn:
+    id: button-publish-post
+- extendedWaitUntil:
+    visible:
+      text: Maestro upload refused 413
+    timeout: 30000
+- assertVisible:
+    id: attachment-0
+- assertVisible:
+    id: input-what-do-you-want-to-share
+    text: Maestro upload retry ${output.unique}

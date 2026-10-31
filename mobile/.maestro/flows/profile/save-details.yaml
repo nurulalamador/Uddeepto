@@ -1,0 +1,111 @@
+appId: com.kodofact.uddeepto
+name: M103 Profile name bio phone and address persist after saving
+tags:
+  - android
+  - profile
+  - writes
+---
+- runScript:
+    file: ../../scripts/prepare-case.js
+    env:
+      SCENARIO: basic
+      ACTOR_ROLE: learner
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${output.actorUsername}
+- openLink:
+    link: uddeepto://edit-profile
+- extendedWaitUntil:
+    visible:
+      id: input-full-name
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: input-full-name
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: input-full-name
+- eraseText
+- inputText: Maestro Updated
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: input-headline
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: input-headline
+- eraseText
+- inputText: Android Engineer
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: input-about-you
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: input-about-you
+- eraseText
+- inputText: Maestro profile biography
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: input-phone
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: input-phone
+- eraseText
+- inputText: '01700000000'
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: input-current-address
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: input-current-address
+- eraseText
+- inputText: Dhaka Bangladesh
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: button-save-profile
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: button-save-profile
+- extendedWaitUntil:
+    visible:
+      id: tab-index
+    timeout: 30000
+- openLink:
+    link: uddeepto://edit-profile
+- extendedWaitUntil:
+    visible:
+      id: input-full-name
+    timeout: 30000
+- assertVisible:
+    id: input-full-name
+    text: Maestro Updated
+- assertVisible:
+    id: input-headline
+    text: Android Engineer
+- scrollUntilVisible:
+    element:
+      id: input-about-you
+    direction: DOWN
+    timeout: 30000
+- assertVisible:
+    id: input-about-you
+    text: Maestro profile biography
+- scrollUntilVisible:
+    element:
+      id: input-current-address
+    direction: DOWN
+    timeout: 30000
+- assertVisible:
+    id: input-current-address
+    text: Dhaka Bangladesh

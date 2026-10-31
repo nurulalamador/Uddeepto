@@ -1,0 +1,70 @@
+appId: com.kodofact.uddeepto
+name: M122 Existing education entry changes persist
+tags:
+  - android
+  - education
+  - writes
+---
+- runScript:
+    file: ../../scripts/prepare-case.js
+    env:
+      SCENARIO: education-existing
+      ACTOR_ROLE: learner
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${output.actorUsername}
+- openLink:
+    link: uddeepto://education
+- extendedWaitUntil:
+    visible:
+      id: button-add-education
+    timeout: 30000
+- tapOn:
+    id: entry-education-${output.entryId}
+- extendedWaitUntil:
+    visible:
+      id: input-institution
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: input-institution
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: input-institution
+- eraseText
+- inputText: Maestro edited entry
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: button-save
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: button-save
+- extendedWaitUntil:
+    visible:
+      id: button-add-education
+    timeout: 30000
+- stopApp
+- launchApp
+- extendedWaitUntil:
+    visible:
+      id: tab-index
+    timeout: 30000
+- openLink:
+    link: uddeepto://education
+- extendedWaitUntil:
+    visible:
+      id: button-add-education
+    timeout: 30000
+- tapOn:
+    id: entry-education-${output.entryId}
+- extendedWaitUntil:
+    visible:
+      id: input-institution
+    timeout: 30000
+- assertVisible:
+    id: input-institution
+    text: Maestro edited entry

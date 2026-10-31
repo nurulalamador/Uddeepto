@@ -1,0 +1,61 @@
+appId: com.kodofact.uddeepto
+name: M083 Contest participant can submit a code entry
+tags:
+  - android
+  - learning
+  - writes
+---
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${ENTRY_USERNAME}
+- openLink:
+    link: uddeepto://contest/${CONTEST_ID}
+- extendedWaitUntil:
+    visible:
+      id: top-tab-entry
+    timeout: 30000
+- tapOn:
+    id: top-tab-entry
+- extendedWaitUntil:
+    visible:
+      id: input-language
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: input-language
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: input-language
+- eraseText
+- inputText: Python
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: input-your-code
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: input-your-code
+- eraseText
+- inputText: print(1 + 2)
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: button-submit-entry
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: button-submit-entry
+- extendedWaitUntil:
+    visible:
+      text: Submission received. Good luck!
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      text: Your submissions
+    direction: DOWN
+    timeout: 30000
+- assertVisible:
+    text: print\(1 \+ 2\)

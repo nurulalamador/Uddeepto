@@ -1,0 +1,57 @@
+appId: com.kodofact.uddeepto
+name: M045 Free course enrollment unlocks materials and records progress
+tags:
+  - android
+  - learning
+  - writes
+---
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${STUDY_USERNAME}
+- openLink:
+    link: uddeepto://course/${COURSE_ID}
+- extendedWaitUntil:
+    visible:
+      text: ${COURSE_TITLE}
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: button-enroll-now
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: button-enroll-now
+- extendedWaitUntil:
+    visible:
+      id: button-start-learning
+    timeout: 30000
+- tapOn:
+    id: button-start-learning
+- extendedWaitUntil:
+    visible:
+      text: Welcome to React
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: button-next
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: button-next
+- extendedWaitUntil:
+    visible:
+      text: Components and Props
+    timeout: 30000
+- back
+- openLink:
+    link: uddeepto://course/${COURSE_ID}
+- extendedWaitUntil:
+    visible:
+      text: ${COURSE_TITLE}
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      text: 2 of 3 materials complete
+    direction: DOWN
+    timeout: 30000

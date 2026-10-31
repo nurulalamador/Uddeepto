@@ -1,0 +1,30 @@
+appId: com.kodofact.uddeepto
+name: M242 Account navigation works when optional permissions are denied
+tags:
+  - android
+  - permissions
+---
+- runScript:
+    file: ../../scripts/prepare-case.js
+    env:
+      SCENARIO: basic
+      ACTOR_ROLE: learner
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${output.actorUsername}
+- launchApp:
+    permissions:
+      all: deny
+- extendedWaitUntil:
+    visible:
+      id: tab-index
+    timeout: 30000
+- tapOn:
+    id: tab-profile
+- extendedWaitUntil:
+    visible:
+      text: UDDEEPTO ID
+    timeout: 30000
+- assertVisible:
+    id: button-edit-profile

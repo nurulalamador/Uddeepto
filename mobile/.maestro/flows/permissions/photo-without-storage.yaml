@@ -1,0 +1,41 @@
+appId: com.kodofact.uddeepto
+name: M243 System photo selection works without broad storage access
+tags:
+  - android
+  - permissions
+  - media
+---
+- runScript:
+    file: ../../scripts/prepare-case.js
+    env:
+      SCENARIO: basic
+      ACTOR_ROLE: learner
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${output.actorUsername}
+- addMedia:
+    - ../../assets/showcase-photo.png
+- launchApp:
+    permissions:
+      all: deny
+- extendedWaitUntil:
+    visible:
+      id: tab-index
+    timeout: 30000
+- tapOn:
+    id: tab-showcase
+- tapOn:
+    text: Create a post
+- extendedWaitUntil:
+    visible:
+      id: input-what-do-you-want-to-share
+    timeout: 30000
+- tapOn:
+    id: button-pictures
+- runFlow:
+    file: ../../helpers/pick-photo.yaml
+- extendedWaitUntil:
+    visible:
+      id: attachment-0
+    timeout: 30000

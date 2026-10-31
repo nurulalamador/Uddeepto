@@ -1,0 +1,33 @@
+appId: com.kodofact.uddeepto
+name: M095 Cancelling sign out keeps the current account signed in
+tags:
+  - android
+  - navigation
+---
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${LEARNER_USERNAME}
+- tapOn:
+    id: tab-profile
+- extendedWaitUntil:
+    visible:
+      text: UDDEEPTO ID
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: button-sign-out
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: button-sign-out
+- tapOn:
+    text: Cancel
+- stopApp
+- launchApp
+- extendedWaitUntil:
+    visible:
+      id: tab-index
+    timeout: 30000
+- assertNotVisible:
+    id: input-username-or-email

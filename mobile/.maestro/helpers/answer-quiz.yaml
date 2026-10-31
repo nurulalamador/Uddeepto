@@ -1,0 +1,26 @@
+appId: com.kodofact.uddeepto
+name: Answer all three fixture questions correctly
+---
+- scrollUntilVisible:
+    element:
+      id: quiz-option-0-0
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: quiz-option-0-0
+- scrollUntilVisible:
+    element:
+      id: quiz-option-1-0
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: quiz-option-1-0
+- scrollUntilVisible:
+    element:
+      id: quiz-option-2-0
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: quiz-option-2-0
+- tapOn:
+    id: button-submit-answers

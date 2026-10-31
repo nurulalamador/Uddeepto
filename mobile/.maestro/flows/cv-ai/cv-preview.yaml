@@ -1,0 +1,40 @@
+appId: com.kodofact.uddeepto
+name: M209 CV preview opens and closes without saving
+tags:
+  - android
+  - cv-ai
+---
+- runScript:
+    file: ../../scripts/prepare-case.js
+    env:
+      SCENARIO: basic
+      ACTOR_ROLE: learner
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${output.actorUsername}
+- openLink:
+    link: uddeepto://cv
+- extendedWaitUntil:
+    visible:
+      text: Your current CV
+    timeout: 30000
+- tapOn:
+    id: button-preview
+- extendedWaitUntil:
+    visible:
+      id: cv-preview
+    timeout: 30000
+- tapOn:
+    id: cv-preview-close
+- extendedWaitUntil:
+    visible:
+      id: button-save-cv
+    timeout: 30000
+- assertNotVisible:
+    id: cv-preview
+- scrollUntilVisible:
+    element:
+      text: You have no CV yet. Make one below, or upload a PDF.
+    direction: UP
+    timeout: 30000

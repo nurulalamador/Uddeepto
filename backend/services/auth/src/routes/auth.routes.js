@@ -1,0 +1,12 @@
+import { register, login, refresh, logout, logoutAll, changePassword } from "../controllers/auth.controller.js";
+import { registerBody, credentials, refreshBody, logoutBody, changePasswordBody } from "../validators/auth.validators.js";
+import { validate, auth } from "@uddeepto/common";
+import express from "express";
+const router = express.Router();
+router.post("/register", validate(registerBody), register);
+router.post("/login", validate(credentials), login);
+router.post("/refresh", validate(refreshBody), refresh);
+router.post("/logout", validate(logoutBody), logout);
+router.post("/logout-all", auth(), logoutAll);
+router.post("/change-password", auth(), validate(changePasswordBody), changePassword);
+export default router;

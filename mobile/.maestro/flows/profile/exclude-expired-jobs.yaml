@@ -1,0 +1,24 @@
+appId: com.kodofact.uddeepto
+name: M079 A hirer with only expired jobs has no active posts
+tags:
+  - android
+  - profile
+  - regression
+---
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${LEARNER_USERNAME}
+- openLink:
+    link: uddeepto://user/${EXPIRED_HIRER_ID}
+- extendedWaitUntil:
+    visible:
+      text: UDDEEPTO ID
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      text: No active job posts.
+    direction: DOWN
+    timeout: 30000
+- assertNotVisible:
+    id: profile-job-.*

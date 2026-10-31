@@ -1,0 +1,23 @@
+appId: com.kodofact.uddeepto
+name: M052 Closed job cannot accept an application
+tags:
+  - android
+  - jobs
+---
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${LEARNER_USERNAME}
+- openLink:
+    link: uddeepto://job/${CLOSED_JOB_ID}
+- extendedWaitUntil:
+    visible:
+      text: Closed Role
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      text: This job is no longer accepting applications.
+    direction: DOWN
+    timeout: 30000
+- assertNotVisible:
+    id: button-send-application

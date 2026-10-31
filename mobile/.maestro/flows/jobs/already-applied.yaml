@@ -1,0 +1,30 @@
+appId: com.kodofact.uddeepto
+name: M179 Existing application cannot be submitted a second time
+tags:
+  - android
+  - jobs
+---
+- runScript:
+    file: ../../scripts/prepare-case.js
+    env:
+      SCENARIO: application-applied
+      ACTOR_ROLE: learner
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${output.actorUsername}
+- openLink:
+    link: uddeepto://job/${output.jobId}
+- extendedWaitUntil:
+    visible:
+      text: About the job
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      text: Your application
+    direction: DOWN
+    timeout: 30000
+- assertVisible:
+    text: Applied
+- assertNotVisible:
+    id: button-send-application

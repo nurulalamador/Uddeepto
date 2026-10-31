@@ -1,0 +1,44 @@
+appId: com.kodofact.uddeepto
+name: M029 Edited headline persists after reopening the profile
+tags:
+  - android
+  - profile
+  - writes
+---
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${PROFILE_USERNAME}
+- openLink:
+    link: uddeepto://edit-profile
+- extendedWaitUntil:
+    visible:
+      id: input-full-name
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: input-headline
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: input-headline
+- eraseText
+- inputText: Maestro Android Developer
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: button-save-profile
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: button-save-profile
+- extendedWaitUntil:
+    visible:
+      id: tab-profile
+    timeout: 30000
+- openLink:
+    link: uddeepto://user/${PROFILE_ID}
+- extendedWaitUntil:
+    visible:
+      text: Maestro Android Developer
+    timeout: 30000

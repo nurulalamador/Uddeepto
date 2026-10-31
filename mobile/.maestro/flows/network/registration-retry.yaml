@@ -1,0 +1,98 @@
+appId: com.kodofact.uddeepto
+name: M258 Temporary registration failure preserves fields and allows retry
+tags:
+  - android
+  - network
+  - writes
+onFlowStart:
+  - runScript: ../../scripts/clear-faults.js
+onFlowComplete:
+  - runScript: ../../scripts/clear-faults.js
+---
+- runScript:
+    file: ../../scripts/prepare-case.js
+    env:
+      SCENARIO: basic
+      ACTOR_ROLE: learner
+- runFlow:
+    file: ../../helpers/reset.yaml
+- tapOn:
+    text: Create an account
+- extendedWaitUntil:
+    visible:
+      id: input-full-name
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: input-full-name
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: input-full-name
+- eraseText
+- inputText: Maestro Signup Retry
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: input-email
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: input-email
+- eraseText
+- inputText: retry_${output.unique}@e2e.test
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: input-username
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: input-username
+- eraseText
+- inputText: retry_${output.unique}
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: input-password
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: input-password
+- eraseText
+- inputText: ${PASSWORD}
+- hideKeyboard
+- runScript:
+    file: ../../scripts/set-faults.js
+    env:
+      FAULTS: '[{"method":"POST","path":"/api/v1/auth/register","mode":"status","status":503,"message":"Maestro signup temporarily unavailable"}]'
+- scrollUntilVisible:
+    element:
+      id: button-create-account
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: button-create-account
+- extendedWaitUntil:
+    visible:
+      text: Maestro signup temporarily unavailable
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: input-email
+    direction: UP
+    timeout: 30000
+- assertVisible:
+    id: input-email
+    text: retry_${output.unique}@e2e.test
+- scrollUntilVisible:
+    element:
+      id: button-create-account
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: button-create-account
+- extendedWaitUntil:
+    visible:
+      text: What are you into\?
+    timeout: 30000

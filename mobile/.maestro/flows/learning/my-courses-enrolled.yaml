@@ -1,0 +1,29 @@
+appId: com.kodofact.uddeepto
+name: M154 An enrolled course appears in My courses
+tags:
+  - android
+  - learning
+---
+- runScript:
+    file: ../../scripts/prepare-case.js
+    env:
+      SCENARIO: course-enrolled
+      ACTOR_ROLE: learner
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${output.actorUsername}
+- tapOn:
+    id: tab-courses
+- tapOn:
+    id: top-tab-enrolled
+- extendedWaitUntil:
+    visible:
+      id: course-card-${COURSE_ID}
+    timeout: 30000
+- tapOn:
+    id: course-card-${COURSE_ID}
+- extendedWaitUntil:
+    visible:
+      id: button-start-learning
+    timeout: 30000

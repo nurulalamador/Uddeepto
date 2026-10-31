@@ -229,11 +229,11 @@ function Generator({ profile, saved, reloadSaved }: { profile: any; saved: Saved
         <View style={{ flex: 1, backgroundColor: "#fff" }}>
           <View style={styles.previewHead}>
             <Text style={styles.heading}>Preview</Text>
-            <Pressable onPress={() => setPreview(false)} hitSlop={10}>
+            <Pressable testID="cv-preview-close" accessibilityLabel="Close preview" onPress={() => setPreview(false)} hitSlop={10}>
               <Ionicons name="close" size={26} color={colors.text} />
             </Pressable>
           </View>
-          <WebView originWhitelist={["*"]} source={{ html: cvHtml(template, cv) }} style={{ flex: 1 }} scalesPageToFit />
+          <WebView testID="cv-preview" originWhitelist={["*"]} source={{ html: cvHtml(template, cv) }} style={{ flex: 1 }} scalesPageToFit />
         </View>
       </Modal>
     </KeyboardAvoidingView>
@@ -260,8 +260,8 @@ function ListSection<T>({ title, rows, onChange, blank, children, empty, addLabe
         const label = Object.values(row as any).find((value) => typeof value === "string" && value) as string | undefined;
         const isOpen = open === index;
         return (
-          <View key={index} style={styles.row}>
-            <Pressable onPress={() => setOpen(isOpen ? null : index)} style={styles.rowHead}>
+          <View testID={`cv-${title.toLowerCase()}-row-${index}`} key={index} style={styles.row}>
+            <Pressable testID={`cv-${title.toLowerCase()}-toggle-${index}`} onPress={() => setOpen(isOpen ? null : index)} style={styles.rowHead}>
               <Text style={{ flex: 1, fontWeight: "700", color: colors.text }} numberOfLines={1}>
                 {label || `${title} ${index + 1}`}
               </Text>
@@ -271,9 +271,9 @@ function ListSection<T>({ title, rows, onChange, blank, children, empty, addLabe
               <View style={{ gap: 10, paddingTop: 10 }}>
                 {children(row, (patch) => onChange(rows.map((item, position) => (position === index ? { ...item, ...patch } : item))))}
                 <View style={styles.actions}>
-                  <Button label="Up" icon="arrow-up" kind="secondary" onPress={() => move(index, index - 1)} style={{ flex: 1 }} />
-                  <Button label="Down" icon="arrow-down" kind="secondary" onPress={() => move(index, index + 1)} style={{ flex: 1 }} />
-                  <Button label="Delete" icon="trash-outline" kind="danger" onPress={() => onChange(rows.filter((_, position) => position !== index))} style={{ flex: 1 }} />
+                  <Button testID={`cv-${title.toLowerCase()}-up-${index}`} label="Up" icon="arrow-up" kind="secondary" onPress={() => move(index, index - 1)} style={{ flex: 1 }} />
+                  <Button testID={`cv-${title.toLowerCase()}-down-${index}`} label="Down" icon="arrow-down" kind="secondary" onPress={() => move(index, index + 1)} style={{ flex: 1 }} />
+                  <Button testID={`cv-${title.toLowerCase()}-delete-${index}`} label="Delete" icon="trash-outline" kind="danger" onPress={() => onChange(rows.filter((_, position) => position !== index))} style={{ flex: 1 }} />
                 </View>
               </View>
             ) : null}

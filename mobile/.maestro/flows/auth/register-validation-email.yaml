@@ -1,0 +1,39 @@
+appId: com.kodofact.uddeepto
+name: M010 Registration rejects an invalid email
+tags:
+  - android
+  - auth
+---
+- runFlow:
+    file: ../../helpers/reset.yaml
+- tapOn:
+    text: Create an account
+- scrollUntilVisible:
+    element:
+      id: input-full-name
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: input-full-name
+- eraseText
+- inputText: Maestro Example
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: input-email
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: input-email
+- eraseText
+- inputText: not-an-email
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: button-create-account
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: button-create-account
+- assertVisible:
+    text: Enter a valid email address.

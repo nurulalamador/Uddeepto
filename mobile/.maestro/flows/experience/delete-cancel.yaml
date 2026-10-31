@@ -1,0 +1,42 @@
+appId: com.kodofact.uddeepto
+name: M133 Cancelling experience deletion keeps the record
+tags:
+  - android
+  - experience
+---
+- runScript:
+    file: ../../scripts/prepare-case.js
+    env:
+      SCENARIO: experience-existing
+      ACTOR_ROLE: learner
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${output.actorUsername}
+- openLink:
+    link: uddeepto://experience
+- extendedWaitUntil:
+    visible:
+      id: button-add-experience
+    timeout: 30000
+- tapOn:
+    id: entry-experience-${output.entryId}
+- extendedWaitUntil:
+    visible:
+      id: input-job-title
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: button-delete
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: button-delete
+- tapOn:
+    text: Cancel
+- tapOn:
+    id: entry-form-close
+- extendedWaitUntil:
+    visible:
+      id: entry-experience-${output.entryId}
+    timeout: 30000

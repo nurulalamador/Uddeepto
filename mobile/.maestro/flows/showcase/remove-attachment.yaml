@@ -1,0 +1,29 @@
+appId: com.kodofact.uddeepto
+name: M039 Selected picture can be removed before publishing
+tags:
+  - android
+  - showcase
+  - media
+---
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${SHOWCASE_USERNAME}
+- addMedia:
+    - ../../assets/showcase-photo.png
+- openLink:
+    link: uddeepto://new-post
+- extendedWaitUntil:
+    visible:
+      id: input-what-do-you-want-to-share
+    timeout: 30000
+- tapOn:
+    id: button-pictures
+- runFlow:
+    file: ../../helpers/pick-image.yaml
+- tapOn:
+    text: Remove attachment
+- assertNotVisible:
+    id: attachment-0
+- assertVisible:
+    id: button-pictures

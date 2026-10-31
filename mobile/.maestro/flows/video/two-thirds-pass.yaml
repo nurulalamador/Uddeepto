@@ -1,0 +1,56 @@
+appId: com.kodofact.uddeepto
+name: M236 Two correct answers out of three pass the video checkpoint
+tags:
+  - android
+  - video
+  - writes
+  - media
+---
+- runScript:
+    file: ../../scripts/prepare-case.js
+    env:
+      SCENARIO: video-quiz
+      ACTOR_ROLE: learner
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${output.actorUsername}
+- openLink:
+    link: uddeepto://course/${VIDEO_COURSE_ID}/${VIDEO_MATERIAL_ID}
+- extendedWaitUntil:
+    visible:
+      id: quiz-video
+    timeout: 30000
+- runFlow:
+    file: ../../helpers/play-quiz.yaml
+- scrollUntilVisible:
+    element:
+      id: quiz-option-0-0
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: quiz-option-0-0
+- scrollUntilVisible:
+    element:
+      id: quiz-option-1-0
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: quiz-option-1-0
+- scrollUntilVisible:
+    element:
+      id: quiz-option-2-1
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: quiz-option-2-1
+- tapOn:
+    id: button-submit-answers
+- extendedWaitUntil:
+    visible:
+      id: button-continue-watching
+    timeout: 30000
+- assertVisible:
+    text: 2 of 3 correct.*
+- assertNotVisible:
+    id: button-watch-again

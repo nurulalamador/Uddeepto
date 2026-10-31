@@ -1,0 +1,27 @@
+appId: com.kodofact.uddeepto
+name: M169 Webinar speaker opens the instructor profile
+tags:
+  - android
+  - events
+---
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${LEARNER_USERNAME}
+- openLink:
+    link: uddeepto://webinar/${WEBINAR_ID}
+- extendedWaitUntil:
+    visible:
+      text: Upcoming API Webinar
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      text: Dr. Iris Instructor
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    text: Dr. Iris Instructor
+- extendedWaitUntil:
+    visible:
+      text: INSTRUCTOR
+    timeout: 30000

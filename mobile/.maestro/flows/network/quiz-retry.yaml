@@ -1,0 +1,46 @@
+appId: com.kodofact.uddeepto
+name: M259 Quiz fetch failure can be retried without skipping the checkpoint
+tags:
+  - android
+  - network
+  - media
+onFlowStart:
+  - runScript: ../../scripts/clear-faults.js
+onFlowComplete:
+  - runScript: ../../scripts/clear-faults.js
+---
+- runScript:
+    file: ../../scripts/prepare-case.js
+    env:
+      SCENARIO: video-quiz
+      ACTOR_ROLE: learner
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${output.actorUsername}
+- openLink:
+    link: uddeepto://course/${VIDEO_COURSE_ID}/${VIDEO_MATERIAL_ID}
+- extendedWaitUntil:
+    visible:
+      id: quiz-video
+    timeout: 30000
+- runScript:
+    file: ../../scripts/set-faults.js
+    env:
+      FAULTS: '[{"method":"GET","path":"/api/v1/frontend/courses/${VIDEO_COURSE_ID}/materials/${VIDEO_MATERIAL_ID}/quiz/1","mode":"status","status":503,"times":4,"message":"Maestro quiz temporarily unavailable"}]'
+- runFlow:
+    file: ../../helpers/play-quiz.yaml
+- extendedWaitUntil:
+    visible:
+      id: button-try-again
+    timeout: 30000
+- runScript: ../../scripts/clear-faults.js
+- tapOn:
+    id: button-try-again
+- extendedWaitUntil:
+    visible:
+      id: quiz-option-0-0
+    timeout: 30000
+- assertVisible:
+    id: button-submit-answers
+    enabled: false

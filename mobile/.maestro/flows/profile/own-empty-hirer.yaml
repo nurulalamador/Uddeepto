@@ -1,0 +1,23 @@
+appId: com.kodofact.uddeepto
+name: M026 Own empty hirer profile explains missing jobs
+tags:
+  - android
+  - profile
+---
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${EMPTY_HIRER_USERNAME}
+- tapOn:
+    id: tab-profile
+- extendedWaitUntil:
+    visible:
+      text: UDDEEPTO ID
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      text: Your open job posts will be listed here.
+    direction: DOWN
+    timeout: 30000
+- assertVisible:
+    text: Active job posts

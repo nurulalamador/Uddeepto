@@ -1,0 +1,26 @@
+appId: com.kodofact.uddeepto
+name: M042 Cancelling post deletion keeps the post
+tags:
+  - android
+  - showcase
+---
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${SHOWCASE_USERNAME}
+- openLink:
+    link: uddeepto://post/${OWN_POST_ID}
+- extendedWaitUntil:
+    visible:
+      id: post-card-${OWN_POST_ID}
+    timeout: 30000
+- tapOn:
+    text: More options
+- tapOn:
+    id: button-delete-post
+- assertVisible:
+    text: Delete this post?
+- tapOn:
+    text: Cancel
+- assertVisible:
+    id: post-card-${OWN_POST_ID}

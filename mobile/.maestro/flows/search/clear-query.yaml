@@ -1,0 +1,36 @@
+appId: com.kodofact.uddeepto
+name: M101 Clearing a query returns search to its initial state
+tags:
+  - android
+  - search
+---
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${LEARNER_USERNAME}
+- tapOn:
+    id: icon-search
+- extendedWaitUntil:
+    visible:
+      id: global-search
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: global-search
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: global-search
+- eraseText
+- inputText: ${HIRER_NAME}
+- hideKeyboard
+- extendedWaitUntil:
+    visible:
+      id: search-result-users-${HIRER_ID}
+    timeout: 30000
+- tapOn:
+    id: search-clear
+- assertVisible:
+    text: Type at least two letters to search.
+- assertNotVisible:
+    id: search-result-users-${HIRER_ID}

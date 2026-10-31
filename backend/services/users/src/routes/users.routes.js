@@ -1,0 +1,14 @@
+import { listInterests, createInterest, getCurrentUser, updateCurrentUser, updateProfilePicture, getProfilePicture, updateUserInterests, getUserById, listUsers } from "../controllers/users.controller.js";
+import { auth, allow, upload } from "@uddeepto/common";
+import express from "express";
+const router = express.Router();
+router.get("/interests", listInterests);
+router.post("/interests", auth(), allow("admin"), createInterest);
+router.get("/me", auth(), getCurrentUser);
+router.patch("/me", auth(), updateCurrentUser);
+router.put("/me/picture", auth(), upload.single("picture"), updateProfilePicture);
+router.get("/:id/picture", getProfilePicture);
+router.put("/me/interests", auth(), updateUserInterests);
+router.get("/:id", auth(false), getUserById);
+router.get("/", auth(), allow("admin", "moderator"), listUsers);
+export default router;

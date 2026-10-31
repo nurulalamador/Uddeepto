@@ -1,0 +1,45 @@
+appId: com.kodofact.uddeepto
+name: M145 Post appreciation survives reopening the post
+tags:
+  - android
+  - showcase
+  - writes
+---
+- runScript:
+    file: ../../scripts/prepare-case.js
+    env:
+      SCENARIO: post-other
+      ACTOR_ROLE: learner
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${output.actorUsername}
+- openLink:
+    link: uddeepto://post/${output.postId}
+- extendedWaitUntil:
+    visible:
+      id: post-card-${output.postId}
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: post-appreciate-${output.postId}
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: post-appreciate-${output.postId}
+- assertVisible:
+    text: Remove appreciation
+- back
+- openLink:
+    link: uddeepto://post/${output.postId}
+- extendedWaitUntil:
+    visible:
+      id: post-card-${output.postId}
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: post-appreciate-${output.postId}
+    direction: DOWN
+    timeout: 30000
+- assertVisible:
+    text: Remove appreciation

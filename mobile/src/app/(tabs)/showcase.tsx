@@ -1,21 +1,24 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FlatList, Pressable, StyleSheet, View } from "react-native";
-import { useRouter } from "expo-router";
+import { useNavigation, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { colors } from "@/lib/config";
-import { useAuth } from "@/lib/auth";
 import { useCategories, useDebounced, usePaged } from "@/lib/hooks";
 import { Dropdown, Empty, ErrorBox, FilterBar, Loading, Text } from "@/components/ui";
 import { PostCard, type Post } from "@/components/post-card";
 
 export default function ShowcaseTab() {
   const router = useRouter();
-  const { user } = useAuth();
+  const navigation = useNavigation();
   const [category, setCategory] = useState("");
   const [text, setText] = useState("");
   const query = useDebounced(text.trim());
   const categories = useCategories();
   const feed = usePaged<Post>(`frontend/showcase?category=${category}&q=${encodeURIComponent(query)}`);
+  const { reload } = feed;
+
+  // Returning from the composer or a post refreshes the retained tab's feed.
+  useEffect(() => navigation.addListener("focus", () => { void reload(); }), [navigation, reload]);
 
   return (
     <View style={{ flex: 1 }}>

@@ -1,0 +1,23 @@
+appId: com.kodofact.uddeepto
+name: M184 Hirer with no applications sees the empty state
+tags:
+  - android
+  - jobs
+---
+- runScript:
+    file: ../../scripts/prepare-case.js
+    env:
+      SCENARIO: basic
+      ACTOR_ROLE: hirer
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${output.actorUsername}
+- tapOn:
+    id: tab-hiring
+- tapOn:
+    id: top-tab-applicants
+- extendedWaitUntil:
+    visible:
+      text: No applicants yet
+    timeout: 30000

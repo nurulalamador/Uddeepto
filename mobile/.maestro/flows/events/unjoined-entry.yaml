@@ -1,0 +1,29 @@
+appId: com.kodofact.uddeepto
+name: M165 Contest entry tab requires membership
+tags:
+  - android
+  - events
+---
+- runScript:
+    file: ../../scripts/prepare-case.js
+    env:
+      SCENARIO: basic
+      ACTOR_ROLE: learner
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${output.actorUsername}
+- openLink:
+    link: uddeepto://contest/${CONTEST_ID}
+- extendedWaitUntil:
+    visible:
+      id: top-tab-entry
+    timeout: 30000
+- tapOn:
+    id: top-tab-entry
+- extendedWaitUntil:
+    visible:
+      text: Join the contest first to send an entry.
+    timeout: 30000
+- assertNotVisible:
+    id: button-submit-entry

@@ -1,0 +1,48 @@
+appId: com.kodofact.uddeepto
+name: M220 Confirmed CV reset restores profile values
+tags:
+  - android
+  - cv-ai
+---
+- runScript:
+    file: ../../scripts/prepare-case.js
+    env:
+      SCENARIO: basic
+      ACTOR_ROLE: learner
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${output.actorUsername}
+- openLink:
+    link: uddeepto://cv
+- extendedWaitUntil:
+    visible:
+      text: Your current CV
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: input-full-name
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: input-full-name
+- eraseText
+- inputText: Unsaved CV Name
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: button-start-again-from-my-profile
+    direction: UP
+    timeout: 30000
+- tapOn:
+    id: button-start-again-from-my-profile
+- tapOn:
+    text: Replace
+- scrollUntilVisible:
+    element:
+      id: input-full-name
+    direction: DOWN
+    timeout: 30000
+- assertVisible:
+    id: input-full-name
+    text: ${output.actorName}

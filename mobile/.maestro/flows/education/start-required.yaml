@@ -1,0 +1,46 @@
+appId: com.kodofact.uddeepto
+name: M116 education requires a start month
+tags:
+  - android
+  - education
+---
+- runScript:
+    file: ../../scripts/prepare-case.js
+    env:
+      SCENARIO: basic
+      ACTOR_ROLE: learner
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${output.actorUsername}
+- openLink:
+    link: uddeepto://education
+- extendedWaitUntil:
+    visible:
+      id: button-add-education
+    timeout: 30000
+- tapOn:
+    id: button-add-education
+- extendedWaitUntil:
+    visible:
+      id: input-institution
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: input-institution
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: input-institution
+- eraseText
+- inputText: Maestro entry ${output.unique}
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: button-save
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: button-save
+- assertVisible:
+    text: Choose when you started.

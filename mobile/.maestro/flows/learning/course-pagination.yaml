@@ -1,0 +1,41 @@
+appId: com.kodofact.uddeepto
+name: M155 Course catalog pagination loads a second page
+tags:
+  - android
+  - learning
+  - writes
+---
+- runScript:
+    file: ../../scripts/prepare-case.js
+    env:
+      SCENARIO: pagination-courses
+      ACTOR_ROLE: learner
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${output.actorUsername}
+- tapOn:
+    id: tab-courses
+- extendedWaitUntil:
+    visible:
+      id: filter-search
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: filter-search
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: filter-search
+- eraseText
+- inputText: ${output.batchPrefix}
+- hideKeyboard
+- extendedWaitUntil:
+    visible:
+      id: course-card-${output.pageFirstId}
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: course-card-${output.pageLastId}
+    direction: DOWN
+    timeout: 30000

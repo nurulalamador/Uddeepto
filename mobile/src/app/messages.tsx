@@ -108,7 +108,7 @@ function NewMessage({ onClose }: { onClose: () => void }) {
     <View style={{ flex: 1, padding: 14, gap: 10 }}>
       <View style={styles.search}>
         <Ionicons name="search-outline" size={18} color={colors.muted} />
-        <TextInput autoFocus value={text} onChangeText={setText} placeholder="Search for a person…" placeholderTextColor="#9aa7a0" style={styles.searchInput} autoCorrect={false} />
+        <TextInput testID="people-search" autoFocus value={text} onChangeText={setText} placeholder="Search for a person…" placeholderTextColor="#9aa7a0" style={styles.searchInput} autoCorrect={false} />
         <Text style={styles.cancel} onPress={onClose}>
           Cancel
         </Text>
@@ -126,7 +126,7 @@ function NewMessage({ onClose }: { onClose: () => void }) {
           contentContainerStyle={{ gap: 8 }}
           ListEmptyComponent={<Empty icon="person-outline" title="Nobody found" />}
           renderItem={({ item }) => (
-            <Card onPress={() => start(item)} style={styles.row}>
+            <Card testID={`person-${item.id}`} onPress={() => start(item)} style={styles.row}>
               <Avatar id={item.id} name={item.name} hasPicture={item.has_picture} size={40} />
               <View style={{ flex: 1 }}>
                 <Text style={styles.name}>{item.name}</Text>

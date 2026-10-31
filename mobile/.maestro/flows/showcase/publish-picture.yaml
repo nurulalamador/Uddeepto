@@ -1,0 +1,99 @@
+appId: com.kodofact.uddeepto
+name: M038 Photo upload publishes and survives opening the post
+tags:
+  - android
+  - showcase
+  - writes
+  - media
+  - regression
+---
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${SHOWCASE_USERNAME}
+- addMedia:
+    - ../../assets/showcase-photo.png
+- tapOn:
+    id: tab-showcase
+- tapOn:
+    text: Create a post
+- extendedWaitUntil:
+    visible:
+      id: input-what-do-you-want-to-share
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: input-what-do-you-want-to-share
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: input-what-do-you-want-to-share
+- eraseText
+- inputText: Maestro photo ${RUN_ID}
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: dropdown-interest
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: dropdown-interest
+- tapOn:
+    id: option-${CATEGORY_ID}
+- tapOn:
+    id: button-pictures
+- runFlow:
+    file: ../../helpers/pick-image.yaml
+- scrollUntilVisible:
+    element:
+      id: button-publish-post
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: button-publish-post
+- extendedWaitUntil:
+    visible:
+      id: filter-search
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: filter-search
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: filter-search
+- eraseText
+- inputText: Maestro photo ${RUN_ID}
+- hideKeyboard
+- extendedWaitUntil:
+    visible:
+      text: Maestro photo ${RUN_ID}
+    timeout: 30000
+- tapOn:
+    text: Maestro photo ${RUN_ID}
+- extendedWaitUntil:
+    visible:
+      id: post-image-.*
+    timeout: 30000
+- stopApp
+- launchApp
+- extendedWaitUntil:
+    visible:
+      id: tab-index
+    timeout: 30000
+- tapOn:
+    id: tab-showcase
+- scrollUntilVisible:
+    element:
+      id: filter-search
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: filter-search
+- eraseText
+- inputText: Maestro photo ${RUN_ID}
+- hideKeyboard
+- extendedWaitUntil:
+    visible:
+      id: post-image-.*
+    timeout: 30000

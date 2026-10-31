@@ -1,3 +1,4 @@
+import { loadBackendService } from "./load-backend.js";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
@@ -8,6 +9,9 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { io as connect } from "socket.io-client";
 import { db, query, server } from "./harness.js";
+import http from "node:http";
+import { createGatewayApp } from "../../backend/infrastructure/gateway/src/app.js";
+import { createBalancer } from "../../backend/infrastructure/loadbalancer/src/balancer.js";
 
 const sqlFile = (name) => readFile(new URL(`../../backend/database/${name}`, import.meta.url), "utf8");
 
@@ -19,15 +23,28 @@ test("live updates over Socket.IO: auth, notifications, messages, community chat
     await db.exec(await sqlFile(file));
   process.env.UPLOAD_DIR = mkdtempSync(join(tmpdir(), "uddeepto-uploads-"));
 
-  let source = await readFile(new URL("../../backend/services/frontend/src/server.js", import.meta.url), "utf8");
-  source = source
-    .replace(/import bcrypt from ['"]bcryptjs['"];/, () => "const bcrypt={hash:async value=>'test-only:'+value};")
-    .replace(/(['"])@uddeepto\/common\1/, () => JSON.stringify(new URL("./harness.js", import.meta.url).href))
-    .replace(/(['"])express\1/, () => JSON.stringify(import.meta.resolve("express")))
-    .replace(/(['"])zod\1/, () => JSON.stringify(import.meta.resolve("zod")));
-  await import("data:text/javascript;base64," + Buffer.from(source).toString("base64"));
+  await loadBackendService("frontend");
   await once(server, "listening");
   const base = `http://127.0.0.1:${server.address().port}`;
+  const gateways = [];
+  const targets = [];
+  for (const instance of ["gateway-1", "gateway-2"]) {
+    const { app, upgrade } = createGatewayApp({
+      instance, origins: [], services: {}, frontendApiUrl: base,
+    });
+    const gateway = http.createServer(app);
+    gateway.on("upgrade", upgrade);
+    gateway.listen(0, "127.0.0.1");
+    await once(gateway, "listening");
+    gateways.push(gateway);
+    targets.push(`http://127.0.0.1:${gateway.address().port}`);
+  }
+  const balancer = createBalancer({ targets, log: () => {} });
+  const entry = http.createServer((req, res) => balancer.handle(req, res));
+  entry.on("upgrade", (req, socket, head) => balancer.upgrade(req, socket, head));
+  entry.listen(0, "127.0.0.1");
+  await once(entry, "listening");
+  const socketBase = `http://127.0.0.1:${entry.address().port}`;
 
   const ids = {};
   for (const [name, role] of [["Poster", "learner"], ["Fan", "learner"], ["Third", "learner"], ["Banned", "learner"]])
@@ -48,7 +65,7 @@ test("live updates over Socket.IO: auth, notifications, messages, community chat
   const sockets = [];
   // Connects like the browser does: the "ticket" is the person's id in these tests.
   async function open(ticket) {
-    const socket = connect(base, { transports: ["websocket"], auth: { ticket }, reconnection: false, forceNew: true });
+    const socket = connect(socketBase, { transports: ["websocket"], auth: { ticket }, reconnection: false, forceNew: true });
     sockets.push(socket);
     await new Promise((resolve, reject) => {
       socket.once("connect", resolve);
@@ -211,6 +228,11 @@ test("live updates over Socket.IO: auth, notifications, messages, community chat
     });
   } finally {
     for (const socket of sockets) socket.disconnect();
+    balancer.stop();
+    await Promise.all([entry, ...gateways].map(proxy => new Promise(resolve => {
+      proxy.closeAllConnections();
+      proxy.close(resolve);
+    })));
     await new Promise((resolve) => server.close(resolve));
     await db.close();
   }

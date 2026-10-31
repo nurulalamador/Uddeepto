@@ -1,0 +1,25 @@
+appId: com.kodofact.uddeepto
+name: M055 Hirer job form requires a title and description
+tags:
+  - android
+  - jobs
+---
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${PUBLISH_HIRER_USERNAME}
+- openLink:
+    link: uddeepto://job-post
+- extendedWaitUntil:
+    visible:
+      id: input-job-title
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: button-post-this-job
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: button-post-this-job
+- assertVisible:
+    text: Enter a title and a description.

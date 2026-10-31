@@ -67,6 +67,7 @@ export default function TabsLayout() {
           name={item.name}
           options={{
             title: item.title,
+            tabBarButtonTestID: `tab-${item.name}`,
             href: item.roles.includes(role) ? undefined : null,
             headerTitle: () => <HeaderTitle>{item.title}</HeaderTitle>,
             tabBarIcon: ({ color, focused, size }) => <Ionicons name={focused ? item.focused : item.icon} size={size} color={color as string} />,

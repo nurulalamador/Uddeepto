@@ -1,0 +1,130 @@
+appId: com.kodofact.uddeepto
+name: M131 Current experience entry is saved and can be reopened
+tags:
+  - android
+  - experience
+  - writes
+---
+- runScript:
+    file: ../../scripts/prepare-case.js
+    env:
+      SCENARIO: basic
+      ACTOR_ROLE: learner
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${output.actorUsername}
+- openLink:
+    link: uddeepto://experience
+- extendedWaitUntil:
+    visible:
+      id: button-add-experience
+    timeout: 30000
+- tapOn:
+    id: button-add-experience
+- extendedWaitUntil:
+    visible:
+      id: input-job-title
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: input-job-title
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: input-job-title
+- eraseText
+- inputText: Maestro entry ${output.unique}
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: input-workplace
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: input-workplace
+- eraseText
+- inputText: Maestro Labs
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: dropdown-interest-category
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: dropdown-interest-category
+- repeat:
+    times: 12
+    while:
+      notVisible:
+        id: option-${CATEGORY_ID}
+    commands:
+      - swipe:
+          from:
+            id: option-list
+          direction: UP
+          duration: 400
+- tapOn:
+    id: option-${CATEGORY_ID}
+- scrollUntilVisible:
+    element:
+      id: date-start-year
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: date-start-year
+- scrollUntilVisible:
+    element:
+      id: option-search
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: option-search
+- eraseText
+- inputText: ${PAST_YEAR}
+- hideKeyboard
+- tapOn:
+    id: option-${PAST_YEAR}
+- scrollUntilVisible:
+    element:
+      id: experience-current
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: experience-current
+- assertNotVisible:
+    id: date-end-month
+- scrollUntilVisible:
+    element:
+      id: button-save
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: button-save
+- extendedWaitUntil:
+    visible:
+      id: entry-experience-.*
+    timeout: 30000
+- stopApp
+- launchApp
+- extendedWaitUntil:
+    visible:
+      id: tab-index
+    timeout: 30000
+- openLink:
+    link: uddeepto://experience
+- extendedWaitUntil:
+    visible:
+      id: button-add-experience
+    timeout: 30000
+- tapOn:
+    id: entry-experience-.*
+- extendedWaitUntil:
+    visible:
+      id: input-job-title
+    timeout: 30000
+- assertVisible:
+    id: input-job-title
+    text: Maestro entry ${output.unique}
+- assertNotVisible:
+    id: date-end-month

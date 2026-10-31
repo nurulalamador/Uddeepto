@@ -1,0 +1,42 @@
+appId: com.kodofact.uddeepto
+name: M142 Deleting an owned post removes it and reopening shows an error
+tags:
+  - android
+  - showcase
+  - writes
+---
+- runScript:
+    file: ../../scripts/prepare-case.js
+    env:
+      SCENARIO: post-own
+      ACTOR_ROLE: learner
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${output.actorUsername}
+- tapOn:
+    id: tab-showcase
+- openLink:
+    link: uddeepto://post/${output.postId}
+- extendedWaitUntil:
+    visible:
+      id: post-card-${output.postId}
+    timeout: 30000
+- tapOn:
+    id: post-menu-${output.postId}
+- tapOn:
+    id: button-delete-post
+- tapOn:
+    text: Delete
+- extendedWaitUntil:
+    visible:
+      id: filter-search
+    timeout: 30000
+- openLink:
+    link: uddeepto://post/${output.postId}
+- extendedWaitUntil:
+    visible:
+      id: button-try-again
+    timeout: 30000
+- assertNotVisible:
+    id: post-card-${output.postId}

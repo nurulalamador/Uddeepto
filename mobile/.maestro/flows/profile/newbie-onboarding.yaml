@@ -1,0 +1,50 @@
+appId: com.kodofact.uddeepto
+name: M032 A learner with no interests can complete onboarding
+tags:
+  - android
+  - profile
+  - writes
+---
+- runFlow:
+    file: ../../helpers/reset.yaml
+- runFlow:
+    file: ../../helpers/credentials.yaml
+    env:
+      USERNAME: ${NEWBIE_USERNAME}
+      LOGIN_PASSWORD: ${PASSWORD}
+- extendedWaitUntil:
+    visible:
+      id: tab-index
+    timeout: 30000
+- openLink:
+    link: uddeepto://interests
+- extendedWaitUntil:
+    visible:
+      text: What are you into\?
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: interests-save
+    direction: DOWN
+    timeout: 30000
+- assertVisible:
+    id: interests-save
+    enabled: false
+- scrollUntilVisible:
+    element:
+      id: interest-${CATEGORY_ID}
+    direction: UP
+    timeout: 30000
+- tapOn:
+    id: interest-${CATEGORY_ID}
+- scrollUntilVisible:
+    element:
+      id: interests-save
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: interests-save
+- extendedWaitUntil:
+    visible:
+      id: tab-index
+    timeout: 30000

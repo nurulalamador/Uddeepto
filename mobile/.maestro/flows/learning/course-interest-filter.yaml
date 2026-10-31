@@ -1,0 +1,42 @@
+appId: com.kodofact.uddeepto
+name: M152 Course interest filter excludes unrelated courses
+tags:
+  - android
+  - learning
+---
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${LEARNER_USERNAME}
+- tapOn:
+    id: tab-courses
+- extendedWaitUntil:
+    visible:
+      id: filter-search
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: dropdown-all-interests
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: dropdown-all-interests
+- repeat:
+    times: 12
+    while:
+      notVisible:
+        id: option-${DESIGN_ID}
+    commands:
+      - swipe:
+          from:
+            id: option-list
+          direction: UP
+          duration: 400
+- tapOn:
+    id: option-${DESIGN_ID}
+- extendedWaitUntil:
+    visible:
+      id: course-card-${CSS_COURSE_ID}
+    timeout: 30000
+- assertNotVisible:
+    id: course-card-${COURSE_ID}

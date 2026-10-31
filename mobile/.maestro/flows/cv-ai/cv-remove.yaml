@@ -1,0 +1,46 @@
+appId: com.kodofact.uddeepto
+name: M224 Current CV removal persists after reopening
+tags:
+  - android
+  - cv-ai
+  - writes
+---
+- runScript:
+    file: ../../scripts/prepare-case.js
+    env:
+      SCENARIO: cv-existing
+      ACTOR_ROLE: learner
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${output.actorUsername}
+- openLink:
+    link: uddeepto://cv
+- extendedWaitUntil:
+    visible:
+      text: Your current CV
+    timeout: 30000
+- tapOn:
+    id: button-remove
+- tapOn:
+    text: Remove
+- extendedWaitUntil:
+    visible:
+      text: Your CV was removed.
+    timeout: 30000
+- stopApp
+- launchApp
+- extendedWaitUntil:
+    visible:
+      id: tab-index
+    timeout: 30000
+- openLink:
+    link: uddeepto://cv
+- extendedWaitUntil:
+    visible:
+      text: Your current CV
+    timeout: 30000
+- assertVisible:
+    text: You have no CV yet. Make one below, or upload a PDF.
+- assertNotVisible:
+    id: button-view-share

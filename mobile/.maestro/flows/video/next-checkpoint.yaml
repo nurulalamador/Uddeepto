@@ -1,0 +1,37 @@
+appId: com.kodofact.uddeepto
+name: M237 Passing a checkpoint allows playback until the next check
+tags:
+  - android
+  - video
+  - writes
+  - media
+---
+- runScript:
+    file: ../../scripts/prepare-case.js
+    env:
+      SCENARIO: video-quiz
+      ACTOR_ROLE: learner
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${output.actorUsername}
+- openLink:
+    link: uddeepto://course/${VIDEO_COURSE_ID}/${VIDEO_MATERIAL_ID}
+- extendedWaitUntil:
+    visible:
+      id: quiz-video
+    timeout: 30000
+- runFlow:
+    file: ../../helpers/play-quiz.yaml
+- runFlow:
+    file: ../../helpers/answer-quiz.yaml
+- extendedWaitUntil:
+    visible:
+      id: button-continue-watching
+    timeout: 30000
+- tapOn:
+    id: button-continue-watching
+- extendedWaitUntil:
+    visible:
+      text: Quick check · 2 of 3
+    timeout: 30000

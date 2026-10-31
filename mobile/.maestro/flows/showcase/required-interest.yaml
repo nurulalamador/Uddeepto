@@ -1,0 +1,37 @@
+appId: com.kodofact.uddeepto
+name: M035 Post composer requires an interest
+tags:
+  - android
+  - showcase
+---
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${SHOWCASE_USERNAME}
+- tapOn:
+    id: tab-showcase
+- tapOn:
+    text: Create a post
+- extendedWaitUntil:
+    visible:
+      id: input-what-do-you-want-to-share
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: input-what-do-you-want-to-share
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: input-what-do-you-want-to-share
+- eraseText
+- inputText: Maestro validation post
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: button-publish-post
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: button-publish-post
+- assertVisible:
+    text: Choose an interest for your post.

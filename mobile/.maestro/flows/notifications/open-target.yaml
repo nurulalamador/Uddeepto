@@ -1,0 +1,24 @@
+appId: com.kodofact.uddeepto
+name: M068 A notification opens its linked job
+tags:
+  - android
+  - notifications
+---
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${NOTIFY_USERNAME}
+- tapOn:
+    id: icon-notifications
+- extendedWaitUntil:
+    visible:
+      text: Maestro job notification
+    timeout: 30000
+- tapOn:
+    text: Maestro job notification
+- extendedWaitUntil:
+    visible:
+      text: About the job
+    timeout: 30000
+- assertVisible:
+    text: ${JOB_TITLE}

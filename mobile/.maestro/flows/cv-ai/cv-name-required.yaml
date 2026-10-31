@@ -1,0 +1,49 @@
+appId: com.kodofact.uddeepto
+name: M208 CV cannot be previewed or saved without a name
+tags:
+  - android
+  - cv-ai
+---
+- runScript:
+    file: ../../scripts/prepare-case.js
+    env:
+      SCENARIO: basic
+      ACTOR_ROLE: learner
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${output.actorUsername}
+- openLink:
+    link: uddeepto://cv
+- extendedWaitUntil:
+    visible:
+      text: Your current CV
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: input-full-name
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: input-full-name
+- eraseText
+- inputText: ''
+- hideKeyboard
+- tapOn:
+    id: button-preview
+- scrollUntilVisible:
+    element:
+      text: Add your name first.
+    direction: UP
+    timeout: 30000
+- assertNotVisible:
+    id: cv-preview
+- tapOn:
+    id: button-save-cv
+- scrollUntilVisible:
+    element:
+      text: Add your name first.
+    direction: UP
+    timeout: 30000
+- assertNotVisible:
+    id: cv-preview

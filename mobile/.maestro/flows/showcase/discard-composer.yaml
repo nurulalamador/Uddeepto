@@ -1,0 +1,52 @@
+appId: com.kodofact.uddeepto
+name: M139 Leaving an unsent composer does not create a post
+tags:
+  - android
+  - showcase
+---
+- runScript:
+    file: ../../scripts/prepare-case.js
+    env:
+      SCENARIO: basic
+      ACTOR_ROLE: learner
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${output.actorUsername}
+- tapOn:
+    id: tab-showcase
+- tapOn:
+    text: Create a post
+- extendedWaitUntil:
+    visible:
+      id: input-what-do-you-want-to-share
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: input-what-do-you-want-to-share
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: input-what-do-you-want-to-share
+- eraseText
+- inputText: Unsaved post ${output.unique}
+- hideKeyboard
+- back
+- extendedWaitUntil:
+    visible:
+      id: filter-search
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: filter-search
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: filter-search
+- eraseText
+- inputText: Unsaved post ${output.unique}
+- hideKeyboard
+- extendedWaitUntil:
+    visible:
+      text: Nothing here yet
+    timeout: 30000

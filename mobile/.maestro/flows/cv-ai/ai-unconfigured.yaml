@@ -1,0 +1,22 @@
+appId: com.kodofact.uddeepto
+name: M076 AI fails clearly when the isolated server has no key
+tags:
+  - android
+  - cv-ai
+---
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${LEARNER_USERNAME}
+- openLink:
+    link: uddeepto://ai
+- extendedWaitUntil:
+    visible:
+      text: What should I learn first?
+    timeout: 30000
+- tapOn:
+    text: What should I learn first?
+- extendedWaitUntil:
+    visible:
+      text: .*not configured.*|.*not available.*
+    timeout: 30000

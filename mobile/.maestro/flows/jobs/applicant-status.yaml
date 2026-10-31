@@ -1,0 +1,70 @@
+appId: com.kodofact.uddeepto
+name: M084 Hirer changes applicant status and it persists
+tags:
+  - android
+  - jobs
+  - writes
+---
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${HIRER_USERNAME}
+- tapOn:
+    id: tab-hiring
+- tapOn:
+    id: top-tab-applicants
+- extendedWaitUntil:
+    visible:
+      id: filter-search
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: filter-search
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: filter-search
+- eraseText
+- inputText: Liam
+- hideKeyboard
+- extendedWaitUntil:
+    visible:
+      text: Liam Learner
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: dropdown-status
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: dropdown-status
+- tapOn:
+    id: option-shortlisted
+- stopApp
+- launchApp
+- extendedWaitUntil:
+    visible:
+      id: tab-index
+    timeout: 30000
+- tapOn:
+    id: tab-hiring
+- tapOn:
+    id: top-tab-applicants
+- extendedWaitUntil:
+    visible:
+      id: filter-search
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: filter-search
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: filter-search
+- eraseText
+- inputText: Liam
+- hideKeyboard
+- extendedWaitUntil:
+    visible:
+      text: Shortlisted
+    timeout: 30000

@@ -1,0 +1,12 @@
+appId: com.kodofact.uddeepto
+name: Login with a configured fixture actor
+---
+- runFlow: reset.yaml
+- runFlow:
+    file: credentials.yaml
+    env:
+      LOGIN_PASSWORD: ${PASSWORD}
+- extendedWaitUntil:
+    visible:
+      id: tab-index
+    timeout: 30000

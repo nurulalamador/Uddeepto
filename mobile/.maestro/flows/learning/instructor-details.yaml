@@ -1,0 +1,38 @@
+appId: com.kodofact.uddeepto
+name: M158 Course instructor opens and lists published courses
+tags:
+  - android
+  - learning
+---
+- runFlow:
+    file: ../../helpers/login.yaml
+    env:
+      USERNAME: ${LEARNER_USERNAME}
+- openLink:
+    link: uddeepto://course/${COURSE_ID}
+- extendedWaitUntil:
+    visible:
+      text: About this course
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      text: Dr. Iris Instructor
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    text: Dr. Iris Instructor
+- extendedWaitUntil:
+    visible:
+      text: INSTRUCTOR
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: course-card-${COURSE_ID}
+    direction: DOWN
+    timeout: 30000
+- tapOn:
+    id: course-card-${COURSE_ID}
+- extendedWaitUntil:
+    visible:
+      text: About this course
+    timeout: 30000
